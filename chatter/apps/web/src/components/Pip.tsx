@@ -54,8 +54,9 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
   const [showOrientation, setShowOrientation] = useState(false);
   const [requestedAnother, setRequestedAnother] = useState(false);
   const [hintOpen, setHintOpen] = useState(() => {
-    try { return initialReilyHintOpen(workspaceStorage(window.sessionStorage).getItem(REILY_SESSION_KEY)); }
-    catch { return true; }
+    const compact = typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 700px)').matches;
+    try { return initialReilyHintOpen(workspaceStorage(window.sessionStorage).getItem(REILY_SESSION_KEY), compact); }
+    catch { return !compact; }
   });
   const [parked, setParked] = useState(readReilyPocket);
   const characterRef = useRef<HTMLButtonElement>(null);
@@ -186,6 +187,7 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
       >
         {hasRecovery && <span className="reilly-recovery-dot" aria-hidden="true" />}
         <span className="reilly-art" aria-hidden="true" />
+        <span className="compact-help-label" aria-hidden="true">Help</span>
         <span className="reilly-nameplate" aria-hidden="true"><b>Reily</b><small>Newsroom guide</small></span>
       </button>
     </aside>

@@ -16,6 +16,11 @@ describe('Reily hint session', () => {
     expect(initialReilyHintOpen('seen')).toBe(false);
   });
 
+  it('leaves the workspace clear on a phone, with help still available on request', () => {
+    expect(initialReilyHintOpen(null, true)).toBe(false);
+    expect(reduceReilyHint(initialReilyHintOpen(null, true), 'ASK')).toBe(true);
+  });
+
   it('keeps a dismissed hint closed when the room changes', () => {
     const dismissed = reduceReilyHint(true, 'DISMISS');
     expect(reduceReilyHint(dismissed, 'ROOM_CHANGED')).toBe(false);

@@ -190,7 +190,8 @@ export function Studio({ stories, me }: { stories: Story[]; me?: User }) {
   const [selectedClipId, setSelectedClipId] = useState<string>();
   const [dockTab, setDockTab] = useState<DockTab>('INSTRUMENT');
   const [dockOpen, setDockOpen] = useState(false);
-  const [cabinetOpen, setCabinetOpen] = useState(true);
+  const [cabinetOpen, setCabinetOpen] = useState(() => typeof window === 'undefined' || !window.matchMedia?.('(max-width: 700px)').matches);
+  const [compactToolsOpen, setCompactToolsOpen] = useState(false);
   const [dockHeight, setDockHeight] = useState(270);
   const [clipSelection, setClipSelection] = useState<string[]>([]);
   const [armedTrackId, setArmedTrackId] = useState<string>();
@@ -720,6 +721,8 @@ export function Studio({ stories, me }: { stories: Story[]; me?: User }) {
       if(event.key==='Escape'){setContextMenu(undefined);setClipSelection([]);return;}
       if(event.altKey&&event.code==='KeyX'){event.preventDefault();splitClips();return;}
       if(!command && keyboardEnabled && dockOpen && ['INSTRUMENT','EDITOR'].includes(dockTab) && activeTrack?.kind !== 'AUDIO' && instrumentKeys.some(([code]) => code === event.code)) return;
+      // Let keyboard users activate focused controls before transport shortcuts.
+      if ((event.code === 'Space' || event.code === 'Enter') && (event.target as HTMLElement)?.closest('button, summary, [role="button"]')) return;
       if (event.code === 'Space' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         void togglePlay();
@@ -1936,7 +1939,7 @@ export function Studio({ stories, me }: { stories: Story[]; me?: User }) {
         <button className="save-readout" onClick={()=>persistProject(project)} disabled={!ready} title="Save session again"><i/>{saveStatus}</button>
       </div>
 
-      <div className={`daw-shell ${cabinetOpen?'cabinet-open':''} ${dockOpen?'dock-open':''}`} style={{'--dock-height':`${dockHeight}px`} as React.CSSProperties}>
+      <div data-tools-open={compactToolsOpen} className={`daw-shell ${cabinetOpen?'cabinet-open':''} ${dockOpen?'dock-open':''}`} style={{'--dock-height':`${dockHeight}px`} as React.CSSProperties}>
         <div className="daw-transport" role="toolbar" aria-label="Studio transport">
           <div className="daw-transport-row transport-main-row">
             <button type="button" className="transport-button" onClick={rewind} disabled={!ready} aria-label="Return to start">↤</button>
@@ -1953,9 +1956,10 @@ export function Studio({ stories, me }: { stories: Story[]; me?: User }) {
             <button type="button" className="transport-button text" onClick={undoMidi} disabled={!songHistory.current?.canUndo || editingBusy || !!recording} title="Undo song edit (Ctrl/Cmd Z)">Undo</button>
             <button type="button" className="transport-button text" onClick={redoMidi} disabled={!songHistory.current?.canRedo || editingBusy || !!recording} title="Redo song edit">Redo</button>
             <div className="transport-spacer" />
+            <button type="button" className="compact-studio-tools" aria-expanded={compactToolsOpen} aria-controls="studio-edit-tools" onClick={() => setCompactToolsOpen(open => !open)}>Tools {compactToolsOpen ? '▴' : '▾'}</button>
             <div className="zoom-control"><span>−</span><input aria-label="Timeline zoom" type="range" min="8" max="72" value={pixelsPerBeat} onChange={(event) => setPixelsPerBeat(Number(event.target.value))} /><span>＋</span></div>
           </div>
-          <div className="daw-transport-row transport-tools-row">
+          <div id="studio-edit-tools" className="daw-transport-row transport-tools-row">
             <button onClick={()=>void makeTrack('AUDIO')} disabled={!ready}>＋ Audio track</button>
             <button onClick={()=>{setCabinetOpen(true);}} disabled={!ready}>＋ Instrument</button>
             <button onClick={chooseAudioFile} disabled={!ready}>Import audio</button>
@@ -2031,7 +2035,7 @@ export function Studio({ stories, me }: { stories: Story[]; me?: User }) {
           </section>}
 
           <div className="arrangement-scroll" tabIndex={0} aria-label="Song arrangement" onDragOver={e=>e.preventDefault()} onDrop={e=>{const id=e.dataTransfer.getData('application/x-chatter-instrument');if(id){e.preventDefault();void makeTrack(instrumentPreset(id).kind,'track',id);}}}>
-            <div className="arrangement-content" style={{ width: timelineWidth + 220 }}>
+            <div className="arrangement-content" style={{ width: `calc(${timelineWidth}px + var(--track-header-width, 220px))` }}>
               {!!project.arrangement?.length && <div className="song-map-row">
                 <div className="song-map-corner"><b>SONG MAP</b><span>{project.arrangement?.length} parts</span></div>
                 <div className="song-map-track" style={{ width: timelineWidth }}>

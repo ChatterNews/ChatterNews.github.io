@@ -209,7 +209,7 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
           storyControl={tracked ? <StorySatellite story={tracked} onPick={pickNext} /> : null}
           driveControl={<ProjectDrive stories={stories} story={tracked} onChanged={() => setReloadKey((key) => key + 1)} />}
           identityControl={<WhoAmI me={me} choices={adviser ? identity.advisers : identity.students} students={identity.students} adviser={adviser} onChoose={identity.switchAdviser} onChanged={identity.refresh} onHandBack={handBack} />}
-          mediaControl={<button className="stage-utility media-bin-trigger" onClick={() => navigate(mediaBinDestination(newsroomLocation(location), mediaBinReturn.current, contextStoryId))} aria-current={room === 'files' ? 'page' : undefined}><span aria-hidden="true">▣</span><b>{room === 'files' ? 'Return' : 'Files'}</b></button>}
+          mediaControl={<button className="stage-utility media-bin-trigger" onClick={() => navigate(mediaBinDestination(newsroomLocation(location), mediaBinReturn.current, contextStoryId))} aria-current={room === 'files' ? 'page' : undefined}><span aria-hidden="true">▣</span><b>{room === 'files' ? 'Return' : 'Media'}</b></button>}
           adviserControl={deskMode === 'DEMO' ? <button className="stage-utility adviser-trigger demo-desk-trigger" onClick={handBack}><span aria-hidden="true">◉</span><b>Leave demo</b></button> : adviser ? <button className="stage-utility adviser-trigger" onClick={() => navigate('/frontdesk')} aria-current={room === 'frontdesk' ? 'page' : undefined}><span aria-hidden="true">▤</span><b>Adviser</b></button> : null}
         >
           <main className="board spiral-live-board">

@@ -7,8 +7,8 @@ const REILY_SEEN_LIMIT = 500;
 export type ReilyHintAction = 'ASK' | 'DISMISS' | 'ROOM_CHANGED';
 export type ReilyPocketAction = 'PARK' | 'RETURN' | 'ROOM_CHANGED';
 
-export function initialReilyHintOpen(sessionValue: string | null): boolean {
-  return sessionValue !== 'seen';
+export function initialReilyHintOpen(sessionValue: string | null, compact = false): boolean {
+  return !compact && sessionValue !== 'seen';
 }
 
 export function reduceReilyHint(open: boolean, action: ReilyHintAction): boolean {

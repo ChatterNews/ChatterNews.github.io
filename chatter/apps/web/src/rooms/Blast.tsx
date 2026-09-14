@@ -462,6 +462,7 @@ function NumberField({ label, value, min, max, step = 1, onChange }: { label: st
 }
 
 export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; storyId?: string }) {
+  const [compactToolsOpen, setCompactToolsOpen] = useState(false);
   const store = useStore();
   const { gate, classifierReady } = useGate();
   const location = useLocation(); const navigate = useNavigate(); const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]); const requestedProjectId = searchParams.get('project'); const podcastCoverId = searchParams.get('podcastCover');
@@ -1054,9 +1055,10 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
   return (
     <div className={`blast-room blast-editor ${project.creativeRecipe?.mode === 'GUIDED' ? 'blast-guided' : 'blast-freeform'}`}>
       <input ref={imageInput} hidden type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importImage(file); }} />
-      <header className="blast-toolbar">
+      <header className="blast-toolbar" data-tools-open={compactToolsOpen}>
         <button className="blast-brand" onClick={() => setShowLibrary(true)}><span>BLAST</span><small>Design studio</small></button>
         <input className="blast-title-input" value={project.title} aria-label="Design title" onChange={(event) => setProject({ ...project, title: event.target.value })} />
+        <button type="button" className="compact-blast-tools" aria-expanded={compactToolsOpen} onClick={() => setCompactToolsOpen(open => !open)}>Tools {compactToolsOpen ? '▴' : '▾'}</button>
         <label className="blast-story-link">Story<select aria-label="Design story" value={project.storyId ?? ''} onChange={(event) => setProject({ ...project, storyId: event.target.value || undefined })}><option value="">Standalone</option>{stories.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
         <span className={`blast-save-state ${saveState === 'Not saved' ? 'bad' : ''}`}>{saveState}</span>
         <div className="blast-toolbar-divider" />

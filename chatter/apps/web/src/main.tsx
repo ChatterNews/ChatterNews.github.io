@@ -6,6 +6,7 @@ import './styles/prototype.css';
 import { App } from './App.js';
 import { connectReaderDrive, getReaderDrive, isMobileEdition, isWebsiteEdition, returnToReader } from './portable/reader-drive.js';
 import './styles/Mobile.css';
+import './styles/Responsive.css';
 
 const root = createRoot(document.getElementById('root')!);
 async function start(askPermission = false) {

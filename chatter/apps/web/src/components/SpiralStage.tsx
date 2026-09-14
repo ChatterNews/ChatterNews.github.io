@@ -78,6 +78,13 @@ export function SpiralStage({
   }, [progress]);
 
   function scrollToStation(index: number, behavior: ScrollBehavior = 'smooth') {
+    // Compact layouts use the room picker directly; the decorative orbit is hidden.
+    if (window.matchMedia?.('(max-width: 1100px)').matches) {
+      setProgress(index);
+      const room = SPIRAL_ROOMS[index];
+      if (room && room.slug !== currentRoom) onNavigate(room.slug);
+      return;
+    }
     const scroller = scrollerRef.current;
     if (!scroller) return;
     const top = index * scroller.clientHeight;
@@ -86,6 +93,7 @@ export function SpiralStage({
   }
 
   function settleRoute() {
+    if (window.matchMedia?.('(max-width: 1100px)').matches) return;
     const scroller = scrollerRef.current;
     if (!scroller) return;
     const index = stationFromScroll(scroller.scrollTop, scroller.clientHeight, SPIRAL_ROOMS.length);
@@ -104,6 +112,7 @@ export function SpiralStage({
   }
 
   function handleScroll(event: UIEvent<HTMLElement>) {
+    if (window.matchMedia?.('(max-width: 1100px)').matches) return;
     const top = event.currentTarget.scrollTop;
     const height = event.currentTarget.clientHeight;
     if (frameRequest.current !== undefined) cancelAnimationFrame(frameRequest.current);
@@ -138,6 +147,20 @@ export function SpiralStage({
       return;
     }
     scrollToStation(routedIndex, prefersReducedMotion() ? 'auto' : 'smooth');
+  }, [routedIndex]);
+
+  useEffect(() => {
+    const syncViewport = () => {
+      const scroller = scrollerRef.current;
+      if (!scroller || routedIndex < 0) return;
+      window.clearTimeout(settleTimer.current);
+      pendingNavigation.current = undefined;
+      // Resizing changes each station's height; keep the route, not the old pixel offset.
+      scroller.scrollTop = routedIndex * scroller.clientHeight;
+      setProgress(routedIndex);
+    };
+    window.addEventListener('resize', syncViewport);
+    return () => window.removeEventListener('resize', syncViewport);
   }, [routedIndex]);
 
   useEffect(() => {
@@ -234,6 +257,8 @@ export function SpiralStage({
           <span>CN</span><b>CHATTER</b><small>NEWSROOM</small>
         </button>
       </div>
+
+      <div className="compact-room-name">{activeRoom?.name ?? 'Front Desk'}</div>
 
       <section className="spiral-center-frame" aria-label={`${activeRoom?.name ?? 'Front Desk'} workspace`}>
         <div className="spiral-window-shell">
