@@ -102,7 +102,12 @@ export async function collectNpmNotices(projectRoot, destination) {
   await mkdir(destination, { recursive: true });
   await modules(join(projectRoot, 'node_modules'));
   for (const group of ['apps', 'packages', 'workers']) {
-    for (const workspace of await readdir(join(projectRoot, group), { withFileTypes: true })) {
+    // Git and source ZIPs omit empty workspace groups, such as Tier 0's workers.
+    const workspaces = await readdir(join(projectRoot, group), { withFileTypes: true }).catch((error) => {
+      if (error.code === 'ENOENT') return [];
+      throw error;
+    });
+    for (const workspace of workspaces) {
       if (workspace.isDirectory() && !workspace.isSymbolicLink()) {
         await modules(join(projectRoot, group, workspace.name, 'node_modules'));
       }
@@ -183,7 +188,7 @@ roots = [
     'apps/web/src', 'apps/web/public', 'apps/web/package.json',
     'apps/web/index.html', 'apps/web/tsconfig.json', 'apps/web/vite.config.ts',
     'packages/shared/src', 'packages/shared/package.json', 'packages/shared/tsconfig.json',
-    'workers', 'config', 'scripts', 'desktop/main.cjs', 'desktop/preload.cjs',
+    'config', 'scripts', 'desktop/main.cjs', 'desktop/preload.cjs',
     'desktop/files.cjs', 'desktop/files.test.cjs', 'desktop/main.test.cjs',
     'desktop/package.json', 'desktop/launcher', 'desktop/TESTING.txt',
     'desktop/licenses',
@@ -191,7 +196,7 @@ roots = [
     'THIRD_PARTY_NOTICES.md',
 ]
 roots += [name for name in ['desktop/TESTING-MAC.txt'] if (root / name).is_file()]
-roots += [name for name in ['reader', 'website'] if (root / name).is_dir()]
+roots += [name for name in ['reader', 'website', 'workers'] if (root / name).is_dir()]
 def allowed(path):
     rel = path.relative_to(root)
     return not (
