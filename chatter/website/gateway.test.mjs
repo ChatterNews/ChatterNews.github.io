@@ -57,3 +57,42 @@ test('missing app or shell cache fails closed instead of fetching',async()=>{
   assert.equal((await gateway(new Request(base),base.href)).status,503);
   assert.equal(requests,0);
 });
+
+// A cache miss must fetch only the manifest's fixed file, verify it, and reuse it.
+async function lazySetup(body = 'wave', { rejectSave = false } = {}) {
+  const { createHash } = await import('node:crypto');
+  const file = { path: 'assets/sound.wasm', bytes: 4, mime: 'application/wasm', sha256: createHash('sha256').update('wave').digest('hex') };
+  const cache = new Map(); const outgoing = [];
+  const gateway = createWebsiteGateway({ base, manifest: { ...manifest, files: [manifest.files[0], file] }, shellPaths: [],
+    appResponse: async (path) => cache.get(path)?.clone(),
+    cacheApp: async (path, response) => { if (rejectSave) throw new Error('quota'); cache.set(path, response.clone()); },
+    network: async (request) => { outgoing.push(request); return new Response(body, {headers:{'Set-Cookie':'unused=1'}}); },
+  });
+  return { gateway, outgoing, cache, file };
+}
+test('a fresh desk fetches and verifies only the requested tool, then reuses it', async () => {
+  const { gateway, outgoing, cache } = await lazySetup();
+  const url = base+'r/web-1/assets/sound.wasm';
+  const response = await gateway(new Request(url, {headers:{'X-Student':'private','Range':'bytes=1-2'}}), base+'r/web-1/#/story/private');
+  assert.equal(response.status,206); assert.equal(await response.text(),'av');
+  assert.equal(response.headers.get('Content-Range'),'bytes 1-2/4');
+  assert.equal(response.headers.get('Set-Cookie'),null);
+  assert.equal(outgoing.length,1); const sent=outgoing[0];
+  assert.equal(sent.url,'https://chatternews.github.io/downloads/web-1/assets/sound.wasm');
+  assert.equal(sent.credentials,'omit'); assert.equal(sent.referrerPolicy,'no-referrer'); assert.equal(sent.redirect,'error');
+  assert.equal([...sent.headers].length,0); assert.equal(cache.size,1);
+  assert.equal(await (await gateway(new Request(url))).text(),'wave'); assert.equal(outgoing.length,1);
+});
+test('simultaneous requests for a missing tool share one verified download', async () => {
+  const {gateway,outgoing}=await lazySetup();
+  const responses=await Promise.all([gateway(new Request(base+'r/web-1/assets/sound.wasm')),gateway(new Request(base+'r/web-1/assets/sound.wasm'))]);
+  assert.deepEqual(await Promise.all(responses.map(r=>r.text())),['wave','wave']); assert.equal(outgoing.length,1);
+});
+for(const body of ['evil','incomplete']) test(`a corrupt download (${body}) is neither served nor cached`,async()=>{
+  const {gateway,cache}=await lazySetup(body);
+  assert.equal((await gateway(new Request(base+'r/web-1/assets/sound.wasm'))).status,503); assert.equal(cache.size,0);
+});
+test('verified tools still work online when the browser cannot keep another cached file',async()=>{
+  const {gateway,cache}=await lazySetup('wave',{rejectSave:true});
+  assert.equal(await (await gateway(new Request(base+'r/web-1/assets/sound.wasm'))).text(),'wave'); assert.equal(cache.size,0);
+});

@@ -8,13 +8,15 @@ This is the dedicated website edition for **https://chatternews.github.io/**. St
 2. Give the development computer normal GitHub access to that repository. Sign into the ChatterNews account through GitHub's browser/device login, or grant the existing maintainer account repository access through GitHub. Do not paste passwords or tokens into a chat.
 3. Publish the contents of the generated **repository** folder to its `main` branch. It contains rebuildable source and `.github/workflows/orbit-pages.yml`. Do not upload the outer workspace, any `Chatter News` work folder, the Monday packages, or browser recovery data.
 4. In **Settings → Pages → Build and deployment**, set **Source: GitHub Actions**. If the first run happened before Pages was enabled, run **Publish Orbit** again from Actions.
-5. Wait for the build and deploy jobs to pass. Visit the URL on a fresh browser profile and complete preparation. Test on a managed school Chromebook before students use it.
+5. Wait for the build and deploy jobs to pass. Visit the URL on a fresh browser profile and confirm it opens directly without a preparation step. Test on a managed school Chromebook before students use it.
 
 The workflow downloads checksum-pinned model files during the build and uploads the resulting site as a Pages artifact. Models and generated application files are not large Git commits. The source repository is public; review school material before committing it.
 
 ## Routine patches
 
-Make a reviewed change to source, run the checks, and push to `main`. Each commit gets a distinct app release. GitHub builds and deploys the new site. During a lesson, existing tabs retain their active worker. After saving, close every Orbit tab and installed app window, reopen the homepage, and prepare the updated toolkit. The local workspace identity is independent of the release identifier.
+Make a reviewed change to source, run the checks, and push to `main`. Each commit gets a distinct app release. GitHub builds and deploys the new site. During a lesson, existing tabs retain their active worker. After saving, close every Orbit tab and installed app window, then reopen the homepage. Updated tools load as needed. The optional **Files → Prepare for offline use** page fills the current release’s missing files and confirms when the whole toolkit is stored. The local workspace identity is independent of the release identifier.
+
+Normal startup installs only the small browser gateway and loads the desk; it does not fetch all rooms, source/license archives, or processing models. Models load when image checking or transcription needs them. Ordinary browsing retains verified tools for reuse. Full offline readiness is optional and applies to one release.
 
 Do not clear browser storage to update. Do not delete old local caches during a class. This first web pilot keeps old release caches for recovery; storage cleanup needs a later deliberate workflow. If storage is low, export and verify work before asking IT to clear site data.
 
@@ -39,10 +41,10 @@ The build creates a new `dist/Orbit-Website-<release>/site` and a separate `repo
 
 ## Privacy boundary and acceptance
 
-Read the shipped `privacy.html` with IT. The application cache gateway denies arbitrary URLs, query strings, writes, cross-origin requests and remote model fallbacks. Only the setup page may fetch known public app files, with caller headers, credentials and referrers stripped. Story routes use fragments. The website's session handoff uses local files/downloads and does not invoke the OS share sheet.
+Read the shipped `privacy.html` with IT. The application cache gateway denies arbitrary URLs, query strings, writes, cross-origin requests and remote model fallbacks. The gateway fetches only exact, manifest-listed public app files on cache misses, strips caller headers, credentials and referrers, and verifies bytes and SHA-256 before serving or caching them. The app cannot call arbitrary download paths directly. Story routes use fragments. The website's session handoff uses local files/downloads and does not invoke the OS share sheet.
 
 GitHub still receives website request metadata, including IP addresses. Browser/OS dictation, extensions, monitoring, enhanced spell checking and cloud-backed save folders are separate systems. Test those under the school's actual student policy. This code review and local rehearsal are not a certification of school-managed devices.
 
-Minimum rehearsal: prepare online; stop network access; create and edit a practice story; open Studio and play a kit; navigate away and return; save a session; unpack/reopen a `.chatter` file; reload; test logout policy; then test an update while preserving a saved practice workspace. Recording and exports also need the target device's real microphone, camera and encoder check.
+Minimum rehearsal: open a fresh desk online without full preparation and confirm models have not loaded; use Files → Prepare for offline use; stop network access; create and edit a practice story; open Studio and play a kit; navigate away and return; save a session; unpack/reopen a `.chatter` file; reload; test logout policy; then test an update while preserving a saved practice workspace. Recording and exports also need the target device's real microphone, camera and encoder check.
 
 GitHub references: [custom Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [Pages data collection](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection), [Pages limits](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits).

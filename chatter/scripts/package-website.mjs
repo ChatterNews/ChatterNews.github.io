@@ -33,11 +33,11 @@ const files = (await fileManifest(app)).map(({ file, ...entry }) => ({ path: fil
 const manifest = validateManifest({ format: 1, releaseId, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, releaseId);
 const manifestJSON = JSON.stringify(manifest);
 const trust = { releaseId, manifestSha256: createHash('sha256').update(manifestJSON).digest('hex') };
-for (const name of ['index.html', 'start.js', 'sw.js', 'gateway.mjs', 'privacy.html']) await cp(join(root, 'website', name), join(site, name));
+for (const name of ['index.html', 'offline.html', 'start.js', 'sw.js', 'gateway.mjs', 'launch.mjs', 'offline.mjs', 'privacy.html']) await cp(join(root, 'website', name), join(site, name));
 for (const name of ['reader.css', 'core.mjs', 'control.mjs', 'icon.svg', 'manifest.webmanifest']) await cp(join(root, 'reader', name), join(site, name));
 await writeFile(join(site, 'release.mjs'), `export const manifest = ${manifestJSON};\nexport const trust = ${JSON.stringify(trust)};\n`);
 await writeFile(join(site, '.nojekyll'), '');
-await writeFile(join(site, '404.html'), '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><title>Open Orbit</title><h1>Let’s open Orbit.</h1><p><a href="/">Go to Orbit setup</a>. Your browser may need to prepare the app again. Keep your saved story files.</p></html>');
+await writeFile(join(site, '404.html'), '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><title>Open Orbit</title><h1>Let’s open Orbit.</h1><p><a href="/">Open Orbit</a>. This bookmark may point to an older release; the homepage opens the current app. Keep your saved story files.</p></html>');
 await cp(join(root, 'desktop', 'licenses'), join(site, 'licenses'), { recursive: true });
 await collectNpmNotices(root, join(site, 'licenses', 'npm'));
 await cp(join(root, 'THIRD_PARTY_NOTICES.md'), join(site, 'THIRD_PARTY_NOTICES.md'));

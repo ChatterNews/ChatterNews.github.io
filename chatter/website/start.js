@@ -1,14 +1,18 @@
-import { cacheIsComplete, getRelease, prepareRelease, putRelease, validateActivation, verifyManifest } from './core.mjs';
+import { cacheIsComplete, verifyManifest } from './core.mjs';
 import { ensureReaderController } from './control.mjs';
+import { websiteCacheName } from './gateway.mjs';
+import { launchWebsite } from './launch.mjs';
+import { prepareOffline } from './offline.mjs';
 import { manifest, trust } from './release.mjs';
 
 const BASE = new URL('./', import.meta.url);
+const offline = document.body.dataset.offline === 'true';
 const prepareButton = document.querySelector('#prepare');
 const openButton = document.querySelector('#resume');
 const cancel = document.querySelector('#cancel');
 const progress = document.querySelector('#progress');
 let active;
-let prepared;
+let ready;
 function say(title, detail = '', state = 'ready') {
   document.querySelector('#status').textContent = title;
   document.querySelector('#detail').textContent = detail;
@@ -16,11 +20,10 @@ function say(title, detail = '', state = 'ready') {
 }
 function report(update) {
   progress.hidden = false; progress.max = Math.max(1, update.totalBytes); progress.value = update.bytes;
-  const checking = update.phase === 'checking';
-  document.querySelector('#progress-label').textContent = `${Math.floor(update.bytes / Math.max(1, update.totalBytes) * 100)}% ${checking ? 'checked' : 'prepared'}`;
-  say(checking ? 'Checking your toolkit…' : 'Getting your toolkit ready…', `${Math.round(update.bytes / 1024 / 1024)} of ${Math.ceil(update.totalBytes / 1024 / 1024)} MB. Keep this tab open.`, 'busy');
+  document.querySelector('#progress-label').textContent = `${Math.floor(update.bytes / Math.max(1, update.totalBytes) * 100)}% prepared`;
+  say('Packing your offline toolkit…', `${Math.round(update.bytes / 1024 / 1024)} of ${Math.ceil(update.totalBytes / 1024 / 1024)} MB. Tools already here are reused. Keep this tab open.`, 'busy');
 }
-async function setup() {
+async function connect() {
   if (!window.isSecureContext || !navigator.serviceWorker || !navigator.storage?.getDirectory || !navigator.locks || !window.caches) throw new Error('This browser is missing the local storage Orbit needs. Try an up-to-date Chrome or Safari, with school permission to use local website storage.');
   await verifyManifest(new TextEncoder().encode(JSON.stringify(manifest)), trust);
   const registration = await ensureReaderController(BASE);
@@ -30,43 +33,43 @@ async function setup() {
     });
   });
   document.querySelector('#update-note').hidden = !registration.waiting;
-  try {
-    const saved = validateActivation(await getRelease(trust.releaseId), trust.releaseId);
-    if (saved.manifestSha256 === trust.manifestSha256 && await caches.has(saved.cacheName) && await cacheIsComplete(await caches.open(saved.cacheName), manifest, BASE, undefined, undefined, { metadataOnly: true })) prepared = saved;
-  } catch { /* A fresh browser needs preparation. Recovery data is untouched. */ }
+}
+function enter() {
+  return launchWebsite({ base: BASE, releaseId: trust.releaseId, connect: () => ready });
+}
+async function setup() {
+  ready = connect();
+  await ready;
+  if (!offline) { await enter(); return; }
+  const complete = await cacheIsComplete(await caches.open(websiteCacheName(trust)), manifest, BASE, undefined, undefined, { metadataOnly: true });
+  openButton.hidden = false;
   prepareButton.disabled = false;
-  if (prepared) { openButton.hidden = false; prepareButton.hidden = true; say('Your Orbit desk is ready.', 'Open Orbit. Finish session before leaving to keep an editable file.'); }
-  else say('One small setup. A whole newsroom.', `Prepare ${Math.ceil(manifest.totalBytes / 1024 / 1024)} MB of tools on this device. Afterward, Orbit works from its local copy. Use school Wi-Fi for setup.`);
+  prepareButton.hidden = complete;
+  if (complete) say('Ready to work offline.', 'This release’s full toolkit is stored here. Keep saving your stories before leaving.');
+  else say('Optional: pack every tool.', `Orbit works online now. Prepare the full ${Math.ceil(manifest.totalBytes / 1024 / 1024)} MB toolkit only if you need every room without Wi-Fi. This does not back up your stories.`);
 }
 async function prepare() {
   if (active) return;
-  active = new AbortController(); const signal = active.signal;
+  active = new AbortController();
   prepareButton.disabled = true; openButton.hidden = true; cancel.hidden = false;
   try {
-    const estimate = await navigator.storage.estimate();
-    if (estimate.quota && estimate.quota - (estimate.usage || 0) < manifest.totalBytes + 8 * 1024 * 1024) throw new Error('Free some device storage, then try preparing Orbit again.');
     await navigator.storage.persist?.().catch(() => false);
-    prepared = await prepareRelease({ manifest, manifestSha256: trust.manifestSha256, origin: BASE, publish: putRelease, onProgress: report, signal,
-      async loadFile(path) {
-        const response = await fetch(new URL(`downloads/${manifest.releaseId}/${path.split('/').map(encodeURIComponent).join('/')}`, BASE), { signal, credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error' });
-        if (!response.ok) throw new Error('An app download did not finish. Check your connection and retry preparation.');
-        return response.blob();
-      },
-    });
-    say('Your toolkit is ready!', 'Open Orbit to start a story.'); prepareButton.hidden = true;
+    await prepareOffline({ base: BASE, manifest, cache: await caches.open(websiteCacheName(trust)), signal: active.signal, onProgress: report });
+    say('Ready to work offline.', 'Every tool is stored on this device. Finish session still saves your stories separately.');
+    prepareButton.hidden = true;
   } catch (error) {
-    say(error?.name === 'AbortError' ? 'Preparation stopped.' : 'Orbit could not prepare yet.', error?.message || 'Check your connection and free storage, then retry.', 'error');
-  } finally { active = undefined; prepareButton.disabled = false; openButton.hidden = !prepared; cancel.hidden = true; }
+    say(error?.name === 'AbortError' ? 'Offline preparation paused.' : 'Not fully ready for offline use.', error?.message || 'Reconnect or free storage, then retry. You can still open Orbit online.', 'error');
+  } finally { active = undefined; prepareButton.disabled = false; openButton.hidden = false; cancel.hidden = true; }
 }
-function enter() {
-  let id = localStorage.getItem('orbit-web-workspace-id');
-  if (!id) { id = crypto.randomUUID(); localStorage.setItem('orbit-web-workspace-id', id); }
-  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id)) throw new Error('The local desk reference could not be read. Keep your saved files and ask your advisor for help.');
-  sessionStorage.setItem('orbit-reader-current', JSON.stringify({ workspaceId: id, releaseId: trust.releaseId }));
-  window.location.assign(new URL(`r/${trust.releaseId}/`, BASE));
-}
-prepareButton.addEventListener('click', () => void prepare());
-openButton.addEventListener('click', () => { try { enter(); } catch (error) { say('The desk could not open.', error.message, 'error'); } });
+prepareButton?.addEventListener('click', () => void prepare());
+openButton.addEventListener('click', () => {
+  if (offline) window.location.assign(BASE);
+  else void setup().catch(showError);
+});
 cancel.addEventListener('click', () => active?.abort());
 window.addEventListener('beforeunload', (event) => { if (active) { event.preventDefault(); event.returnValue = ''; } });
-void setup().catch((error) => say('A quick setup check…', error.message, 'error'));
+function showError(error) {
+  say('Orbit could not open yet.', error.message, 'error');
+  openButton.hidden = false;
+}
+void setup().catch(showError);
