@@ -1,0 +1,91 @@
+.clubhouse-welcome {
+  display: flex; align-items: center; gap: 24px; margin: -4px 0 24px; padding: 22px 24px;
+  border: 3px solid var(--ink); border-radius: 18px;
+  background: linear-gradient(115deg,#ffd21e 0 62%,#ff3d8b 62%); box-shadow: 7px 7px 0 var(--ink);
+}
+.clubhouse-welcome > div { flex: 1; }
+.clubhouse-welcome span { display: block; font-size: 10px; font-weight: 950; letter-spacing: .14em; }
+.clubhouse-welcome h1 { margin: 3px 0; font-size: 36px; }
+.clubhouse-welcome p { margin: 0; max-width: 700px; font-weight: 750; }
+.clubhouse-welcome button,.clubhouse-section-title > button,.clubhouse-jobs button {
+  padding: 10px 14px; border: 2px solid var(--ink); border-radius: 9px; background: #fff;
+  font-weight: 900; box-shadow: 3px 3px 0 var(--ink); cursor: pointer;
+}
+.clubhouse-jobs { display: grid; grid-template-columns: repeat(auto-fit,minmax(270px,1fr)); gap: 12px; }
+.clubhouse-jobs article { display: grid; grid-template-columns: 48px 1fr; gap: 12px; padding: 14px; border: 2px solid var(--ink); border-radius: 13px; background: #fff; }
+.clubhouse-jobs article > span { display: grid; place-items: center; width: 48px; height: 48px; border: 2px solid var(--ink); border-radius: 12px; font-size: 22px; }
+.clubhouse-jobs h3 { margin: 2px 0; font: 900 19px var(--f-disp); }
+.clubhouse-jobs p,.clubhouse-jobs small { margin: 0; color: var(--tx-2); font-size: 11px; }
+.clubhouse-jobs button { grid-column: 2; justify-self: start; }
+.clubhouse-section-title { display: flex; align-items: end; justify-content: space-between; gap: 15px; }
+.clubhouse-section-title h2 { margin-bottom: 3px; }
+.clubhouse-section-title .sub { margin: 0; }
+
+/* Room equipment rack. Scoped so the older global .station cascade cannot flatten it. */
+.clubhouse-room .room-racks {
+  display: grid; grid-template-columns: minmax(240px,.78fr) minmax(420px,1.55fr) minmax(240px,.78fr);
+  gap: 12px; align-items: start; margin-top: 13px;
+}
+.clubhouse-room .room-rack {
+  overflow: hidden; border: 2px solid #241c30; border-radius: 9px 19px 8px 14px; background: #342b3b;
+  box-shadow: inset 0 2px #ffffff20,0 4px 0 #17121d,0 12px 22px #1e14252e;
+}
+.clubhouse-room .room-rack > header {
+  display: flex; align-items: center; gap: 9px; min-height: 54px; padding: 9px 11px;
+  border-bottom: 1px solid #17121d; background: linear-gradient(#504456,#342d3a); color: #fff;
+}
+.clubhouse-room .room-rack > header > span {
+  display: grid; place-items: center; width: 29px; height: 29px; flex: none; border: 1px solid #141018;
+  border-radius: 50%; background: #f6e88b; color: #27202d; font: 900 11px var(--f-tech);
+  box-shadow: inset 0 2px #fff9,0 2px 0 #17121d;
+}
+.clubhouse-room .room-rack > header h3 { margin: 0; font: 900 17px/1 var(--f-disp); }
+.clubhouse-room .room-rack > header p { margin: 3px 0 0; color: #d5cbd9; font-size: 8px; line-height: 1.25; }
+.clubhouse-room .room-rack > div { display: grid; gap: 5px; padding: 7px; }
+.clubhouse-room .room-cartridge {
+  position: relative; display: grid; grid-template-columns: 42px minmax(0,1fr) auto; grid-template-rows: auto auto;
+  gap: 2px 9px; align-items: center; min-height: 78px; padding: 8px 26px 8px 8px; border: 1px solid #1c1722;
+  border-radius: 5px 11px 5px 8px;
+  background: linear-gradient(105deg,color-mix(in srgb,var(--station-accent) 26%,#fffdf4) 0 7px,#fffdf4 7px 100%);
+  box-shadow: inset 0 1px #fff,0 3px 0 #19141e; color: #272033; text-align: left; cursor: pointer;
+  transition: transform .12s ease,filter .12s ease;
+}
+.clubhouse-room .room-cartridge:hover { z-index: 1; filter: brightness(1.025); transform: translateX(3px); }
+.clubhouse-room .room-cartridge:focus-visible { z-index: 2; outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px var(--station-accent),0 4px 0 #17121d; }
+.clubhouse-room .room-cartridge-icon {
+  grid-row: 1/3; display: grid; place-items: center; width: 42px; height: 42px; border: 1.5px solid #211b29; border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%,#fff 0 5%,transparent 6%),linear-gradient(145deg,color-mix(in srgb,var(--station-accent) 60%,white),var(--station-accent));
+  box-shadow: inset 0 2px #fff9,0 3px 0 color-mix(in srgb,var(--station-accent) 45%,#27202d);
+}
+.clubhouse-room .room-cartridge-icon .i { width: 21px; height: 21px; }
+.clubhouse-room .room-cartridge-copy { align-self: end; min-width: 0; }
+.clubhouse-room .room-cartridge-copy b { display: block; font: 900 14px/1.05 var(--f-disp); }
+.clubhouse-room .room-cartridge-copy small { display: block; overflow: hidden; margin-top: 3px; color: #6f6676; font-size: 8px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.clubhouse-room .room-cartridge-signal { align-self: start; display: flex; align-items: center; gap: 5px; color: #6f6676; font-size: 7px; font-weight: 900; text-transform: uppercase; letter-spacing: .035em; }
+.clubhouse-room .room-cartridge-signal i { width: 7px; height: 7px; border: 1px solid #71697a; border-radius: 50%; background: #a9a2ae; }
+.clubhouse-room .room-cartridge-signal.active i { border-color: #415525; background: #a9e74b; box-shadow: 0 0 8px #a9e74b; }
+.clubhouse-room .room-cartridge-open { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font: 900 21px/1 var(--f-disp); color: #837889; }
+.clubhouse-room .room-rack-make > div { grid-template-columns: 1fr 1fr; }
+.clubhouse-room .room-rack-make .room-cartridge { min-width: 0; }
+.clubhouse-room .room-rack-make .room-cartridge-copy small { white-space: normal; }
+.clubhouse-room .room-rack-plan > header > span { background: #8debf0; }
+.clubhouse-room .room-rack-make > header > span { background: #ffdd71; }
+.clubhouse-room .room-rack-finish > header > span { background: #c9f58a; }
+
+@media(max-width:1120px) {
+  .clubhouse-room .room-racks { grid-template-columns: 1fr 1fr; }
+  .clubhouse-room .room-rack-make { grid-row: 1/3; grid-column: 2; }
+  .clubhouse-room .room-rack-make > div { grid-template-columns: 1fr; }
+}
+@media(max-width:760px) {
+  .clubhouse-welcome { align-items: stretch; flex-direction: column; background: #ffd21e; }
+  .clubhouse-section-title { align-items: stretch; flex-direction: column; }
+  .clubhouse-section-title > button { align-self: flex-start; }
+  .clubhouse-room .room-racks { grid-template-columns: 1fr; }
+  .clubhouse-room .room-rack-make { grid-row: auto; grid-column: auto; }
+  .clubhouse-room .room-rack-make > div { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:540px) {
+  .clubhouse-room .room-rack-make > div { grid-template-columns: 1fr; }
+  .clubhouse-room .room-cartridge-copy small { white-space: normal; }
+}

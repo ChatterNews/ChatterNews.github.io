@@ -1,0 +1,6 @@
+**/node_modules/
+**/dist/
+**/.DS_Store
+chatter/apps/web/public/models/
+*.chatter
+.env*

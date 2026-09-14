@@ -1,0 +1,292 @@
+/*
+ * The Front Desk. Built on the prototype's tokens (--ink, --cyan, --sun,
+ * --cream) so this room sits inside Chatter's visual language rather than
+ * beside it. Cyan carries the room: Green Light already owns green and the
+ * Gate owns pink, so cyan is the one house hue not already spoken for.
+ */
+
+.front-desk-room .newsroom-hero-icon { background: var(--cyan); }
+
+.front-desk-story-drive {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin: 18px 0;
+  padding: 18px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: #dff8f4;
+  box-shadow: 6px 6px 0 var(--ink);
+}
+.front-desk-drive-mark {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 10px 10px 19px 12px;
+  background: #3b3150;
+  color: #fff;
+  font: 900 13px var(--f-ui);
+  box-shadow: inset 0 -9px #282039, 4px 4px 0 #ffd331;
+  transform: rotate(-2deg);
+}
+.front-desk-story-drive h2 { margin: 3px 0 4px; font: 900 25px/1 var(--f-disp); }
+.front-desk-story-drive p { margin: 0; color: var(--tx-2); font-size: 12px; line-height: 1.45; }
+
+/* ---------------------------------------------------------------- Today */
+
+.front-desk-today {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 18px 0 8px;
+}
+
+.front-desk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 13px 14px;
+}
+
+/* The stripe encodes urgency, so the list reads before it is read. */
+.front-desk-item.kind-quarantine { border-left-width: 7px; border-left-color: var(--tang-d); }
+.front-desk-item.kind-blocked { border-left-width: 7px; border-left-color: var(--pink-d); }
+.front-desk-item.kind-release_expiring { border-left-width: 7px; border-left-color: var(--sun-d); }
+.front-desk-item.kind-ready_for_release { border-left-width: 7px; border-left-color: var(--lime-d); }
+
+.front-desk-mark {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sun);
+  font-size: 14px;
+  font-weight: 1000;
+}
+.front-desk-item.kind-blocked .front-desk-mark { background: var(--pink); color: #fff; }
+.front-desk-item.kind-ready_for_release .front-desk-mark { background: var(--lime); }
+
+.front-desk-item-text { flex: 1; min-width: 0; }
+.front-desk-item-text b {
+  display: block;
+  font-family: var(--f-disp);
+  font-size: 18px;
+  line-height: 1.2;
+}
+.front-desk-item-text span {
+  display: block;
+  font-size: 12px;
+  color: var(--tx-2);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.front-desk-item > .newsroom-button { flex: none; align-self: center; }
+
+.front-desk-more {
+  font-size: 11px;
+  color: var(--tx-2);
+  margin: 2px 0 0;
+}
+
+/* --------------------------------------------------------------- panels */
+
+.front-desk-panel { margin-top: 14px; }
+.front-desk-panel summary { display: flex; align-items: baseline; gap: 8px; }
+.front-desk-panel summary span {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tx-3);
+}
+
+.front-desk-subhead {
+  font-family: var(--f-disp);
+  font-size: 17px;
+  margin: 20px 0 4px;
+}
+
+.front-desk-quiet { font-size: 11px; color: var(--tx-2); }
+
+/* ---------------------------------------------------------------- roster */
+
+.front-desk-roster { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+
+.front-desk-roster-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 9px 11px;
+}
+.front-desk-roster-row > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+.front-desk-roster-row b { font-family: var(--f-disp); font-size: 16px; }
+.front-desk-roster-row small { font-size: 10px; color: var(--tx-2); }
+
+.front-desk-roster-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.front-desk-roster-actions .newsroom-button { font-size: 11px; padding: 5px 9px; }
+
+/* -------------------------------------------------------------- pictures */
+
+.front-desk-pictures { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+
+.front-desk-picture {
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 10px 11px;
+}
+.front-desk-picture > b { font-family: var(--f-disp); font-size: 15px; }
+.front-desk-picture > small { display: block; font-size: 10px; color: var(--tx-2); margin-bottom: 7px; }
+
+.front-desk-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.front-desk-chip {
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.front-desk-chip.on { background: var(--sun); }
+.front-desk-chip:disabled { opacity: .5; }
+
+/* ------------------------------------------------------------- published */
+
+.front-desk-published { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.front-desk-published > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 8px 11px;
+}
+.front-desk-published b { flex: 1; font-family: var(--f-disp); font-size: 15px; }
+
+/* ------------------------------------------------------------------- log */
+
+.front-desk-log-filters { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+.front-desk-log-filters button {
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.front-desk-log-filters button[aria-pressed='true'] { background: var(--cyan); }
+
+.front-desk-log {
+  max-height: 320px;
+  overflow: auto;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.front-desk-log-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr minmax(6rem, auto);
+  gap: 10px;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-bottom: 1px solid #e5ddeb;
+}
+.front-desk-log-row:last-child { border-bottom: none; }
+.front-desk-log-when { color: var(--tx-2); font-variant-numeric: tabular-nums; }
+.front-desk-log-what { font-weight: 800; }
+.front-desk-log-who { color: var(--tx-2); text-align: right; }
+
+/* -------------------------------------------------------------- settings */
+
+.front-desk-settings { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+
+.front-desk-settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 10px 11px;
+}
+.front-desk-settings label b { font-family: var(--f-disp); font-size: 15px; }
+.front-desk-settings label span { font-size: 11px; color: var(--tx-2); line-height: 1.45; }
+.front-desk-settings input,
+.front-desk-settings select {
+  margin-top: 4px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 7px 9px;
+  font: inherit;
+  font-size: 13px;
+  background: var(--cream);
+  max-width: 22rem;
+}
+
+/* ---------------------------------------------------------------- table */
+
+.front-desk-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.front-desk-table th,
+.front-desk-table td {
+  border: 1px solid #d9cfe4;
+  padding: 6px 9px;
+  text-align: left;
+  white-space: nowrap;
+}
+.front-desk-table thead th {
+  background: #efe8f7;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.front-desk-table td { font-variant-numeric: tabular-nums; }
+.front-desk-table td:first-child { font-weight: 800; }
+
+/* ----------------------------------------------------- closed / pin gate */
+
+.front-desk-closed { text-align: center; padding: 40px 20px; }
+.front-desk-closed h2 { font-family: var(--f-disp); font-size: 26px; margin: 0 0 6px; }
+.front-desk-closed p { font-size: 13px; color: var(--tx-2); max-width: 34rem; margin: 0 auto 16px; }
+
+.front-desk-pin { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.front-desk-pin input {
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 20px;
+  letter-spacing: .4em;
+  text-align: center;
+  width: 7rem;
+  background: var(--cream);
+}
+
+.front-desk-wrong { color: var(--pink-d); font-size: 12px; margin-top: 10px; }
+
+@media (max-width: 720px) {
+  .front-desk-story-drive { grid-template-columns: auto 1fr; }
+  .front-desk-story-drive > .newsroom-button { grid-column: 1 / -1; width: 100%; }
+}

@@ -1,0 +1,45 @@
+ORBIT — IPHONE AND IPAD PILOT
+
+Start here
+1. Download the Orbit .orbit file into Files. The companion ZIP also contains
+   this file, instructions, notices and source; unzip it in Files if using that kit.
+2. In Safari, open https://delsaint18.github.io/orbit-mobile/
+3. Use Safari's Share menu > Add to Home Screen. Open the new Orbit icon.
+4. Choose Orbit file, select the .orbit file in Files, and wait for preparation.
+5. Tap Open Orbit. After preparation, the icon can reopen the cached app offline.
+
+Prepare inside the Home Screen app, because Safari and installed web apps may
+have separate recovery storage. Keep the original .orbit file for re-preparation.
+The first reader visit needs internet. App bytes and stories are not uploaded.
+
+Save before leaving
+Use Prepare story file for one editable .chatter story, or Finish session for
+a ZIP of every story and a receipt. Then tap Save to Files. In the share sheet,
+choose Save to Files and select or create a Chatter News folder. Open Files and
+check that the saved file appears before closing Orbit. Orbit cannot verify
+what the Files app saved. Cancelling the share sheet does not finish a handoff.
+If sharing is unavailable, use Download file and check Safari Downloads instead.
+
+To continue later, choose a .chatter file in Orbit's Story Drive. If you saved
+a session ZIP, tap it in Files first to unpack its individual story files.
+Local recovery is useful, but it is not a portable backup.
+
+Compatibility
+The initial pilot targets iOS/iPadOS 18.4 or newer; the latest version is preferred.
+An iPad in landscape has more room for Studio, video and page layout. iPhone
+controls and menus stay reachable; timelines and work surfaces can scroll.
+Video animation export probes the actual encoder and explains when unavailable.
+Recording and export must stay in the foreground; screen lock or app switching
+can interrupt browser media work. This is a Home Screen web app, not an App Store
+or TestFlight build. No Apple signing account or installation profile is used.
+
+The mobile app includes the smaller transcription model and local image check.
+Performance, camera/microphone, large files, audio latency and offline inference
+still need an actual iPhone/iPad test. A desktop narrow-window test is not proof.
+
+Pilot checks
+Prepare in the Home Screen app, turn off Wi-Fi, reopen, then create a story.
+Try writing, a short recording, Studio instrument play/clip duplication/mixing,
+an image layout and a short video export. Finish session, save to Chatter News,
+and reopen the .chatter story on another computer. Report device model, OS version,
+the failing step and exact message. Start with short takes and small projects.

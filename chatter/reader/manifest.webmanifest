@@ -1,0 +1,11 @@
+{
+  "name": "Chatter News · Orbit",
+  "short_name": "Orbit",
+  "description": "Open your local Orbit newsroom.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#cbc5df",
+  "theme_color": "#282144",
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

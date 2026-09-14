@@ -1,0 +1,59 @@
+ORBIT — WINDOWS PILOT TEST
+
+Getting started
+1. Download the whole ZIP from Google Drive.
+2. Right-click the ZIP and choose Extract All. Do not start Orbit from inside the ZIP preview.
+3. Open the extracted Orbit folder and double-click Start Orbit.
+4. Keep Orbit in a writable folder or on a writable USB drive. It saves work
+   beside the launcher; a read-only program installation folder will not work.
+
+No Python, Terminal, browser installation, server, or port number is required.
+This build is for 64-bit Windows 10 and Windows 11. It is an unsigned pilot;
+Windows or school management may ask for confirmation or block it. Do not
+disable security settings. Report the exact message if it does not open.
+
+Your folders
+- Start Orbit opens the app.
+- Chatter News holds completed, editable session files.
+- _Orbit holds the bundled app, instruments, models, source, and notices.
+  It is hidden by the Windows launcher to keep the main folder simple.
+  Keep the whole Orbit folder together when moving it to a USB drive.
+
+Saving work
+Use Finish session before closing Orbit. Wait for Orbit to confirm that the
+files were saved and checked, then close the app and safely eject the drive.
+Finish includes every story on this desk. Link any named project to a story
+before retrying a blocked Finish; the message means work has not been packed.
+Closing Orbit alone is not the same as finishing a session.
+Orbit also keeps a recovery copy on this Windows PC. That recovery copy does
+not travel when you move the folder; the saved .chatter files do.
+
+Try this
+1. Start a story and make a short piece in a production room.
+2. In Studio, add an instrument, duplicate a MIDI clip, change its notes,
+   move clips, and adjust the mixer. Try recording if a microphone is available.
+3. Finish the session and check that the files appear in Chatter News.
+4. Close and reopen Orbit. Open a saved .chatter story and continue editing.
+5. Repeat from a USB drive, then reopen the finished story on another PC.
+
+Please report: Windows version, where the Orbit folder was saved, which step
+failed, the exact message, and whether reopening preserved your work.
+
+Android phones and Chromebooks
+This Windows download does not launch on Android or ChromeOS. Use the separate
+Chromebook reader package for ChromeOS. iPhone/iPad have a separate Files/Home
+Screen package. Android remains unverified and has no separate APK.
+
+New newsrooms and updates
+Use a fresh unopened ZIP for each independent newsroom. Copying an already-used
+kit also copies its workspace identity. To update the SAME newsroom, first
+Finish and back up the saved files, then close Orbit. Extract the new kit
+separately and copy only Chatter News and _Orbit/workspace.json from the old kit
+before launching it. Keep the new _Orbit runtime and support files. Recovery
+still stays on this PC; open a verified .chatter when changing computers.
+There is no automatic updater or guaranteed database downgrade.
+
+Pilot status
+The build includes its models for offline use. Actual device recording,
+offline model inference, USB removal, and Windows startup behavior still need
+the co-advisor's test. This pilot has not been verified on school hardware.

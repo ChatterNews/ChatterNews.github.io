@@ -1,0 +1,121 @@
+[
+  {
+    "name": "@opendaw/lib-box",
+    "version": "0.0.92",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "e1495bbd78b89e262bcd72141dde0344bc328326",
+    "upstreamPath": "packages/lib/box"
+  },
+  {
+    "name": "@opendaw/lib-dawproject",
+    "version": "0.0.76",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/lib/dawproject"
+  },
+  {
+    "name": "@opendaw/lib-dom",
+    "version": "0.0.88",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/lib/dom"
+  },
+  {
+    "name": "@opendaw/lib-dsp",
+    "version": "0.0.91",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/lib/dsp"
+  },
+  {
+    "name": "@opendaw/lib-fusion",
+    "version": "0.0.101",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "e1495bbd78b89e262bcd72141dde0344bc328326",
+    "upstreamPath": "packages/lib/fusion"
+  },
+  {
+    "name": "@opendaw/lib-jsx",
+    "version": "0.0.90",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/lib/jsx"
+  },
+  {
+    "name": "@opendaw/lib-midi",
+    "version": "0.0.72",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/lib/midi"
+  },
+  {
+    "name": "@opendaw/lib-runtime",
+    "version": "0.0.84",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/lib/runtime"
+  },
+  {
+    "name": "@opendaw/lib-std",
+    "version": "0.0.83",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/lib/std"
+  },
+  {
+    "name": "@opendaw/lib-xml",
+    "version": "0.0.69",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/lib/xml"
+  },
+  {
+    "name": "@opendaw/nam-wasm",
+    "version": "1.2.0",
+    "license": "MIT",
+    "gitHead": null,
+    "upstreamRepository": "https://github.com/andremichelle/nam-wasm"
+  },
+  {
+    "name": "@opendaw/studio-adapters",
+    "version": "0.3.1",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "e1495bbd78b89e262bcd72141dde0344bc328326",
+    "upstreamPath": "packages/studio/adapters"
+  },
+  {
+    "name": "@opendaw/studio-boxes",
+    "version": "0.0.107",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "e1495bbd78b89e262bcd72141dde0344bc328326",
+    "upstreamPath": "packages/studio/boxes"
+  },
+  {
+    "name": "@opendaw/studio-core",
+    "version": "0.2.3",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "e1495bbd78b89e262bcd72141dde0344bc328326",
+    "upstreamPath": "packages/studio/core"
+  },
+  {
+    "name": "@opendaw/studio-core-wasm",
+    "version": "0.0.14",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "e1495bbd78b89e262bcd72141dde0344bc328326",
+    "upstreamPath": "packages/studio/core-wasm"
+  },
+  {
+    "name": "@opendaw/studio-enums",
+    "version": "0.1.0",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "4356bb141de31c0d27562bc9e8b310e90861ea10",
+    "upstreamPath": "packages/studio/enums"
+  },
+  {
+    "name": "@opendaw/studio-sdk",
+    "version": "0.0.169",
+    "license": "LGPL-3.0-or-later",
+    "gitHead": "e1495bbd78b89e262bcd72141dde0344bc328326",
+    "upstreamPath": "packages/studio/sdk"
+  }
+]

@@ -1,0 +1,21 @@
+.project-drive-backdrop { z-index: 99999; }
+.project-drive-dialog > header h2 { color: #fff; text-shadow: none; }
+.project-drive-dialog > footer { flex-wrap: wrap; gap: 5px 10px; }
+.project-drive-dialog > footer span { min-width: 0; overflow-wrap: anywhere; }
+body:has(.project-drive-backdrop) .pipdock,
+body:has(.project-drive-backdrop) .piptab { display: none; }
+.project-drive-backdrop {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.project-drive-dialog {
+  max-height: calc(100dvh - 40px);
+  overflow: auto !important;
+}
+.project-drive-dialog > header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}

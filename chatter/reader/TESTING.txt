@@ -1,0 +1,41 @@
+ORBIT — CHROMEBOOK PILOT
+
+Start
+1. Extract the ZIP and keep the entire Orbit folder together on your USB.
+   Make each separate student drive from a fresh ZIP extraction, before opening
+   Orbit. A copy of an already-used folder keeps that same newsroom identity.
+2. Open Start Orbit.html, then choose Open Orbit. The reader is at
+   https://delsaint18.github.io/orbit-reader/
+3. Choose Open Story Drive and select the whole Orbit folder. Allow the reader
+   to read and save there. Wait for preparation to finish.
+4. Bookmark the reader. After preparation you can reopen it offline, select the
+   drive, and start Orbit. First preparation needs internet for the small reader.
+
+Your work
+Save story and Finish session write verified editable work into Chatter News.
+Use Finish session before closing the tab or signing out. Wait for the success
+message, return to the reader, and eject the USB through the Chromebook Files app.
+Separate room Download/export buttons use Chrome's normal download destination.
+The editable session archives include linked story work and media.
+
+Orbit also keeps recovery files on this Chromebook. These do not travel with
+the USB. Open a saved .chatter file when continuing on another computer.
+Each drive has its own recovery workspace. Only one tab may edit a drive at once.
+
+School setup
+No Linux, extension, Terminal, or local server is required. School policy must
+allow the reader website, microphone/camera when used, and selected-folder access.
+If browser storage is erased at sign-out, prepare the reader and copy the app
+again at the next session. A bookmark alone does not preserve an offline copy.
+
+Try on a representative Chromebook
+Start online, prepare, disconnect Wi-Fi, then reopen the bookmarked reader.
+Open Studio, play and duplicate a MIDI clip, change notes and the mixer, and
+record if a microphone is available. Finish session, inspect Chatter News,
+then reopen a saved story on another computer. Try another drive and verify
+that its stories and badges stay separate. Report any prompt or failed step.
+
+Status
+This is a pilot package. Hardware recording, offline model inference, USB
+removal, and school sign-out policies still need an actual Chromebook test.
+Supporting files are inside _Orbit. Do not remove or rearrange them.

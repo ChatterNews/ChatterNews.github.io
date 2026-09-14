@@ -1,0 +1,49 @@
+ORBIT — MAC PILOT TEST
+
+Choose the right download
+- Apple Silicon: Mac with an Apple M1, M2, M3, M4, or later Apple chip.
+- Intel: Mac with an Intel processor.
+Both downloads require macOS Ventura 13 or newer.
+Apple menu > About This Mac shows your processor and macOS version.
+
+Getting started
+1. Download the whole ZIP and double-click it to extract the Orbit folder.
+2. Open that folder and double-click Start Orbit.
+3. Keep the whole Orbit folder together when moving it onto a USB drive.
+4. Use a writable folder or USB drive; this portable kit writes beside Start
+   Orbit and does not fit a read-only installed-program location.
+
+No Terminal, Python, browser installation, server, or port number is required.
+The pilot has an ad-hoc signature, not an Apple-notarized developer signature.
+macOS may ask for approval or block it after a download. Do not disable
+Gatekeeper or your school's security settings. Report the exact message if
+it does not open.
+
+macOS may isolate a freshly downloaded launcher from its neighboring files.
+If Orbit asks you to choose a folder, select the extracted Orbit folder once.
+That reconnects the files without changing your Mac's security settings.
+
+Saving work
+Use Finish session before closing Orbit. Wait for confirmation that the files
+were saved and checked. The completed, editable files appear in Chatter News.
+Then close Orbit and safely eject the USB drive.
+Finish includes every story on this desk. If it names an unlinked project,
+attach that project to a story and retry before closing Orbit.
+
+Unfinished recovery data stays on this Mac. Closing Orbit alone is not the
+same as finishing a session. Move the completed .chatter files to continue
+editing on another computer.
+
+The hidden _Orbit folder contains the app, instruments, models, instructions,
+licenses, and source archive. Keep it beside Start Orbit and Chatter News.
+
+For an independent newsroom, use a fresh unopened extraction. For an update
+to the SAME newsroom, Finish and back up the saved work, then close Orbit.
+Extract the new kit separately and copy the old Chatter News folder and exact
+_Orbit/workspace.json into it before launching. Keep the new runtime/support
+files. There is no automatic updater or guaranteed database downgrade.
+
+Try creating, recording, editing clips, exporting, and finishing a session.
+Then reopen a saved .chatter file and check that editing can continue.
+Please report your Mac model, macOS version, the step that failed, and the
+exact message. Actual USB removal and device recording are pilot checks.

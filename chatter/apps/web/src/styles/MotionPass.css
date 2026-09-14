@@ -1,0 +1,215 @@
+/* =====================================================================
+   CHATTER MOTION PASS
+
+   The newsroom moves like equipment, paper and broadcast light—not like
+   a page full of animated cards. Motion stays on opacity and transforms so
+   school laptops do not have to relayout the interface every frame.
+   ===================================================================== */
+
+:root {
+  --motion-snap: 140ms cubic-bezier(.2,.82,.28,1.18);
+  --motion-settle: 360ms cubic-bezier(.18,.86,.24,1);
+  --motion-drift: 4.8s ease-in-out infinite;
+}
+
+@keyframes chatter-room-piece-in {
+  from { opacity: 0; transform: translateY(10px) scale(.994); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes chatter-signal-breathe {
+  0%,100% { opacity: .68; transform: scale(.88); filter: brightness(.94); }
+  50% { opacity: 1; transform: scale(1.08); filter: brightness(1.16); }
+}
+@keyframes chatter-canopy-glint {
+  0%,72%,100% { transform: translateX(-135%) skewX(-18deg); opacity: 0; }
+  78% { opacity: .34; }
+  88% { transform: translateX(135%) skewX(-18deg); opacity: 0; }
+}
+@keyframes chatter-icon-idle {
+  0%,100% { transform: translateY(0) rotate(-.6deg); }
+  50% { transform: translateY(-2px) rotate(.8deg); }
+}
+@keyframes chatter-popover-in {
+  from { opacity: 0; transform: translateY(-5px) scale(.975); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes chatter-lock-in {
+  0% { transform: scale(.965); }
+  62% { transform: scale(1.018); }
+  100% { transform: none; }
+}
+@keyframes chatter-screen-roll {
+  from { transform: translateY(-120%); }
+  to { transform: translateY(540%); }
+}
+@keyframes chatter-guide-nudge {
+  0%,100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+@keyframes chatter-speaker-live {
+  0%,100% { transform: scale(.96); filter: saturate(.92); }
+  50% { transform: scale(1.035); filter: saturate(1.12); }
+}
+/* ------------------------------------------------------- room entrances */
+.view.on { animation: none; }
+.view.on > * { animation: chatter-room-piece-in var(--motion-settle) backwards; }
+.view.on > :nth-child(2) { animation-delay: 45ms; }
+.view.on > :nth-child(3) { animation-delay: 80ms; }
+.view.on > :nth-child(4) { animation-delay: 110ms; }
+.view.on > :nth-child(n+5) { animation-delay: 135ms; }
+
+/* ------------------------------------------------------- house console */
+.top.studio-canopy::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 2px;
+  bottom: 2px;
+  left: 28%;
+  width: 18%;
+  border-radius: 50%;
+  background: linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);
+  filter: blur(2px);
+  pointer-events: none;
+  animation: chatter-canopy-glint 12s ease-in-out infinite;
+}
+.top.studio-canopy > * { position: relative; z-index: 1; }
+.cyc::before { animation: chatter-signal-breathe 2.6s ease-in-out infinite; }
+
+.newsroom-nav .tab,
+.nav-room-icon,
+.nav-room-icon .i,
+.bead .dot,
+.station,
+.station .knob,
+.slate-story-card,
+.crew-opportunity,
+.booth-take-list > button,
+.reruns-card-grid > button,
+.media-bin-grid > article,
+.chatterbox-stations button,
+.stinger-scenes > button {
+  transition: transform var(--motion-snap), box-shadow var(--motion-snap), filter var(--motion-snap), background-color var(--motion-snap);
+}
+.newsroom-nav .tab:hover .nav-room-icon { transform: translateY(-2px) rotate(-4deg) scale(1.06); }
+.newsroom-nav .tab:hover .nav-room-icon .i { transform: rotate(5deg); }
+.newsroom-nav .tab[aria-current='true'] .nav-room-icon { animation: chatter-icon-idle var(--motion-drift); }
+.newsroom-nav .tab[aria-current='true']::after { animation: chatter-signal-breathe 1.85s ease-in-out infinite; }
+.bead.now .dot { animation: chatter-signal-breathe 1.9s ease-in-out infinite; }
+
+/* Controls travel a short, physical distance. Their content answers too. */
+:where(button,[role='button']):not(:disabled) :where(svg,.i) { transition: transform var(--motion-snap), filter var(--motion-snap); }
+:where(button,[role='button']):not(:disabled):hover :where(svg,.i) { filter: saturate(1.12); }
+:where(button,[role='button']):not(:disabled):active :where(svg,.i) { transform: scale(.9); }
+:where(button,[role='button'])[aria-pressed='true'],
+:where(button,[role='button'])[aria-selected='true'],
+:where(button,[role='button'])[aria-current='true'] { animation: chatter-lock-in 230ms cubic-bezier(.18,.9,.25,1.2); }
+
+details[open] > :where(div,section,menu):last-child,
+.mpane.on,
+.deep.on { transform-origin: top right; animation: chatter-popover-in 190ms cubic-bezier(.18,.84,.3,1.1) both; }
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible { transition: box-shadow var(--motion-snap), border-color var(--motion-snap); }
+input[type='range']::-webkit-slider-thumb { transition: transform var(--motion-snap), filter var(--motion-snap); }
+input[type='range']:active::-webkit-slider-thumb { transform: scale(1.18); filter: brightness(1.08); }
+
+/* ------------------------------------------------------- room character */
+.newsroom-hero-icon { animation: chatter-icon-idle 5.4s ease-in-out infinite; }
+.station:hover .knob { transform: rotate(9deg) scale(1.06); }
+.station:nth-child(even):hover .knob { transform: rotate(-9deg) scale(1.06); }
+.clubhouse-jobs article:hover > span { animation: chatter-lock-in 260ms cubic-bezier(.18,.9,.25,1.2); }
+.slate-story-card:hover,
+.crew-opportunity:hover,
+.booth-take-list > button:hover,
+.media-bin-grid > article:hover { filter: saturate(1.04); }
+
+/* Desk: state changes read like a typewriter carriage settling. */
+.desk-save.saved { animation: chatter-lock-in 250ms cubic-bezier(.18,.9,.25,1.2); }
+.desk-toolbar button:hover { transform: translateY(-1px) rotate(-1deg); }
+.desk-toolbar button:nth-of-type(even):hover { transform: translateY(-1px) rotate(1deg); }
+
+/* Booth: the reading line and record state are the moving parts. */
+.booth-reading-guide::before { animation: chatter-guide-nudge 1.45s ease-in-out infinite; }
+.booth-screen-bar > span.live,
+.booth-record-button.recording { animation: chatter-signal-breathe 1.05s ease-in-out infinite; }
+.booth-countdown { animation: chatter-lock-in 280ms cubic-bezier(.18,.9,.25,1.2); }
+
+/* Studio: pads and armed controls feel playable before sound begins. */
+.drum-key:hover { transform: translateY(-2px) scale(1.025); filter: brightness(1.1) saturate(1.08); }
+.drum-key:active { transform: translateY(2px) scale(.98); }
+.instrument-control-card:hover { filter: brightness(1.055); }
+.daw-led.recording,.mic-state.state-asking { animation: chatter-signal-breathe .85s steps(2,end) infinite; }
+
+/* Chatterbox: this is a radio, so the speaker—not the whole card—breathes. */
+.chatterbox-radio-mark i { transform-origin: center; animation: chatter-speaker-live 2.8s ease-in-out infinite; }
+.chatterbox-status:not(.idle) .chatterbox-status-light,
+.chatterbox-on-air span { animation: chatter-signal-breathe 1.5s ease-in-out infinite; }
+.chatterbox-take-strip button:hover { transform: translateY(-2px); }
+.chatterbox-playhead { transition: left 55ms linear; }
+
+/* Blast: selected work stays alive at the handles, never the artwork. */
+.blast-canvas-element.selected::after { animation: chatter-signal-breathe 2.2s ease-in-out infinite; }
+.blast-resize { animation: chatter-signal-breathe 1.7s ease-in-out infinite; }
+.blast-template-card:hover .blast-template-art,
+.blast-saved-grid > button:hover { filter: saturate(1.06); }
+
+/* Stinger: only the room-entry monitor carries a scan. The editor is an
+   honest preview of the graphic the student is building. */
+.stinger-home-monitor::before {
+  content: '';
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 16%;
+  background: linear-gradient(transparent,rgba(255,255,255,.1),transparent);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: chatter-screen-roll 6.5s linear infinite;
+}
+.stinger-home-monitor i { animation: chatter-signal-breathe 1.35s ease-in-out infinite; }
+.stinger-layer.selected { transition: outline-color var(--motion-snap), filter var(--motion-snap); }
+
+/* Showtime: only live surfaces pulse. Preview and editing stay calm. */
+.showtime-rec,
+.mons > .program header::after {
+  animation: chatter-signal-breathe 1.1s ease-in-out infinite;
+}
+.mons > .program header::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: #ff5960;
+  box-shadow: 0 0 10px #ff5960;
+}
+.showtime-title-preview { animation: chatter-popover-in 220ms cubic-bezier(.18,.84,.3,1.1) both; }
+
+/* Green Light and Reruns: approval glows; archive media behaves like tape. */
+.greenlight-room .newsroom-hero-icon { animation: chatter-signal-breathe 3.2s ease-in-out infinite; }
+.review-check-icon { transition: transform var(--motion-snap), background-color var(--motion-snap); }
+.review-check:hover .review-check-icon { transform: rotate(-5deg) scale(1.08); }
+.reruns-card-grid > button:hover .reruns-card-art > span { transform: scale(1.045) rotate(-1deg); }
+.reruns-card-art > span { transition: transform var(--motion-settle); }
+.reruns-card-art::after { transform-origin: center; transition: letter-spacing var(--motion-settle); }
+.reruns-card-grid > button:hover .reruns-card-art::after { letter-spacing: 22px; }
+
+/* Motion is enhancement. Keep state, hierarchy and focus when it is off. */
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .view.on > * { opacity: 1; transform: none; }
+  .stinger-home-monitor::before,.top.studio-canopy::after { display: none; }
+}
+
+@media print {
+  *,*::before,*::after { animation: none !important; transition: none !important; }
+}

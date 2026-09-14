@@ -1,0 +1,22 @@
+import { useState, type PointerEvent } from 'react';
+import { GARAGE_INSTRUMENT_PRESETS, type GarageInstrumentPreset, type GarageInstrumentControls } from '@chatter/shared';
+export function StudioSoundCabinet({disabled,activePresetId,onAdd,onApply,onPreview,onSamples,onAudio}:{disabled:boolean;activePresetId?:string;onAdd(p:GarageInstrumentPreset):void;onApply?(p:GarageInstrumentPreset):void;onPreview(p:GarageInstrumentPreset):void;onSamples():void;onAudio():void}){
+ const [query,setQuery]=useState(''),[category,setCategory]=useState('ALL');
+ const [chosen,setChosen]=useState<GarageInstrumentPreset>();
+ const presets=GARAGE_INSTRUMENT_PRESETS.filter(p=>(category==='ALL'||p.category===category)&&`${p.name} ${p.description} ${p.tags.join(' ')}`.toLowerCase().includes(query.toLowerCase()));
+ return <aside className="sound-cabinet" aria-label="Sound cabinet"><header><span className="cabinet-speaker" aria-hidden="true">◉</span><div><h2>Sound cabinet</h2><p>Find something that speaks to you.</p></div></header>
+  <label className="cabinet-search"><span>Find a sound</span><input aria-label="Search sound cabinet" type="search" placeholder="Keys, bells, bass…" value={query} onChange={e=>setQuery(e.target.value)}/></label>
+  <div className="cabinet-categories">{[['ALL','All'],['KEYS','Keys'],['DRUMS','Drums'],['BASS','Bass'],['SYNTH','Synth'],['PAD','Pads']].map(([id,label])=><button key={id} aria-pressed={category===id} onClick={()=>setCategory(id!)}>{label}</button>)}</div>
+  <div className="cabinet-drawers">{presets.map(p=><div className={`sound-cartridge ${chosen?.id===p.id?'chosen':''} ${activePresetId===p.id?'loaded':''}`} key={p.id} style={{'--sound':p.color} as React.CSSProperties} draggable={!disabled} onDragStart={e=>e.dataTransfer.setData('application/x-chatter-instrument',p.id)}>
+   <button className="cartridge-label" disabled={disabled} onClick={()=>setChosen(p)} onDoubleClick={()=>onAdd(p)}><span className="cartridge-art" aria-hidden="true">{p.icon}</span><span><b>{p.name}</b><small>{p.tags.slice(0,2).join(' / ')}</small></span></button>
+   <button className="cartridge-listen" aria-label={`Audition ${p.name}`} disabled={disabled} onClick={()=>{setChosen(p);onPreview(p);}}>▷</button>
+  </div>)}{!presets.length&&<p>No sounds found. Try another name.</p>}</div>
+  {chosen?<div className="cartridge-actions"><b>{chosen.name}</b><p>{chosen.description}</p><button disabled={disabled} onClick={()=>onAdd(chosen)}>＋ New track</button>{onApply&&<button disabled={disabled} onClick={()=>onApply(chosen)}>Use on selected track</button>}</div>:<p className="cabinet-tip">▷ Hear it first. Drag it into the song, or double-click to add a track.</p>}
+  <footer><button disabled={disabled} onClick={onSamples}>♫ Samples &amp; loops</button><button disabled={disabled} onClick={onAudio}>◉ Club audio</button></footer>
+ </aside>;
+}
+export function StudioSoundPad({controls,onChange}:{controls:GarageInstrumentControls;onChange(tone:number,motion:number):void}){
+ function point(event:PointerEvent<HTMLDivElement>){const r=event.currentTarget.getBoundingClientRect();onChange(Math.max(0,Math.min(1,(event.clientX-r.left)/r.width)),Math.max(0,Math.min(1,1-(event.clientY-r.top)/r.height)));}
+ return <div className="sound-shaper-wrap"><div className="sound-shaper" aria-label="Sound shaper: left dark, right bright, up more motion" role="slider" tabIndex={0} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(controls.tone*100)} aria-valuetext={`Tone ${Math.round(controls.tone*100)} percent, motion ${Math.round(controls.motion*100)} percent`} onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);point(e);}} onPointerMove={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))point(e);}} onPointerUp={e=>e.currentTarget.releasePointerCapture(e.pointerId)} onKeyDown={e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();e.stopPropagation();onChange(Math.max(0,Math.min(1,controls.tone+(e.key==='ArrowLeft'?-.05:e.key==='ArrowRight'?.05:0))),Math.max(0,Math.min(1,controls.motion+(e.key==='ArrowDown'?-.05:e.key==='ArrowUp'?.05:0))));}}}>
+  <span className="shaper-north">Wiggle</span><span className="shaper-west">Dark</span><span className="shaper-east">Bright</span><span className="shaper-south">Still</span><i style={{left:`${controls.tone*100}%`,top:`${(1-controls.motion)*100}%`}}/></div><small>Play a note. Move the sound around.</small></div>;
+}

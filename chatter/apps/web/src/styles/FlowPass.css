@@ -1,0 +1,60 @@
+/* =====================================================================
+   CHATTER PAGE-FLOW PASS
+
+   Ordinary work surfaces belong to the page. They grow with their work
+   instead of trapping a second page and scrollbar inside a card. Spatial
+   editors, timelines, teleprompters, dialogs, and long media shelves keep
+   their purposeful scrolling behavior.
+   ===================================================================== */
+
+/* Stinger's graphic chooser is a shelf that reflows, not a filmstrip. */
+.stinger-scenes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  align-items: stretch;
+  overflow: visible;
+}
+
+.stinger-scenes-label {
+  grid-column: 1 / -1;
+  width: auto;
+}
+
+.stinger-scenes > button,
+.stinger-add-scene {
+  width: auto;
+  min-width: 0;
+}
+
+.stinger-inspector {
+  max-height: none;
+  overflow: visible;
+}
+
+/* Writing and planning documents should lengthen the newsroom page. */
+.desk-shell { align-items: stretch; }
+
+.desk-outline,
+.desk-paper,
+.desk-sidebar,
+.desk-focus .desk-paper {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.slate-dossier {
+  position: static;
+  max-height: none;
+  overflow: visible;
+}
+
+/* The edit bench follows the full cut; only its audio timeline scrolls. */
+.chatterbox-inspector {
+  max-height: none;
+  overflow: visible;
+}
+
+@media (max-width: 620px) {
+  .stinger-scenes { grid-template-columns: 1fr; }
+}

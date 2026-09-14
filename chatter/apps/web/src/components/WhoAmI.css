@@ -1,0 +1,217 @@
+/*
+ * The name in the corner. `.me` and `.face` are the prototype's own classes and
+ * keep their look; everything here is the menu that opens under them.
+ */
+
+.who-am-i { position: relative; }
+
+.who-am-i-trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 2px 8px 2px 2px;
+}
+.who-am-i-trigger:hover { background: rgba(255, 255, 255, .18); }
+
+.who-am-i-caret { font-size: 10px; opacity: .7; }
+
+.who-am-i-menu {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 200;
+  min-width: 250px;
+  background: var(--cream);
+  border: var(--bw) solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 6px 7px 0 rgba(0, 0, 0, .35);
+  padding: 11px;
+}
+
+.who-am-i-label {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tx-2);
+  margin: 2px 4px 9px;
+}
+
+.who-am-i-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 9px;
+  border: 2px solid transparent;
+  border-radius: 9px;
+  font-size: 14px;
+}
+.who-am-i-option:hover { background: var(--cream-2); border-color: var(--ink); }
+.who-am-i-option.on { background: var(--sun); border-color: var(--ink); }
+.who-am-i-option b { font-family: var(--f-disp); font-size: 16px; flex: 1; }
+
+.who-am-i-option .face.small {
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+  flex: none;
+}
+
+.who-am-i-tick { font-weight: 900; }
+
+.who-am-i-option.add {
+  margin-top: 6px;
+  border-top: 2px dashed var(--cream-3);
+  border-radius: 0 0 9px 9px;
+  padding-top: 11px;
+  font-weight: 800;
+  color: var(--grape-d);
+}
+
+.who-am-i-option.checkout {
+  margin-top: 8px;
+  padding-top: 11px;
+  border-top: 2px dashed var(--cream-3);
+  border-radius: 0 0 9px 9px;
+  color: #6e2445;
+  font-weight: 900;
+}
+
+.who-am-i-option.manage {
+  margin-top: 8px;
+  padding-top: 11px;
+  border-top: 2px dashed var(--cream-3);
+  border-radius: 0;
+  color: #245c69;
+  font-weight: 900;
+}
+
+.badge-manager-menu {
+  width: min(390px, calc(100vw - 28px));
+  max-height: min(720px, calc(100dvh - 110px));
+  overflow: hidden;
+  padding: 0;
+}
+.badge-manager {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+  color: var(--ink);
+}
+.badge-manager > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 14px 11px;
+  border-bottom: 3px solid var(--ink);
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(100deg, #70d8ce 0 78%, #ffd331 78%);
+}
+.badge-manager > header span { display: block; font: 900 8px var(--f-ui); letter-spacing: .14em; }
+.badge-manager > header h2 { margin: 2px 0 0; font: 900 23px/1 var(--f-disp); }
+.badge-manager > header > button {
+  width: 31px;
+  height: 31px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 21px;
+  line-height: 1;
+}
+.badge-manager-note { margin: 11px 14px 5px; color: var(--tx-2); font-size: 11px; line-height: 1.4; }
+.badge-manager-racks {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-bottom: 8px;
+}
+.badge-manager-group { padding: 10px 12px 2px; }
+.badge-manager-group h3 { margin: 0 2px 7px; font: 900 10px var(--f-ui); letter-spacing: .09em; text-transform: uppercase; }
+.badge-manager-list { display: grid; gap: 6px; }
+.badge-manager-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+  border: 2px solid var(--ink);
+  border-radius: 9px;
+  background: #fff;
+}
+.badge-manager-name { min-width: 0; display: flex; align-items: baseline; gap: 6px; }
+.badge-manager-name b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--f-disp); white-space: nowrap; }
+.badge-manager-name small { color: #245c69; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+.badge-manager-row > button,
+.badge-manager-confirm button {
+  border: 2px solid var(--ink);
+  border-radius: 7px;
+  padding: 6px 8px;
+  background: var(--cream-2);
+  color: #6e2445;
+  font-size: 10px;
+  font-weight: 900;
+}
+.badge-manager-row.confirming {
+  border-color: #7b2457;
+  background: #fff0f6;
+  box-shadow: inset 5px 0 0 #ff78a9;
+}
+.badge-manager-row > button[aria-pressed="true"] { background: #ffb2c9; }
+.badge-manager-empty { margin: 0; padding: 8px 10px; border: 2px dashed var(--cream-3); border-radius: 8px; color: var(--tx-2); font-size: 11px; }
+.badge-manager-error { margin: 9px 12px; }
+.badge-manager-confirm {
+  flex: none;
+  margin: 10px 12px 12px;
+  padding: 11px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: #fff0c8;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.badge-manager-confirm > b { display: block; font: 900 15px/1.15 var(--f-disp); }
+.badge-manager-confirm p { margin: 5px 0 9px; color: var(--tx-2); font-size: 10px; line-height: 1.35; }
+.badge-manager-confirm > div { display: flex; justify-content: flex-end; gap: 7px; }
+.badge-manager-confirm button.remove { background: #ffb2c9; }
+.badge-manager-confirm button:disabled { opacity: .55; }
+
+.who-am-i-add { display: flex; gap: 6px; margin-top: 9px; }
+.who-am-i-add input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 14px;
+  padding: 7px 9px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+}
+.who-am-i-add button {
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sun);
+  padding: 7px 12px;
+  font-weight: 900;
+  font-size: 13px;
+}
+.who-am-i-add button:disabled { opacity: .5; }
+
+.who-am-i-error {
+  margin: 9px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pink-d);
+}
+
+.who-am-i-foot {
+  margin: 9px 4px 2px;
+  font-size: 11px;
+  color: var(--tx-2);
+  line-height: 1.4;
+}

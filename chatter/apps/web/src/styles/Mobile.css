@@ -1,0 +1,193 @@
+/* Touch controls retain the same tools and projects as the desktop rooms. */
+@media (pointer: coarse) {
+  body[data-interface='spiral-stage'] :is(.newsroom-room, .showtime-room, .stinger-room, .blast-editor, .chatterbox-room) :is(button, select),
+  body[data-interface='spiral-stage'] :is(.project-drive-dialog, .slate-pitch-modal, .story-satellite-panel) :is(button, select) {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  body[data-interface='spiral-stage'] :is(input:not([type='range']):not([type='checkbox']):not([type='radio']), textarea, select) {
+    font-size: 16px;
+  }
+  body[data-interface='spiral-stage'] input[type='range'] { min-height: 32px; }
+  body[data-interface='spiral-stage'] .studio-workbench :is(.daw-transport-row, .dock-tabs, .performance-controls, .device-strip, .garage-finish, .cartridge-actions, .midi-toolbar) button,
+  body[data-interface='spiral-stage'] .studio-workbench :is(.track-switches, .console-switches) button,
+  body[data-interface='spiral-stage'] .studio-workbench :is(.cartridge-listen, .keyboard-toggle),
+  .clip-context-menu button {
+    min-width: 44px;
+    min-height: 44px;
+    height: auto !important;
+  }
+  body[data-interface='spiral-stage'] .studio-workbench :is(.track-switches, .console-switches) { flex-wrap: wrap; }
+  body[data-interface='spiral-stage'] .studio-workbench :is(.arrangement-track, .track-header, .track-lane) { min-height: 108px; }
+  body[data-interface='spiral-stage'] .studio-workbench .track-lane { height: 108px; }
+  body[data-interface='spiral-stage'] .studio-workbench .console-channel { min-width: 112px; }
+  body[data-interface='spiral-stage'] .studio-workbench .dock-tabs { min-height: 52px; height: auto; overflow-x: auto; flex: none; }
+  body[data-interface='spiral-stage'] .studio-workbench :is(.dock-tabs, .midi-toolbar) > * { flex-shrink: 0; }
+  body[data-interface='spiral-stage'] .studio-workbench .transport-value { min-height: 44px; height: auto; }
+  body[data-interface='spiral-stage'] .studio-workbench .transport-value input { min-width: 44px; }
+  body[data-interface='spiral-stage'] .studio-workbench .sound-shaper { touch-action: none; }
+  .blast-canvas-element:not(:has([contenteditable='true'])), .blast-resize,
+  .chatterbox-audio-clip, .stinger-layer { touch-action: none; }
+  .blast-resize { width: 28px; height: 28px; right: -14px; bottom: -14px; }
+  .blast-resize::after { content: ''; position: absolute; inset: -8px; }
+  .blast-layer-list > div { grid-template-columns: minmax(0,1fr) 44px 44px; }
+}
+
+/* Reserve real space for navigation and saves, including Studio's work view. */
+@media (max-width: 820px), (pointer: coarse) and (max-width: 1366px) {
+  .spiral-stage-shell .spiral-center-frame,
+  .spiral-stage-shell[data-work-view='true'] .spiral-center-frame {
+    top: calc(env(safe-area-inset-top, 0px) + 64px);
+    right: calc(env(safe-area-inset-right, 0px) + 4px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
+    left: calc(env(safe-area-inset-left, 0px) + 4px);
+    width: auto;
+    height: auto;
+    padding: 5px;
+    transform: none;
+    border-radius: 16px;
+  }
+  .spiral-stage-shell .spiral-window-shell {
+    --window-corners: 10px;
+    grid-template-rows: auto minmax(0,1fr);
+  }
+  .spiral-stage-shell .spiral-window-toolbar,
+  .spiral-stage-shell .spiral-window-toolbar[data-has-story-control='false'] {
+    grid-template-columns: minmax(0,1fr) 44px;
+    min-height: 52px;
+    gap: 4px;
+    padding: 4px;
+  }
+  .spiral-stage-shell .spiral-frame-hardware {
+    display: grid;
+    grid-column: 2;
+    grid-template-columns: 1fr;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 8px;
+  }
+  .spiral-stage-shell .spiral-frame-hardware :is(.spiral-hardware-lamps, .spiral-hardware-room, .spiral-hardware-mode b) { display: none; }
+  .spiral-stage-shell .spiral-hardware-mode { display: grid; grid-template-columns: 1fr; height: 44px; padding: 0; }
+  .spiral-stage-shell .spiral-hardware-mode i { width: 36px; height: 36px; margin: auto; }
+  .spiral-stage-shell .story-guide { grid-template-columns: 44px minmax(120px,1fr) 76px; gap: 3px; padding: 2px; }
+  .spiral-stage-shell .story-guide-steps { min-width: 0; overflow-x: auto; }
+  .spiral-stage-shell .story-guide-steps button { flex-shrink: 0; min-width: 36px; min-height: 44px; }
+  .spiral-stage-shell .story-guide-title { min-width: 0; padding: 0; }
+  .spiral-stage-shell .story-guide .story-satellite-copy { display: none; }
+  .spiral-stage-shell .story-guide .story-satellite-ring { width: 40px; height: 40px; }
+  .spiral-stage-shell .story-guide-next { min-height: 44px; }
+  .spiral-stage-shell .spiral-workflow-dock { min-width: 0; }
+  .spiral-stage-shell :is(.spiral-stage-brand, .spiral-satellites, .spiral-room-map),
+  .spiral-stage-shell[data-work-view='true'] :is(.spiral-stage-brand, .spiral-satellites, .spiral-room-map) {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 900;
+  }
+  .spiral-stage-shell .spiral-satellites,
+  .spiral-stage-shell[data-work-view='true'] .spiral-satellites { pointer-events: none; }
+  .spiral-stage-shell .spiral-stage-brand { top: calc(env(safe-area-inset-top, 0px) + 6px); left: calc(env(safe-area-inset-left, 0px) + 8px); }
+  .spiral-stage-shell .spiral-stage-brand button { width: 52px; height: 52px; padding: 3px; grid-template-columns: 1fr; }
+  .spiral-stage-shell .spiral-stage-brand :is(b, small) { display: none; }
+  .spiral-stage-shell .spiral-stage-brand span { width: 36px; height: 36px; margin: auto; }
+  .spiral-stage-shell .spiral-satellite-drive { display: block; top: calc(env(safe-area-inset-top, 0px) + 6px); right: calc(env(safe-area-inset-right, 0px) + 70px); bottom: auto; left: auto; }
+  .spiral-stage-shell .spiral-satellite-badge { top: calc(env(safe-area-inset-top, 0px) + 6px); right: calc(env(safe-area-inset-right, 0px) + 8px); bottom: auto; left: auto; }
+  .spiral-stage-shell .spiral-satellite-media { left: calc(env(safe-area-inset-left, 0px) + 8px); bottom: calc(env(safe-area-inset-bottom, 0px) + 6px); }
+  .spiral-stage-shell .spiral-satellite-adviser { left: calc(env(safe-area-inset-left, 0px) + 66px); bottom: calc(env(safe-area-inset-bottom, 0px) + 6px); }
+  .spiral-stage-shell :is(.stage-utility, .spiral-satellite .project-drive-trigger, .spiral-satellite .who-am-i-trigger) { width: 52px !important; height: 52px !important; min-width: 52px !important; }
+  .spiral-stage-shell .spiral-room-map { bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); }
+  .spiral-stage-shell .spiral-room-map > summary { min-height: 44px; }
+  .spiral-room-map-popover { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 76px); }
+  body[data-interface='spiral-stage'] .spiral-center-room { --room-corners: 8px; }
+  body[data-interface='spiral-stage'] .stinger-topbar { display: flex; flex-wrap: wrap; }
+  body[data-interface='spiral-stage'] .stinger-topbar > * { min-width: 0; max-width: 100%; }
+  body[data-interface='spiral-stage'] .stinger-file-menu { display: block; }
+  body[data-interface='spiral-stage'] .stinger-file-menu summary { min-height: 44px; }
+  body[data-interface='spiral-stage'] .stinger-file-menu > div { left: 0; right: auto; max-width: calc(100vw - 64px); }
+  .project-drive-backdrop, .slate-modal-shade, .blast-story-shade, .stinger-template-overlay {
+    padding: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  }
+  .project-drive-dialog, .slate-pitch-modal, .blast-story-picker, .stinger-template-dialog, .studio-mix-check {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 820px) {
+  /* Each Blast panel remains available; the artwork itself has its own pan area. */
+  body[data-interface='spiral-stage'] .spiral-center-room:has(.blast-editor),
+  body[data-interface='spiral-stage'] .spiral-live-board:has(.blast-editor) { height: 100%; overflow: auto !important; }
+  body[data-interface='spiral-stage'] .blast-editor { height: auto; min-height: 100% !important; overflow: visible; }
+  body[data-interface='spiral-stage'] .blast-workspace,
+  body[data-interface='spiral-stage'] .blast-guided .blast-workspace { display: flex; flex-direction: column; flex: none; grid-template-columns: minmax(0,1fr) !important; overflow: visible; }
+  body[data-interface='spiral-stage'] .blast-rail { order: 0; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; }
+  body[data-interface='spiral-stage'] .blast-rail button { min-width: 58px; flex: none; }
+  body[data-interface='spiral-stage'] .blast-stage { order: 1; display: block; min-width: 0; height: 440px; min-height: 320px; padding: 12px; overflow: auto; }
+  body[data-interface='spiral-stage'] .blast-stage-tools { position: sticky; top: 0; left: auto; right: auto; min-height: 44px; height: auto; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
+  body[data-interface='spiral-stage'] .blast-panel { order: 2; max-height: 380px; }
+  body[data-interface='spiral-stage'] .blast-inspector { order: 3; position: static; inset: auto; width: 100%; max-height: 440px; border-top: 2px solid var(--ink); box-shadow: none; }
+  body[data-interface='spiral-stage'] .blast-toolbar { display: flex; flex-wrap: wrap; height: auto; padding: 8px; }
+  body[data-interface='spiral-stage'] .blast-title-input { flex: 1; min-width: 140px; }
+  body[data-interface='spiral-stage'] :is(.blast-toolbar .blast-recipe-controls, .blast-zoom) { display: flex; }
+  body[data-interface='spiral-stage'] .blast-recipe-controls label { display: block; }
+  body[data-interface='spiral-stage'] .blast-guided-strip { flex-wrap: wrap; }
+  body[data-interface='spiral-stage'] .blast-rich-toolbar { position: sticky; top: 44px; left: auto; transform: none; width: max-content; max-width: 100%; flex-wrap: wrap; }
+  .blast-shape-grid.inspector { grid-template-columns: repeat(auto-fit, minmax(44px,1fr)); }
+}
+
+@media (max-width: 700px) {
+  /* Studio is lazy-loaded. Scope these above its room selectors so import order
+     cannot restore the desktop's fixed-height shell after the phone opens it. */
+  body[data-interface='spiral-stage'] .spiral-stage-shell .spiral-center-room:has(.studio-workbench),
+  body[data-interface='spiral-stage'] .spiral-center-room .spiral-live-board:has(.studio-workbench) { overflow: auto; }
+  body[data-interface='spiral-stage'] .spiral-center-room .spiral-live-board .studio-workbench {
+    height: auto;
+    min-height: 100% !important;
+    overflow: visible;
+  }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .daw-shell {
+    flex: none;
+    height: auto;
+    min-height: 0;
+    grid-template-columns: minmax(0,1fr);
+    grid-template-rows: max-content 24px 280px;
+    overflow: visible;
+  }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .daw-shell.dock-open { grid-template-rows: max-content 24px 280px minmax(330px,var(--dock-height)); }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .daw-shell.cabinet-open { grid-template-columns: minmax(0,1fr); }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .daw-transport { height: auto; min-height: 0; overflow: visible; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .daw-transport-row {
+    flex: none;
+    height: auto;
+    min-height: 54px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .daw-transport-row > * { flex-shrink: 0; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .sound-cabinet {
+    position: static;
+    inset: auto;
+    grid-column: 1 / -1;
+    grid-row: 5;
+    width: 100%;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .sound-cabinet > * { flex: none; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .cabinet-drawers { max-height: 300px; overflow: auto; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .sound-shaper-wrap { display: flex; justify-content: center; padding: 10px; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .garage-finish > div,
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .garage-output-story { display: flex; flex-wrap: wrap; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .garage-output-story { margin-left: 0; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .garage-output-story select { max-width: 100% !important; height: auto; min-height: 44px; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .garage-finish { overflow: visible; }
+  body[data-interface='spiral-stage'] .spiral-live-board .studio-workbench .macro-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .project-drive-finish { margin-inline: 10px; }
+  .project-drive-finish > div { min-width: 0; }
+  .project-drive-dialog > header { padding: 12px; }
+  .project-drive-dialog > header > div { min-width: 0; gap: 8px; }
+  .project-drive-dialog h2 { font-size: 23px; }
+  .project-drive-icon { flex-shrink: 0; }
+}

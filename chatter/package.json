@@ -1,0 +1,44 @@
+{
+  "name": "chatter",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "workers/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p packages/shared/tsconfig.json --noEmit && tsc -p apps/web/tsconfig.json --noEmit",
+    "dev": "npm run dev -w @chatter/web",
+    "build": "npm run build -w @chatter/web",
+    "fetch-models": "node scripts/fetch-models.mjs",
+    "check": "npm run typecheck && npm test && npm run build",
+    "package:usb": "node scripts/package-usb.mjs",
+    "package:windows": "node scripts/package-windows.mjs",
+    "package:mac": "node scripts/package-mac.mjs",
+    "package:chromebook": "node scripts/package-chromebook.mjs",
+    "package:ios": "node scripts/package-ios.mjs",
+    "test:reader": "node --test reader/core.test.mjs reader/cartridge.test.mjs reader/control.test.mjs scripts/browser-package.test.mjs",
+    "test:desktop": "node --test desktop/files.test.cjs desktop/main.test.cjs",
+    "package:website": "node scripts/package-website.mjs",
+    "test:website": "node --test website/*.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.3.0",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^30.0.1",
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "@huggingface/transformers": {
+      "sharp": "0.35.4"
+    }
+  }
+}

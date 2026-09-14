@@ -1,0 +1,266 @@
+/*
+ * The badge table. Built on the prototype's tokens, but this is the one screen
+ * that is not a room - it sits on the grape ground with no chrome around it,
+ * because the kid has not got into the newsroom yet.
+ *
+ * The badges are meant to read as laid out on a table: paper stock, a clip at
+ * the top, and a slight tilt so they look put down rather than rendered.
+ */
+
+.badge-room {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: auto;
+  background: var(--ground);
+  display: grid;
+  place-items: start center;
+  padding: 40px 20px 60px;
+}
+
+.badge-sheet {
+  position: relative;
+  width: min(560px, 100%);
+  background: var(--cream);
+  border: var(--bw) solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, .35);
+  padding: 28px 26px 24px;
+}
+.badge-sheet.wide { width: min(880px, 100%); }
+
+.badge-eyebrow {
+  font-size: 11px;
+  font-weight: 1000;
+  letter-spacing: .18em;
+  color: var(--grape-d);
+  margin: 0 0 6px;
+}
+
+.badge-sheet h1 {
+  font-family: var(--f-pop);
+  font-weight: 400;
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.05;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+
+.badge-lede {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--tx-2);
+  margin: 0 0 20px;
+  max-width: 52ch;
+}
+
+/* ----------------------------------------------------------- the table */
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.badge-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 22px 10px 12px;
+  background: var(--paper);
+  border: var(--bw) solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 var(--ink);
+  text-align: center;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+/* Put down by hand, not laid out by a grid. */
+.badge-card:nth-child(3n) { transform: rotate(-1.2deg); }
+.badge-card:nth-child(3n + 2) { transform: rotate(.9deg); }
+
+.badge-card:hover,
+.badge-card:focus-visible {
+  transform: translate(-2px, -3px) rotate(0deg);
+  box-shadow: 7px 8px 0 var(--ink);
+}
+
+/* The clip at the top of a lanyard badge. */
+.badge-clip {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 14px;
+  background: var(--cream-3);
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+}
+
+.badge-photo {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--sun);
+  font-family: var(--f-disp);
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.badge-card:nth-child(4n) .badge-photo { background: var(--cyan); }
+.badge-card:nth-child(4n + 1) .badge-photo { background: var(--lime); }
+.badge-card:nth-child(4n + 2) .badge-photo { background: var(--pink); color: #fff; }
+
+.badge-card b { font-family: var(--f-disp); font-size: 17px; line-height: 1.15; }
+.badge-card small { font-size: 10px; color: var(--tx-2); }
+
+.badge-jobs-done {
+  margin-top: 5px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tx-2);
+  border-top: 2px dashed var(--cream-3);
+  padding-top: 5px;
+  width: 100%;
+}
+
+.badge-empty {
+  font-size: 14px;
+  color: var(--tx-2);
+  padding: 18px 0 22px;
+}
+
+/* -------------------------------------------------------------- fields */
+
+.badge-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+.badge-field span { font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.badge-field input {
+  font: inherit;
+  font-family: var(--f-disp);
+  font-size: 22px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: var(--bw) solid var(--ink);
+  border-radius: 10px;
+}
+
+.badge-grades { border: none; padding: 0; margin: 0 0 16px; }
+.badge-grades legend { font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; padding: 0 0 6px; }
+.badge-grades legend small { font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--tx-2); }
+.badge-grades > div { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.badge-grade {
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.badge-grade.on { background: var(--sun); }
+
+.badge-error {
+  background: #ffe0ec;
+  border: 3px solid var(--pink-d);
+  border-radius: 10px;
+  padding: 9px 11px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pink-d);
+  margin: 0 0 14px;
+}
+
+/* ---------------------------------------------------------------- jobs */
+
+.badge-jobs { display: grid; gap: 10px; margin-bottom: 20px; }
+
+.badge-job {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'icon name' 'icon promise' 'icon first';
+  gap: 1px 14px;
+  align-items: center;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: var(--bw) solid var(--ink);
+  border-left: 10px solid var(--job-color, var(--sun));
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.badge-job:hover, .badge-job:focus-visible { transform: translate(-2px, -2px); box-shadow: 6px 7px 0 var(--ink); }
+
+.badge-job-icon {
+  grid-area: icon;
+  width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: var(--job-color, var(--sun));
+  font-size: 20px;
+}
+.badge-job b { grid-area: name; font-family: var(--f-disp); font-size: 19px; }
+.badge-job-promise { grid-area: promise; font-size: 12px; color: var(--tx-2); line-height: 1.4; }
+.badge-job-first { grid-area: first; font-size: 10px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; color: var(--grape-d); margin-top: 3px; }
+
+/* ------------------------------------------------------------- actions */
+
+.badge-actions { display: flex; gap: 9px; flex-wrap: wrap; justify-content: flex-end; }
+.badge-actions.center { justify-content: center; }
+
+.badge-button {
+  border: var(--bw) solid var(--ink);
+  border-radius: 999px;
+  background: var(--sun);
+  padding: 11px 20px;
+  font-family: var(--f-disp);
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.badge-button:hover:not(:disabled) { transform: translate(-1px, -2px); box-shadow: 5px 6px 0 var(--ink); }
+.badge-button:disabled { opacity: .5; box-shadow: none; }
+.badge-button.ghost { background: var(--paper); }
+
+.badge-foot {
+  margin: 20px 0 0;
+  padding-top: 12px;
+  border-top: 2px dashed var(--cream-3);
+  font-size: 11px;
+  color: var(--tx-2);
+  text-align: center;
+}
+
+.badge-table-back { display: block; margin-bottom: 16px; }
+.badge-entry-actions { align-items: center; }
+.badge-drive-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 2px solid #47731f;
+  border-radius: 9px;
+  background: #eff9e3;
+  color: #35571a;
+  font-size: 12px;
+  font-weight: 800;
+}
+.badge-drive-message.error { border-color: var(--pink-d); background: #ffe0ec; color: #7d1739; }
+.badge-drive-message button { border: 0; background: transparent; color: inherit; font-size: 20px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-card, .badge-job, .badge-button { transition: none; }
+  .badge-card:hover, .badge-card:focus-visible,
+  .badge-job:hover, .badge-job:focus-visible,
+  .badge-button:hover:not(:disabled) { transform: none; }
+}

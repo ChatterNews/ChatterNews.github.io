@@ -1,0 +1,41 @@
+# The Gate, stage 1: query blocklist. SPEC S4.
+# One term per line. Matched whole-word, case-insensitive, never as a substring
+# ("gorgeous" must not trip on "gore"). Lines starting with # are comments.
+# Tune this with the pilot adviser; every rejection is logged as an AuditEvent.
+gore
+gory
+blood
+bloody
+corpse
+dead body
+weapon
+gun
+guns
+rifle
+pistol
+knife
+stab
+kill
+killing
+murder
+suicide
+nude
+nudes
+nudity
+naked
+porn
+porno
+pornography
+sex
+sexy
+drug
+drugs
+cocaine
+heroin
+meth
+overdose
+noose
+hanging
+gruesome
+mutilated
+autopsy

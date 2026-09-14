@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#282144"><meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./reader.css"><title>Orbit · iPhone & iPad</title>
+</head>
+<body data-state="busy">
+  <main class="reader">
+    <header class="masthead"><span class="wordmark">CHATTER<br><b>NEWS</b></span><span class="edition">ORBIT POCKET EDITION<br><small>Your next big idea fits here.</small></span></header>
+    <section class="console" aria-labelledby="reader-title">
+      <div class="window-bar"><span><i aria-hidden="true"></i> IPHONE + IPAD</span><span aria-hidden="true">— □ ×</span></div>
+      <div class="console-body">
+        <div class="planet" aria-hidden="true"><span>✦</span></div>
+        <p class="eyebrow">MAKE ROOM FOR AN IDEA.</p><h1 id="reader-title">Small screen.<br>Big <em>Orbit.</em></h1>
+        <p class="intro">Bring your newsroom along. Prepare the Orbit file once, then open your desk here.</p>
+        <div class="drive"><span class="drive-icon" aria-hidden="true">▰</span><div><small>YOUR TOOLKIT</small><b id="drive-name">Choose Orbit.orbit from Files</b></div><span class="light" aria-hidden="true"></span></div>
+        <div class="status" role="status" aria-live="polite"><h2 id="status">Checking this device…</h2><p id="detail">Stay online for the first reader setup.</p></div>
+        <progress id="progress" max="100" value="0" hidden aria-label="Preparing Orbit"></progress><p id="progress-label" class="progress-label"></p>
+        <input id="cartridge" type="file" hidden aria-label="Choose the Orbit app file">
+        <div class="actions"><button id="open-app" type="button" disabled>Choose Orbit file ↗</button><button id="resume" type="button" hidden>Open Orbit →</button><button id="cancel" class="cancel" type="button" hidden>Cancel preparation</button></div>
+      </div><div class="console-footer"><span>YOUR WORK GOES WITH YOU.</span><span aria-hidden="true">✦</span></div>
+    </section>
+    <aside class="save-note"><b>Give Orbit a Home Screen icon.</b><p>In Safari, open Share → Add to Home Screen. Open that icon, then prepare the Orbit file there. Safari and the Home Screen app can keep separate recovery copies.</p></aside>
+    <aside class="save-note"><b>Pack up before you go.</b><p>In Orbit, choose <strong>Finish session</strong>, then <strong>Save to Files</strong>. Pick or create a <strong>Chatter News</strong> folder. Check that the file appears before closing. The web app cannot confirm what Files saved.</p></aside>
+    <footer class="page-footer">iOS/iPadOS 18.4 or newer is the pilot target; the latest system is preferred. Studio, recording and video export still depend on device support. Your stories are not uploaded to this website.</footer>
+  </main><script type="module" src="./reader.js"></script>
+</body></html>
