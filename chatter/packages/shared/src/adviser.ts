@@ -13,6 +13,7 @@
  */
 import type { Store } from './store.js';
 import type { Appearance, Release, Story, User } from './types.js';
+import { verifyAdviserPin } from './first-run.js';
 import { canPublish } from './publish.js';
 import { quarantined, type Decider } from './quarantine.js';
 import { reviewMediaKey, reviewProgress } from './newsroom.js';
@@ -226,13 +227,25 @@ export interface NewsroomBackup {
   blobHashes: string[];
 }
 
+export class NewsroomBackupAccessError extends Error {
+  constructor(reason: 'setup' | 'pin') {
+    super(reason === 'setup'
+      ? 'Set up adviser access and a PIN before saving a whole-newsroom backup.'
+      : 'Enter the correct adviser PIN. No backup was created.');
+    this.name = 'NewsroomBackupAccessError';
+  }
+}
+
 /**
  * Everything this newsroom knows, as one file.
  *
  * SPEC Tier 1a asks for a backup to be a button rather than a documented
  * habit. This is the Tier 0 form of that button.
  */
-export async function newsroomBackup(store: Store): Promise<NewsroomBackup> {
+export async function newsroomBackup(store: Store, pin: string): Promise<NewsroomBackup> {
+  // Authorize before reading any newsroom records, including for non-UI callers.
+  if (!(await store.settings.get()).adviserPin) throw new NewsroomBackupAccessError('setup');
+  if (!await verifyAdviserPin(store, pin)) throw new NewsroomBackupAccessError('pin');
   const [
     stories, assets, users, takes, transcripts, credits, appearances, releases,
     roleAssigns, badges, episodes, deliverables, blasts, motionPackages, showtimeProjects,

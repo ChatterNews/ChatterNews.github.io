@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   CREW_ROLES, DEFAULT_SETTINGS, JOB_GUIDES, csvField, expireRelease, frontDeskQueue,
   getSettings, gradebookCsv, holdStory, quarantined, recordRelease, refuseRelease,
-  newsroomBackup, roleCounts, runRetention, saveSettings, setAppearance, storyPath,
+  newsroomBackup, NewsroomBackupAccessError, roleCounts, runRetention, saveSettings, setAppearance, storyPath,
   type Appearance, type Asset, type Credit, type FrontDeskItem, type LogEvent,
   type NewsroomSettings, type Release, type RetentionResult, type RoleCount,
   type Story, type User,
@@ -82,6 +82,7 @@ export function FrontDesk({ stories, adviser, me, onChanged }: {
   const [settings, setSettings] = useState<NewsroomSettings>(DEFAULT_SETTINGS);
   const [log, setLog] = useState<LogEvent[]>([]);
   const [logFilter, setLogFilter] = useState('ALL');
+  const [backupPin, setBackupPin] = useState('');
   const [swept, setSwept] = useState<RetentionResult>();
   const [notice, setNotice] = useState<{ text: string; error: boolean }>();
   const [busy, setBusy] = useState(false);
@@ -370,14 +371,21 @@ export function FrontDesk({ stories, adviser, me, onChanged }: {
 
       <h3 className="front-desk-subhead">Back the newsroom up</h3>
       <p>One file with every story, permission, credit and log line on this computer. Recordings and pictures stay here — a story's own <b>.chatter</b> package is how media travels.</p>
-      <button className="newsroom-button" disabled={busy} onClick={() => void action(async () => {
-        const backup = await newsroomBackup(store);
-        const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `chatter-newsroom-${new Date().toISOString().slice(0, 10)}.json`;
-        link.click();
-        URL.revokeObjectURL(url);
+      {settings.adviserPin
+        ? <label>Adviser PIN for backup <input type="password" inputMode="numeric" autoComplete="off" maxLength={4} value={backupPin} onChange={(event) => setBackupPin(event.target.value.replace(/\D/g, '').slice(0, 4))} /></label>
+        : <p>Set up adviser access and a PIN before saving a whole-newsroom backup.</p>}
+      <button className="newsroom-button" disabled={busy || !settings.adviserPin || backupPin.length !== 4} onClick={() => void action(async () => {
+        try {
+          const backup = await newsroomBackup(store, backupPin);
+          const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `chatter-newsroom-${new Date().toISOString().slice(0, 10)}.json`;
+          link.click();
+          URL.revokeObjectURL(url);
+        } catch (problem) {
+          throw problem instanceof NewsroomBackupAccessError ? problem : new Error('The backup did not save. Try again.');
+        } finally { setBackupPin(''); }
       }, 'Backup saved to your downloads.')}>Save a backup</button>
     </details>
 

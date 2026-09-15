@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach } from 'vitest';
+import { describe, expect, test, beforeEach, vi } from 'vitest';
 import { MemoryStore } from './store-memory.js';
 import { Gate } from './gate-ingest.js';
 import { DEFAULT_GATE_CONFIG } from './gate.js';
@@ -236,15 +236,46 @@ describe('newsroom settings', () => {
 });
 
 describe('backing the newsroom up', () => {
+  test('requires adviser setup even if a caller supplies a PIN', async () => {
+    const readRecords = vi.spyOn(store.stories, 'list');
+    await expect(newsroomBackup(store, '2468')).rejects.toThrow(/Set up adviser access/);
+    expect(readRecords).not.toHaveBeenCalled();
+  });
+
+  test.each([undefined, '', '9999', '12', 'abcd'])('blocks missing or incorrect authorization before reading records (%s)', async (pin) => {
+    await saveSettings(store, { adviserPin: '2468' }, ADVISER);
+    const readRecords = vi.spyOn(store.stories, 'list');
+    const readBlobs = vi.spyOn(store.blobs, 'list');
+    const eventsBefore = await store.events.all();
+    // Exercise untyped callers as well as the UI's empty-string case.
+    await expect(newsroomBackup(store, pin as string)).rejects.toThrow('Enter the correct adviser PIN. No backup was created.');
+    expect(readRecords).not.toHaveBeenCalled();
+    expect(readBlobs).not.toHaveBeenCalled();
+    expect(await store.events.all()).toEqual(eventsBefore);
+    expect(JSON.stringify(eventsBefore)).not.toContain('2468');
+  });
+
+  test('uses the current PIN on every export', async () => {
+    await saveSettings(store, { adviserPin: '2468' }, ADVISER);
+    await newsroomBackup(store, '2468');
+    await saveSettings(store, { adviserPin: '1357' }, ADVISER);
+    await expect(newsroomBackup(store, '2468')).rejects.toThrow(/correct adviser PIN/);
+    await expect(newsroomBackup(store, '1357')).resolves.toMatchObject({ format: 'chatter-newsroom' });
+  });
+
   test('carries every collection, and the blob hashes', async () => {
     const story = await store.stories.create({ title: 'Gym floor' });
     const assetId = await aPicture();
     await setAppearance(store, { assetId, userId: maya.id, identifiable: true, storyId: story.id }, ADVISER);
     await store.studioProjects.create({ storyId: story.id, project: { id: 'song', name: 'Theme', bpm: 96, tracks: [] } });
 
-    const backup = await newsroomBackup(store);
+    await saveSettings(store, { adviserPin: '2468' }, ADVISER);
+    const backup = JSON.parse(JSON.stringify(await newsroomBackup(store, '2468')));
     expect(backup.format).toBe('chatter-newsroom');
     expect(backup.records.stories).toHaveLength(1);
+    expect(backup.records.stories[0]).toMatchObject({ id: story.id, title: 'Gym floor' });
+    expect(Object.values(backup.records).every(Array.isArray)).toBe(true);
+    expect(backup.version).toBe(1);
     expect(backup.records.users).toHaveLength(1);
     expect(backup.records.appearances).toHaveLength(1);
     expect(backup.records.studioProjects).toHaveLength(1);
@@ -255,7 +286,7 @@ describe('backing the newsroom up', () => {
     await saveSettings(store, {
       adviserPin: '1234', showName: 'The Chatterbox', setupVersion: 1, preferredDesk: 'ADVISER',
     }, ADVISER);
-    const backup = await newsroomBackup(store);
+    const backup = await newsroomBackup(store, '1234');
 
     expect(JSON.stringify(backup)).not.toContain('1234');
     expect(JSON.stringify(backup.records.settings)).not.toContain('setupVersion');

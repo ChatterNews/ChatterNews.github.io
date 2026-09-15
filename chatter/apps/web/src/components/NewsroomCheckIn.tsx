@@ -2,7 +2,7 @@ import { workspaceStorage } from '../portable/workspace-context.js';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  completeDeviceSetup, firstRunState, getSettings, newsroomBackup, resetDeviceCheckIn,
+  completeDeviceSetup, firstRunState, getSettings, newsroomBackup, NewsroomBackupAccessError, resetDeviceCheckIn,
   setupAdviser,
   type FirstRunState, type User,
 } from '@chatter/shared';
@@ -65,7 +65,7 @@ export function NewsroomCheckInView({
 }
 
 export function NewsroomDeskControls({
-  firstRun, hasPin, pin, confirmReset, confirmErase, busy, onPinChange, onClose, onBackup,
+  firstRun, hasPin, pin, confirmReset, confirmErase, busy, notice, onPinChange, onClose, onBackup,
   onAskReset, onCancelReset, onReset, onAskErase, onCancelErase, onErase, onSetUpAdviser,
 }: {
   firstRun: FirstRunState;
@@ -74,6 +74,7 @@ export function NewsroomDeskControls({
   confirmReset: boolean;
   confirmErase: boolean;
   busy: boolean;
+  notice?: { text: string; error: boolean };
   onPinChange: (pin: string) => void;
   onClose: () => void;
   onBackup: () => void;
@@ -88,7 +89,7 @@ export function NewsroomDeskControls({
   const resetLocked = busy || (hasPin ? pin.length !== 4 : firstRun === 'EMPTY');
   const eraseLocked = busy || !hasPin || pin.length !== 4;
   const status = hasPin
-    ? { tone: 'locked', label: 'Adviser lock active', detail: 'Enter the adviser PIN to change this newsroom.' }
+    ? { tone: 'locked', label: 'Adviser lock active', detail: 'Enter the adviser PIN to back up or change this newsroom.' }
     : firstRun === 'LEGACY'
       ? { tone: 'legacy', label: 'Older newsroom found', detail: 'Your work is here. This desk was made before adviser setup.' }
       : firstRun === 'CONFIGURED'
@@ -111,16 +112,16 @@ export function NewsroomDeskControls({
           <div className="desk-controls-support">
             <article className="desk-control backup">
               <span className="desk-control-object backup-disk" aria-hidden="true"><i>CN</i><b /></span>
-              <div><h3>Save a backup</h3><p>Download the newsroom record before making a big change.</p></div>
-              <button type="button" disabled={busy} onClick={onBackup}>Save backup</button>
+              <div><h3>Save a backup</h3><p>Includes everyone’s newsroom records. Recordings and pictures travel in individual .chatter saves.</p><p>{hasPin ? 'Enter the adviser PIN below, then save the backup.' : 'Set up adviser access and a PIN before saving a whole-newsroom backup.'}</p></div>
+              <button type="button" disabled={busy || !hasPin || pin.length !== 4} onClick={onBackup}>Save backup</button>
             </article>
 
             <section className={`desk-access ${hasPin ? 'has-pin' : 'no-pin'}`}>
               <div className="desk-access-key" aria-hidden="true"><i /><b /></div>
               <div><span>Adviser access</span><h3>{hasPin ? 'PIN required' : 'No PIN on this desk'}</h3></div>
               {hasPin
-                ? <label><span>Enter PIN</span><input aria-label="Adviser PIN" inputMode="numeric" autoComplete="off" maxLength={4} value={pin} onChange={(event) => onPinChange(event.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="••••" /></label>
-                : <><p>{firstRun === 'LEGACY' ? 'Reset is available because it keeps all existing work.' : 'Set up an adviser badge to unlock permanent erase.'}</p><button type="button" onClick={onSetUpAdviser}>Set up adviser access</button></>}
+                ? <label><span>Enter PIN</span><input aria-label="Adviser PIN" type="password" inputMode="numeric" autoComplete="off" maxLength={4} value={pin} onChange={(event) => onPinChange(event.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="••••" /></label>
+                : <><p>{firstRun === 'LEGACY' ? 'Reset is available because it keeps all existing work.' : 'Set up an adviser badge to unlock whole-newsroom backups and permanent erase.'}</p><button type="button" onClick={onSetUpAdviser}>Set up adviser access</button></>}
             </section>
           </div>
 
@@ -143,6 +144,7 @@ export function NewsroomDeskControls({
             </article>
           </div>
         </div>
+        {notice && <p className="newsroom-notice" role={notice.error ? 'alert' : 'status'}>{notice.text}</p>}
         <footer><i aria-hidden="true" /> Back up first. Reset keeps the work; erase removes it.</footer>
       </div>
     </section>
@@ -208,15 +210,15 @@ export function NewsroomCheckIn({
   async function saveBackup() {
     setBusy(true); setNotice(undefined);
     try {
-      const backup = await newsroomBackup(store);
+      const backup = await newsroomBackup(store, controlPin);
       const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
       const link = document.createElement('a');
       link.href = url; link.download = `chatter-newsroom-${new Date().toISOString().slice(0, 10)}.json`; link.click();
       URL.revokeObjectURL(url);
       setNotice({ text: 'Newsroom record saved to Downloads.', error: false });
     } catch (problem) {
-      setNotice({ text: problem instanceof Error ? problem.message : 'The backup did not save. Press the button to try again.', error: true });
-    } finally { setBusy(false); }
+      setNotice({ text: problem instanceof NewsroomBackupAccessError ? problem.message : 'The backup did not save. Press the button to try again.', error: true });
+    } finally { setControlPin(''); setBusy(false); }
   }
 
   async function resetCheckIn() {
@@ -291,11 +293,12 @@ export function NewsroomCheckIn({
       firstRun={state}
       hasPin={hasPin}
       pin={controlPin}
+      notice={notice}
       confirmReset={confirmReset}
       confirmErase={confirmErase}
       busy={busy}
       onPinChange={setControlPin}
-      onClose={() => { setControlsOpen(false); setConfirmReset(false); setConfirmErase(false); }}
+      onClose={() => { setControlPin(''); setControlsOpen(false); setConfirmReset(false); setConfirmErase(false); }}
       onBackup={() => void saveBackup()}
       onAskReset={() => { setConfirmErase(false); setConfirmReset(true); }}
       onCancelReset={() => setConfirmReset(false)}
@@ -303,7 +306,7 @@ export function NewsroomCheckIn({
       onAskErase={() => { setConfirmReset(false); setConfirmErase(true); }}
       onCancelErase={() => setConfirmErase(false)}
       onErase={() => void eraseNewsroom()}
-      onSetUpAdviser={() => { setControlsOpen(false); setScreen('ADVISER'); }}
+      onSetUpAdviser={() => { setControlPin(''); setControlsOpen(false); setScreen('ADVISER'); }}
     />}
   </>;
 }

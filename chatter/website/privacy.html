@@ -1,1 +1,64 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Orbit · For advisors and IT</title><link rel="stylesheet" href="./reader.css"></head><body><main class="reader"><header class="masthead"><span class="wordmark">CHATTER<br><b>NEWS</b></span><span class="edition">ORBIT · SCHOOL NOTES</span></header><section class="console"><div class="console-body"><h1>Your work.<br>Your <em>device.</em></h1><p>Orbit is a static website with a local workspace. It has no student account server, cloud storage, analytics service, or automatic publishing connection.</p><h2>What stays local</h2><p>Story text, recordings, images, projects, badges and crew notes are stored in the browser on this device. Transcription and image checks run here too. Saving creates files in a folder you choose or starts a browser download. The website edition does not open a sharing service.</p><h2>What uses the internet</h2><p>Orbit opens directly. It downloads room tools as you use them and downloads a processing model when its feature needs it. Optional offline preparation stores the full toolkit. The browser also checks for app updates. GitHub receives ordinary connection information, including IP addresses and requested public file paths. Orbit reuses cached tools. A missing tool can only be fetched from its exact, listed public file on this site; it must pass a size and checksum check. Other URLs, query strings, writes, caller headers and external services are blocked by the app gateway. Story navigation uses URL fragments, which are not sent in HTTP requests.</p><h2>What the school controls</h2><p>Browser extensions, device monitoring, Enhanced Spell Check, dictated keyboard input, cloud-synced download folders, backups and operating-system services are outside Orbit's control. Ask IT to review those settings. Use local spell checking and local or USB save destinations when content must stay on device. Do not treat this page as a promise about those separate systems.</p><h2>Before students arrive</h2><ol><li>Allow this site, service workers, local browser storage, WebAssembly and the microphone/camera features your lessons use.</li><li>On an actual managed student profile, open Orbit while online. The desk opens without a full-toolkit download. Allow extra storage for media; the optional complete offline toolkit is roughly 350 MB.</li><li>Make a practice story, use Studio and record a short take. If offline lessons are needed, choose Files → Prepare for offline use and wait for Ready to work offline. Disconnect Wi-Fi and check the lesson.</li><li>Finish session, check the exported .chatter files or session ZIP, then reopen a story file. Confirm which folder IT permits.</li><li>Check what logout does to local browser storage. If it is erased, the site loads its tools again next session. Always export work before logout.</li></ol><h2>Patching</h2><p>An update waits for all Orbit tabs and app windows to close. Save the session first, then reopen the homepage. Updated tools load as needed. Prepare the new release separately if you need its complete toolkit offline. Workspace recovery keeps the same local identity across app releases. Exported files remain the dependable handoff. Never clear site storage as an update step.</p><h2>Device expectations</h2><p>Managed Chromebooks with current Chrome are the primary school target. Mac and Windows Chrome use the same site. Recent Safari on iPhone and iPad can use local downloads; iOS/iPadOS 18.4+ is the pilot target. Studio, video encoding and recording still need a real-device check. Full offline preparation covers app tools, not the external source/license archives linked below. Download those separately while online if you need them. A ZIP session is limited to 256 MB before packing; use individual story saves or the verified folder option for larger sessions.</p><h2>Source and credits</h2><p><a href="./Orbit-app-source.zip" download>Application source</a> · <a href="./Orbit-licenses.zip" download>Licenses</a> · <a href="./THIRD_PARTY_NOTICES.md">Third-party notices</a> · <a href="./REBUILD.txt">Rebuild instructions</a></p><p><a href="./">← Back to Orbit</a></p></div></section></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Orbit · Privacy and school information</title>
+<link rel="stylesheet" href="./reader.css">
+</head>
+<body>
+<main class="reader">
+<header class="masthead">
+<span class="wordmark">CHATTER<br>
+<b>NEWS</b>
+</span>
+<span class="edition">ORBIT · SCHOOL NOTES</span>
+</header>
+<section class="console">
+<div class="console-body">
+<h1>Your work.<br>Your <em>device.</em>
+</h1>
+<p>Reviewed September 15, 2026. This page describes the GitHub-hosted Orbit website workflow.</p>
+<p>Orbit is a static website with a local workspace. It has no student account server, cloud storage, analytics service, or automatic publishing connection.</p>
+<h2>What stays local</h2>
+<p>Student stories, recordings, images, projects, badges and crew notes are processed and stored locally in the browser on this device in the reviewed website workflow. Orbit does not upload that work to GitHub. Transcription and image checks run here too. Saving creates files in a folder you choose or starts a browser download. The website edition does not open a sharing service.</p>
+<h2>Visiting the site still makes a connection</h2>
+<p>Orbit opens directly. It downloads room tools as you use them and downloads a processing model when its feature needs it. Optional offline preparation stores the full toolkit. The browser also checks for app updates. Visiting the website and downloading its tools sends connection information to GitHub, including the device’s IP address and the public file requested.</p>
+<h2>GitHub’s hosting logs</h2>
+<p>
+<a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection">GitHub’s Pages disclosure</a> says visitor IP addresses are logged and stored for security purposes, including for visitors who are not signed in. Its <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">General Privacy Statement</a> governs its handling of hosting information. GitHub describes detecting and preventing abuse and security threats, data minimization, and administrative, technical and physical security controls.</p>
+<p>Orbit’s application code does not use this connection information for advertising, contacting children, or building individual profiles. This statement about Orbit’s code is separate from GitHub’s handling of its logs.</p>
+<h2>How Orbit limits outgoing information</h2>
+<p>The website downloads public app tools, checks for updates and optionally caches tools for offline lessons. Its app gateway allows only listed public files, checks their size and checksum, and blocks other destinations, query strings and write requests. Allowed tool requests exclude caller-supplied headers, credentials and referrers. Story navigation stays in URL fragments, which are not included in HTTP requests. The reviewed app has no advertising, analytics or tracking-pixel integration. These safeguards limit Orbit’s requests; they do not control GitHub’s hosting logs.</p>
+<h2>Children’s privacy: what still needs verification</h2>
+<p>Where an operator relies on COPPA’s exception for persistent identifiers used to support internal operations, <a href="https://www.ecfr.gov/current/title-16/chapter-I/subchapter-C/part-312/section-312.4#p-312.4(d)(3)">16 CFR 312.4(d)(3)</a> requires the notice to identify the specific operations and explain how other uses are prevented. Those restrictions cover contacting individuals, behavioral advertising, individual profiling and other purposes outside the permitted internal operations.</p>
+<p>For this website, the operations described above are delivering public tools and updates, and GitHub’s stated security logging. <strong>Remaining gap:</strong> we have not verified a Pages-specific policy or agreement ensuring that visitor identifiers are used and disclosed only for permitted internal operations. GitHub’s general security controls do not establish that restriction. The reviewed disclosures also do not establish a Pages-log retention period or a way for Orbit to delete a particular visitor’s hosting logs. We make no such promises.</p>
+<p>School staff should obtain clarification of these hosting policies before relying on that exception. This notice documents the reviewed workflow and its limits; it does not establish COPPA compliance.</p>
+<h2>What the school controls</h2>
+<p>Browser extensions, device monitoring, Enhanced Spell Check, dictated keyboard input, cloud-synced download folders, backups and operating-system services are outside Orbit's control. Ask IT to review those settings. Use local spell checking and local or USB save destinations when content must stay on device. Do not treat this page as a promise about those separate systems.</p>
+<h2>Before students arrive</h2>
+<ol>
+<li>Allow this site, service workers, local browser storage, WebAssembly and the microphone/camera features your lessons use.</li>
+<li>On an actual managed student profile, open Orbit while online. The desk opens without a full-toolkit download. Allow extra storage for media; the optional complete offline toolkit is roughly 350 MB.</li>
+<li>Make a practice story, use Studio and record a short take. If offline lessons are needed, choose Files → Prepare for offline use and wait for Ready to work offline. Disconnect Wi-Fi and check the lesson.</li>
+<li>Finish session, check the exported .chatter files or session ZIP, then reopen a story file. Confirm which folder IT permits.</li>
+<li>Check what logout does to local browser storage. If it is erased, the site loads its tools again next session. Always export work before logout.</li>
+</ol>
+<h2>Patching</h2>
+<p>An update waits for all Orbit tabs and app windows to close. Save the session first, then reopen the homepage. Updated tools load as needed. Prepare the new release separately if you need its complete toolkit offline. Workspace recovery keeps the same local identity across app releases. Exported files remain the dependable handoff. Never clear site storage as an update step.</p>
+<h2>Device expectations</h2>
+<p>Managed Chromebooks with current Chrome are the primary school target. Mac and Windows Chrome use the same site. Recent Safari on iPhone and iPad can use local downloads; iOS/iPadOS 18.4+ is the pilot target. Studio, video encoding and recording still need a real-device check. Full offline preparation covers app tools, not the external source/license archives linked below. Download those separately while online if you need them. A ZIP session is limited to 256 MB before packing; use individual story saves or the verified folder option for larger sessions.</p>
+<h2>Source and credits</h2>
+<p>
+<a href="./Orbit-app-source.zip" download>Application source</a> · <a href="./Orbit-licenses.zip" download>Licenses</a> · <a href="./THIRD_PARTY_NOTICES.md">Third-party notices</a> · <a href="./REBUILD.txt">Rebuild instructions</a>
+</p>
+<p>
+<a href="./">← Back to Orbit</a>
+</p>
+</div>
+</section>
+</main>
+</body>
+</html>
