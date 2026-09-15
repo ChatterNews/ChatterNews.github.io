@@ -24,6 +24,7 @@ interface OrbitStyle extends CSSProperties {
 }
 
 export interface SpiralStageProps {
+  lowSpec?: boolean;
   currentRoom: string;
   recommendedRoom?: string;
   roomRevealRequest?: RoomRevealRequest;
@@ -42,6 +43,7 @@ function prefersReducedMotion(): boolean {
 }
 
 export function SpiralStage({
+  lowSpec = false,
   currentRoom,
   recommendedRoom,
   roomRevealRequest,
@@ -54,6 +56,8 @@ export function SpiralStage({
   adviserControl,
   children,
 }: SpiralStageProps) {
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 1100px)').matches);
+  const showOrbit = !lowSpec && !compact;
   const routedIndex = roomIndexFromSlug(currentRoom);
   const initialIndex = Math.max(0, routedIndex);
   const [progress, setProgress] = useState(initialIndex);
@@ -69,22 +73,17 @@ export function SpiralStage({
   const selectedIndex = Math.round(progress);
   const selectedRoom = SPIRAL_ROOMS[selectedIndex] ?? SPIRAL_ROOMS[0]!;
   const orbitPath = useMemo(() => {
+    if (!showOrbit) return '';
     const points = Array.from({ length: 120 }, (_, sample) => {
       const value = (sample / 119) * (SPIRAL_ROOMS.length - 1);
       const point = stagePoint(Math.round(value), progress + (Math.round(value) - value), SPIRAL_ROOMS.length);
       return `${sample === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
     });
     return points.join(' ');
-  }, [progress]);
+  }, [progress, showOrbit]);
 
   function scrollToStation(index: number, behavior: ScrollBehavior = 'smooth') {
-    // Compact layouts use the room picker directly; the decorative orbit is hidden.
-    if (window.matchMedia?.('(max-width: 1100px)').matches) {
-      setProgress(index);
-      const room = SPIRAL_ROOMS[index];
-      if (room && room.slug !== currentRoom) onNavigate(room.slug);
-      return;
-    }
+    if (!showOrbit) { selectStation(index); return; }
     const scroller = scrollerRef.current;
     if (!scroller) return;
     const top = index * scroller.clientHeight;
@@ -92,8 +91,19 @@ export function SpiralStage({
     else scroller.scrollTop = top;
   }
 
+  function selectStation(index: number) {
+    const room = SPIRAL_ROOMS[index];
+    if (!room) return;
+    window.clearTimeout(settleTimer.current);
+    pendingNavigation.current = room.slug;
+    setProgress(index);
+    // An explicit choice opens immediately; scrolling is only for browsing the orbit.
+    if (scrollerRef.current) scrollerRef.current.scrollTop = index * scrollerRef.current.clientHeight;
+    if (room.slug !== currentRoom) onNavigate(room.slug);
+  }
+
   function settleRoute() {
-    if (window.matchMedia?.('(max-width: 1100px)').matches) return;
+    if (!showOrbit) return;
     const scroller = scrollerRef.current;
     if (!scroller) return;
     const index = stationFromScroll(scroller.scrollTop, scroller.clientHeight, SPIRAL_ROOMS.length);
@@ -112,7 +122,7 @@ export function SpiralStage({
   }
 
   function handleScroll(event: UIEvent<HTMLElement>) {
-    if (window.matchMedia?.('(max-width: 1100px)').matches) return;
+    if (!showOrbit) return;
     const top = event.currentTarget.scrollTop;
     const height = event.currentTarget.clientHeight;
     if (frameRequest.current !== undefined) cancelAnimationFrame(frameRequest.current);
@@ -146,11 +156,12 @@ export function SpiralStage({
       firstRouteSync.current = false;
       return;
     }
-    scrollToStation(routedIndex, prefersReducedMotion() ? 'auto' : 'smooth');
-  }, [routedIndex]);
+    scrollToStation(routedIndex, 'instant');
+  }, [routedIndex, showOrbit]);
 
   useEffect(() => {
     const syncViewport = () => {
+      setCompact(!!window.matchMedia?.('(max-width: 1100px)').matches);
       const scroller = scrollerRef.current;
       if (!scroller || routedIndex < 0) return;
       window.clearTimeout(settleTimer.current);
@@ -161,7 +172,7 @@ export function SpiralStage({
     };
     window.addEventListener('resize', syncViewport);
     return () => window.removeEventListener('resize', syncViewport);
-  }, [routedIndex]);
+  }, [routedIndex, showOrbit]);
 
   useEffect(() => {
     const scroller = scrollerRef.current;
@@ -188,12 +199,13 @@ export function SpiralStage({
   return (
     <div
       className="wrap spiral-stage-shell"
+      data-low-spec={lowSpec}
       data-room={currentRoom || 'clubhouse'}
       data-active-room={currentRoom || 'clubhouse'}
       data-work-view={String(workView)}
       data-navigation-world="newsroom-solar-system"
     >
-      <nav
+      {showOrbit && <nav
         ref={scrollerRef}
         className="spiral-stage-scroller"
         aria-label="Travel the newsroom solar system"
@@ -234,7 +246,7 @@ export function SpiralStage({
                   data-process-planet={room.slug || 'clubhouse'}
                   data-recommended={room.slug === recommendedRoom ? 'true' : undefined}
                   data-stage-near={Math.abs(point.distance) <= 1.25 ? 'true' : undefined}
-                  onClick={() => scrollToStation(index, prefersReducedMotion() ? 'auto' : 'smooth')}
+                  onClick={() => selectStation(index)}
                 >
                   <RoomPreview room={room} active={active} distance={point.distance} title={storyTitle} />
                 </button>
@@ -250,10 +262,10 @@ export function SpiralStage({
             ))}
           </ol>
         </div>
-      </nav>
+      </nav>}
 
       <div className="spiral-stage-brand">
-        <button type="button" onClick={() => scrollToStation(0, prefersReducedMotion() ? 'auto' : 'smooth')} aria-label="Go to Clubhouse">
+        <button type="button" onClick={() => selectStation(0)} aria-label="Go to Clubhouse">
           <span>CN</span><b>CHATTER</b><small>NEWSROOM</small>
         </button>
       </div>
@@ -293,7 +305,7 @@ export function SpiralStage({
         currentRoom={currentRoom}
         recommendedRoom={recommendedRoom}
         revealRequest={roomRevealRequest}
-        onSelect={(index) => scrollToStation(index, prefersReducedMotion() ? 'auto' : 'smooth')}
+        onSelect={selectStation}
       />
 
       <p className="spiral-keyboard-note">Use arrow keys to travel one room at a time</p>

@@ -64,3 +64,30 @@ it('keeps the current room when a resize restores the desktop orbit', () => {
   expect(container.textContent).toContain('Existing design');
   act(() => root.unmount());
 });
+
+it('opens an explicitly selected desktop room immediately without waiting for orbit scrolling', () => {
+  vi.stubGlobal('matchMedia', () => ({ matches: false }));
+  const container=document.createElement('div');const root=createRoot(container);const navigate=vi.fn();
+  act(() => root.render(createElement(SpiralStage, {currentRoom:'',onNavigate:navigate,storyControl:null,driveControl:null,identityControl:null,mediaControl:null,children:'Existing work'})));
+  const scroller=container.querySelector<HTMLElement>('.spiral-stage-scroller')!;
+  Object.defineProperty(scroller,'clientHeight',{value:900});
+  act(() => container.querySelector<HTMLButtonElement>('[data-map-station="desk"]')!.click());
+  expect(navigate).toHaveBeenCalledExactlyOnceWith('desk');
+  act(() => scroller.dispatchEvent(new Event('scrollend')));
+  expect(navigate).toHaveBeenCalledTimes(1);
+  act(() => root.unmount());
+});
+
+
+it('switches low-spec mode without remounting the current editor or losing its contents', () => {
+  vi.stubGlobal('matchMedia', () => ({ matches: false }));
+  const container=document.createElement('div');const root=createRoot(container);const navigate=vi.fn();
+  const draw=(lowSpec: boolean) => root.render(createElement(SpiralStage, {lowSpec,currentRoom:'desk',onNavigate:navigate,storyControl:null,driveControl:null,identityControl:null,mediaControl:null,children:createElement('textarea',{defaultValue:'My draft'})}));
+  act(() => draw(false));const editor=container.querySelector('textarea')!;editor.value='Unsaved words';
+  act(() => draw(true));expect(container.querySelector('.spiral-stage-scroller')).toBeNull();
+  expect(container.querySelector('textarea')).toBe(editor);expect(editor.value).toBe('Unsaved words');
+  act(() => container.querySelector<HTMLButtonElement>('[data-map-station="blast"]')!.click());expect(navigate).toHaveBeenCalledExactlyOnceWith('blast');
+  act(() => draw(false));expect(container.querySelector('.spiral-stage-scroller')).not.toBeNull();
+  expect(container.querySelector('textarea')).toBe(editor);expect(editor.value).toBe('Unsaved words');
+  act(() => root.unmount());
+});

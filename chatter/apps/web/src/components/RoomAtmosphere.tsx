@@ -40,6 +40,8 @@ export function RoomAtmosphere({ room }: { room: string }) {
     let lastPaint = 0;
 
     const move = (event: PointerEvent) => {
+      // The Orbit shell hides this effect; do not animate invisible particles.
+      if (document.body.dataset.interface === 'spiral-stage' || document.body.dataset.lowSpec === 'true') return;
       if (event.pointerType && event.pointerType !== 'mouse') return;
       const target = event.target;
       if (target instanceof Element && target.closest(PRECISION_SURFACES)) return;

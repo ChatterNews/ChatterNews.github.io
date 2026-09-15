@@ -1,0 +1,54 @@
+.display-controls-trigger { position: fixed; z-index: 950; top: max(6px,env(safe-area-inset-top,0px)); right: max(8px,env(safe-area-inset-right,0px)); display: grid; place-content: center; gap: 1px; width: 48px; height: 48px; padding: 2px; border: 2px solid #211b39; border-radius: 12px; background: #fff8d7; color: #211b39; box-shadow: 0 3px 0 #211b39; cursor: pointer; }
+.display-controls-trigger[data-in-room='true'] { right: calc(env(safe-area-inset-right,0px) + 126px); }
+.display-controls-trigger span { font-size: 23px; line-height: 1; }
+.display-controls-trigger b { font: 900 10px/1.1 var(--f-ui); }
+.display-controls-trigger[data-low-spec='true'] { background: #bcec62; }
+.display-controls-dialog { width: min(400px,calc(100vw - 24px)); max-height: calc(100dvh - 32px); margin: auto; padding: 20px; overflow: auto; border: 3px solid #211b39; border-radius: 18px; color: #211b39; background: #fff8d7; box-shadow: 6px 6px 0 #211b39; font: 500 16px/1.4 var(--f-ui); }
+.display-controls-dialog::backdrop { background: #151128aa; }
+.display-controls-dialog header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.display-controls-dialog h2 { margin: 0; font: 900 24px var(--f-disp); }
+.display-controls-dialog button { min-height: 44px; border: 2px solid #211b39; border-radius: 8px; font-weight: 900; cursor: pointer; }
+.display-controls-dialog header button { width: 44px; font-size: 24px; background: white; }
+.display-fullscreen { width: 100%; margin: 16px 0; padding: 10px; background: #ffe04b; color: #211b39; }
+.display-fullscreen:disabled { opacity: .6; cursor: default; }
+.display-low-spec { display: flex; align-items: center; gap: 12px; padding: 12px 0; cursor: pointer; }
+.display-low-spec input { flex: none; width: 24px; height: 24px; accent-color: #211b39; }
+.display-low-spec span { display: grid; gap: 4px; }
+.display-low-spec small,.display-remember { font-size: 13px; }
+.display-remember { margin-top: 0; }
+.display-install { border-top: 1px solid #211b3960; padding-top: 10px; }
+.display-install summary { min-height: 44px; cursor: pointer; font-weight: 800; }
+@media (max-width: 1100px) {
+  body[data-interface='spiral-stage'] .spiral-stage-shell .compact-room-name { right: calc(env(safe-area-inset-right,0px) + 184px); }
+}
+@media print { .display-controls-trigger,.display-controls-dialog { display: none !important; } }
+
+/* Lower the cost of the shell without changing media playback or exported artwork. */
+body[data-low-spec='true'] .spiral-stage-shell::before,
+body[data-low-spec='true'] .spiral-stage-shell::after,
+body[data-low-spec='true'] .room-change-wash,
+body[data-low-spec='true'] .newsroom-cursor-trail { display: none !important; }
+body[data-low-spec='true'] :is(.room-preview,.spiral-map-dial,.solar-atlas-home,.solar-orbit-band,.reilly-art,.checkin-orbits),
+body[data-low-spec='true'] :is(.room-preview,.spiral-map-dial,.solar-atlas-home,.solar-orbit-band,.reilly-art,.checkin-orbits) *,
+body[data-low-spec='true'] :is(.room-preview,.spiral-map-dial,.solar-atlas-home,.solar-orbit-band,.reilly-art,.checkin-orbits)::before,
+body[data-low-spec='true'] :is(.room-preview,.spiral-map-dial,.solar-atlas-home,.solar-orbit-band,.reilly-art,.checkin-orbits)::after {
+  animation: none !important; transition: none !important; filter: none !important;
+}
+body[data-low-spec='true'] .spiral-stage-shell .spiral-center-frame { transition: none; box-shadow: none; backdrop-filter: none; }
+body[data-low-spec='true'] .spiral-keyboard-note { display: none; }
+@media (min-width: 1101px) {
+  body[data-low-spec='true'] .spiral-stage-shell .spiral-center-frame { inset: 70px 80px; width: auto; height: auto; transform: none; padding: 6px; border-radius: 16px; }
+  body[data-low-spec='true'] .spiral-stage-shell :is(.spiral-stage-brand,.spiral-satellites,.spiral-room-map) { opacity: 1; pointer-events: auto; }
+  body[data-low-spec='true'] .spiral-stage-shell .spiral-satellites { pointer-events: none; }
+}
+.spiral-stage-shell[data-work-view='true'] .spiral-stage-scroller { visibility: hidden; }
+.spiral-stage-shell[data-work-view='true']::before,.spiral-stage-shell[data-work-view='true']::after { animation-play-state: paused; }
+
+body[data-low-spec='true'] .solar-planet-button { grid-template-columns: minmax(0,1fr); padding: 12px; }
+body[data-low-spec='true'] .solar-planet-button > .room-preview { display: none; }
+body[data-low-spec='true'] .solar-planet-button { transition: none; }
+@media (min-width: 1101px) {
+  body:has(.spiral-stage-shell[data-work-view='true']) .display-controls-trigger[data-in-room='true'] { top: 28px; right: max(24px,env(safe-area-inset-right,0px)); }
+}
+body[data-low-spec='true'] .spiral-stage-shell .spiral-frame-hardware { display: none; }
+body[data-low-spec='true'] .spiral-stage-shell .spiral-window-toolbar { grid-template-columns: minmax(0,1fr); }

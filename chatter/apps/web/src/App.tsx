@@ -9,6 +9,8 @@ import { recipeTrackStepForStory, storyRoomPath, type Story } from '@chatter/sha
 import { StoreProvider, useStore } from './store/StoreProvider.js';
 import { useRoleIdentity } from './store/useCurrentUser.js';
 import { isAdviserSession } from './store/role-session.js';
+import { DisplayControls } from './components/DisplayControls.js';
+import { readLowSpec, saveLowSpec } from './components/display-mode.js';
 import { Sprite } from './components/Sprite.js';
 import { Reily } from './components/Pip.js';
 import { ReilyContextProvider } from './components/ReilyContextProvider.js';
@@ -66,6 +68,9 @@ function RoomLoading() {
 }
 
 function Shell({ deskMode }: { deskMode: DeskMode }) {
+  const [lowSpec, setLowSpec] = useState(readLowSpec);
+  useEffect(() => { document.body.dataset.lowSpec = String(lowSpec); }, [lowSpec]);
+  const screenControls = (inRoom: boolean) => <DisplayControls lowSpec={lowSpec} inRoom={inRoom} onLowSpecChange={(value) => {setLowSpec(value);saveLowSpec(value);}} />;
   const store = useStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -106,7 +111,7 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
     document.querySelector<HTMLElement>('.spiral-center-room')?.scrollTo({
       top: 0,
       left: 0,
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      behavior: 'instant',
     });
   }, [location.pathname]);
 
@@ -172,6 +177,7 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
         <Sprite />
         <RoomAtmosphere room={atmosphereRoom} />
         <div className="rays" /><div className="dots" />
+        {screenControls(false)}
         <NewsroomCheckIn
           demoMode={deskMode === 'DEMO'}
           students={identity.students}
@@ -199,8 +205,10 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
       <RoomAtmosphere room={atmosphereRoom} />
       <div className="rays" /><div className="dots" />
 
+      {screenControls(true)}
       <ReilyContextProvider>
         <SpiralStage
+          lowSpec={lowSpec}
           currentRoom={room}
           recommendedRoom={recommendedRoom}
           roomRevealRequest={roomRevealRequest}
