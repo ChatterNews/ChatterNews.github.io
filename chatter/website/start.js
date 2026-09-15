@@ -1,6 +1,7 @@
 import { cacheIsComplete, verifyManifest } from './core.mjs';
 import { ensureReaderController } from './control.mjs';
 import { websiteCacheName } from './gateway.mjs';
+import { checkWebsiteUpdate } from './update.mjs';
 import { launchWebsite } from './launch.mjs';
 import { prepareOffline } from './offline.mjs';
 import { manifest, trust } from './release.mjs';
@@ -13,6 +14,7 @@ const cancel = document.querySelector('#cancel');
 const progress = document.querySelector('#progress');
 let active;
 let ready;
+let activeRelease = trust.releaseId;
 function say(title, detail = '', state = 'ready') {
   document.querySelector('#status').textContent = title;
   document.querySelector('#detail').textContent = detail;
@@ -27,6 +29,7 @@ async function connect() {
   if (!window.isSecureContext || !navigator.serviceWorker || !navigator.storage?.getDirectory || !navigator.locks || !window.caches) throw new Error('This browser is missing the local storage Orbit needs. Try an up-to-date Chrome or Safari, with school permission to use local website storage.');
   await verifyManifest(new TextEncoder().encode(JSON.stringify(manifest)), trust);
   const registration = await ensureReaderController(BASE);
+  activeRelease = await checkWebsiteUpdate(BASE) || trust.releaseId;
   registration.addEventListener('updatefound', () => {
     registration.installing?.addEventListener('statechange', () => {
       if (registration.waiting) document.querySelector('#update-note').hidden = false;
@@ -35,11 +38,12 @@ async function connect() {
   document.querySelector('#update-note').hidden = !registration.waiting;
 }
 function enter() {
-  return launchWebsite({ base: BASE, releaseId: trust.releaseId, connect: () => ready });
+  return launchWebsite({ base: BASE, releaseId: activeRelease, route: window.location.hash, connect: () => ready });
 }
 async function setup() {
   ready = connect();
   await ready;
+  if (offline && activeRelease !== trust.releaseId) { window.location.reload(); return; }
   if (!offline) { await enter(); return; }
   const complete = await cacheIsComplete(await caches.open(websiteCacheName(trust)), manifest, BASE, undefined, undefined, { metadataOnly: true });
   openButton.hidden = false;

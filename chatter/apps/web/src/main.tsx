@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, HashRouter } from 'react-router-dom';
 import './styles/fonts.js';
 import './styles/prototype.css';
+import { prepareWebsiteStart } from './portable/website-update.js';
 import { App } from './App.js';
 import { connectReaderDrive, getReaderDrive, isMobileEdition, isWebsiteEdition, returnToReader } from './portable/reader-drive.js';
 import './styles/Mobile.css';
@@ -11,6 +12,8 @@ import './styles/Responsive.css';
 const root = createRoot(document.getElementById('root')!);
 async function start(askPermission = false) {
   try {
+    if (isWebsiteEdition()) root.render(<main className="checkin-room" role="status"><h1>Opening Orbit…</h1></main>);
+    if (!await prepareWebsiteStart()) return;
     await connectReaderDrive(askPermission);
     const drive = getReaderDrive();
     root.render(<React.StrictMode>

@@ -1,0 +1,4 @@
+/** All links are fixed app resources. Never interpolate a requested URL or error. */
+export function recoveryPage(basePath) {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Opening Orbit</title><link rel="stylesheet" href="${basePath}reader.css"></head><body><main class="reader"><header class="masthead"><span class="wordmark">CHATTER<br><b>NEWS</b></span><span class="edition">ORBIT</span></header><section class="console"><div class="console-body"><h1>Let’s get your<br><em>desk open.</em></h1><p id="recovery-status" role="status">Opening the current Orbit release. Your saved work stays on this device.</p><button id="retry" type="button">Try again</button><p><a href="${basePath}">Open Orbit’s homepage</a></p></div></section></main><script type="module" src="${basePath}recovery.js"></script></body></html>`;
+}

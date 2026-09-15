@@ -27,6 +27,7 @@ jobs:
       - run: npm run package:website
         env:
           ORBIT_WEB_RELEASE: web-${{ github.sha }}
+          ORBIT_PREVIOUS_SITE: https://chatternews.github.io/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: chatter/dist/Orbit-Website-web-${{ github.sha }}/site

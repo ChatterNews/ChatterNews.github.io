@@ -5,6 +5,8 @@ import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateManifest, validateReleaseId, APP_HEADERS } from '../reader/core.mjs';
+import { recoveryPage } from '../website/recovery.mjs';
+import { retainWebsiteHistory } from './website-history.mjs';
 import { collectModels, collectNpmNotices, createSourceArchive, fileManifest, run, verifyModels } from './desktop-package-common.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -33,11 +35,19 @@ const files = (await fileManifest(app)).map(({ file, ...entry }) => ({ path: fil
 const manifest = validateManifest({ format: 1, releaseId, files, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0) }, releaseId);
 const manifestJSON = JSON.stringify(manifest);
 const trust = { releaseId, manifestSha256: createHash('sha256').update(manifestJSON).digest('hex') };
-for (const name of ['index.html', 'offline.html', 'start.js', 'sw.js', 'gateway.mjs', 'launch.mjs', 'offline.mjs', 'privacy.html']) await cp(join(root, 'website', name), join(site, name));
+const startup = ['index.html', ...[...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(match => match[1]).filter(url => url.startsWith(appBase)).map(url => url.slice(appBase.length))];
+await writeFile(join(site, 'startup.mjs'), `export const startup = ${JSON.stringify(startup)};\n`);
+// The existing Pages workflow supplies GITHUB_REPOSITORY; no workflow permission
+// upgrade is needed to retain the live site's history for routine publications.
+const previousBase = process.env.ORBIT_PREVIOUS_SITE || (process.env.GITHUB_REPOSITORY?.toLowerCase() === 'chatternews/chatternews.github.io' ? 'https://chatternews.github.io/' : undefined);
+const compatibility = await retainWebsiteHistory({ previousBase, site, manifest });
+await writeFile(join(site, 'compatibility.json'), JSON.stringify(compatibility));
+await writeFile(join(site, 'compatibility.mjs'), `export const compatibility = ${JSON.stringify(compatibility)};\n`);
+for (const name of ['index.html', 'offline.html', 'start.js', 'sw.js', 'gateway.mjs', 'launch.mjs', 'offline.mjs', 'privacy.html', 'update.mjs', 'history.mjs', 'recovery.js', 'recovery.mjs']) await cp(join(root, 'website', name), join(site, name));
 for (const name of ['reader.css', 'core.mjs', 'control.mjs', 'icon.svg', 'manifest.webmanifest']) await cp(join(root, 'reader', name), join(site, name));
 await writeFile(join(site, 'release.mjs'), `export const manifest = ${manifestJSON};\nexport const trust = ${JSON.stringify(trust)};\n`);
 await writeFile(join(site, '.nojekyll'), '');
-await writeFile(join(site, '404.html'), '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><title>Open Orbit</title><h1>Let’s open Orbit.</h1><p><a href="/">Open Orbit</a>. This bookmark may point to an older release; the homepage opens the current app. Keep your saved story files.</p></html>');
+await writeFile(join(site, '404.html'), recoveryPage('/'));
 await cp(join(root, 'desktop', 'licenses'), join(site, 'licenses'), { recursive: true });
 await collectNpmNotices(root, join(site, 'licenses', 'npm'));
 await cp(join(root, 'THIRD_PARTY_NOTICES.md'), join(site, 'THIRD_PARTY_NOTICES.md'));

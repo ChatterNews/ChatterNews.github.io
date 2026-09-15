@@ -30,3 +30,8 @@ test('an invalid desk reference is preserved and stops launch rather than silent
   await assert.rejects(launchWebsite({...options,connect:async()=>{}}),/desk reference/i);
   assert.equal(local.getItem('orbit-web-workspace-id'),'invalid'); assert.deepEqual(visited,[]);
 });
+
+test('update launch preserves the room and story only in the local fragment',async()=>{
+ const {options,visited}=setup();await launchWebsite({...options,route:'#/studio?story=private-draft',connect:async()=>{}});
+ assert.equal(new URL(visited[0]).search,'');assert.equal(new URL(visited[0]).hash,'#/studio?story=private-draft');
+});

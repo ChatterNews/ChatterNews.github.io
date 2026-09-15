@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { WebsiteUpdate } from './WebsiteUpdate.js';
 import { fullscreenAvailable, isFullscreen, toggleFullscreen } from './display-mode.js';
 import '../styles/DisplayControls.css';
 
@@ -45,6 +46,7 @@ export function DisplayControls({ lowSpec, onLowSpecChange, inRoom }: {
       {notice && <p role="alert">{notice}</p>}
       <label className="display-low-spec"><input type="checkbox" checked={lowSpec} onChange={(e) => onLowSpecChange(e.target.checked)} /><span><b>Low-spec mode</b><small>Quieter visuals and instant room changes. All your tools stay available.</small></span></label>
       <p className="display-remember">Remembered on this browser.</p>
+      <WebsiteUpdate />
       <details className="display-install"><summary>iPhone or iPad: hide Safari’s toolbar</summary>
         <p>In Safari, choose Share → Add to Home Screen. Keep “Open as Web App” on if shown, then open Orbit from that icon.</p>
         <p>Use Finish session to save your work before switching. If the new desk is empty, open your saved session there.</p>

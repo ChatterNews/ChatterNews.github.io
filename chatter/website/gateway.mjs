@@ -8,7 +8,7 @@ export function publicFileRequest(url) {
 export function websiteCacheName(trust) {
   return `orbit-release-${trust.releaseId}-web-${trust.manifestSha256}`;
 }
-export function createWebsiteGateway({ base, manifest, shellPaths, shellResponse, appResponse, cacheApp, network = fetch }) {
+export function createWebsiteGateway({ base, manifest, shellPaths, shellResponse, appResponse, cacheApp, network = fetch, downloadURL }) {
   const appRoot = new URL(`r/${manifest.releaseId}/`, base);
   const downloads = new Map(manifest.files.map((file) => [new URL(`downloads/${manifest.releaseId}/${file.path.split('/').map(encodeURIComponent).join('/')}`, base).href, file]));
   const appFiles = new Map(manifest.files.map((file) => [new URL(file.path.split('/').map(encodeURIComponent).join('/'), appRoot).href, file.path]));
@@ -23,7 +23,7 @@ export function createWebsiteGateway({ base, manifest, shellPaths, shellResponse
     if (!pending.has(path)) {
       const download = (async () => {
         const file = entries.get(path);
-        const url = new URL(`downloads/${manifest.releaseId}/${file.path.split('/').map(encodeURIComponent).join('/')}`, base);
+        const url = downloadURL ? downloadURL(file) : new URL(`downloads/${manifest.releaseId}/${file.path.split('/').map(encodeURIComponent).join('/')}`, base);
         const response = await network(publicFileRequest(url));
         if (!response.ok) throw new Error('An Orbit tool could not load.');
         const bytes = await response.arrayBuffer();
