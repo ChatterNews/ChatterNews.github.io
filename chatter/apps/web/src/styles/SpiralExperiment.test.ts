@@ -16,9 +16,7 @@ describe('the Spiral Stage visual system', () => {
     expect(css).toMatch(/\.spiral-satellite-badge\s*\{[^}]*right:\s*15px;[^}]*top:\s*14px;/s);
     expect(css).toContain('--toolbar-corner-clearance: 70px;');
     expect(css).toMatch(/\.spiral-window-toolbar\s*\{[^}]*padding-right:\s*var\(--toolbar-corner-clearance\);/s);
-    expect(css).toContain('[data-preview-kind=\'table\']');
-    expect(css).toContain('[data-preview-kind=\'broadcast-lens\']');
-    expect(css).toContain('[data-preview-kind=\'archive-carousel\']');
+    expect(css).toContain('.room-object-art');
     expect(css).toContain('overflow: clip;');
     expect(css).toContain('@media (max-width: 650px)');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');

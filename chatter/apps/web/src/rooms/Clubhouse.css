@@ -57,7 +57,7 @@
   background: radial-gradient(circle at 35% 28%,#fff 0 5%,transparent 6%),linear-gradient(145deg,color-mix(in srgb,var(--station-accent) 60%,white),var(--station-accent));
   box-shadow: inset 0 2px #fff9,0 3px 0 color-mix(in srgb,var(--station-accent) 45%,#27202d);
 }
-.clubhouse-room .room-cartridge-icon .i { width: 21px; height: 21px; }
+.clubhouse-room .room-cartridge-icon .room-object-art { width: 100%; height: 100%; filter: none; }
 .clubhouse-room .room-cartridge-copy { align-self: end; min-width: 0; }
 .clubhouse-room .room-cartridge-copy b { display: block; font: 900 14px/1.05 var(--f-disp); }
 .clubhouse-room .room-cartridge-copy small { display: block; overflow: hidden; margin-top: 3px; color: #6f6676; font-size: 8px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }

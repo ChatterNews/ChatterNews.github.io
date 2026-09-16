@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { JOB_GUIDES, recipeTrackStepForStory, resolveStoryCreationRecipe, storyPath, storyRoomPath, type CrewRole, type CrewTask, type Episode, type Story, type User } from '@chatter/shared';
-import { Icon } from '../components/Sprite.js';
+import { RoomIcon } from '../components/RoomIcon.js';
+import { previewKindForRoom } from '../components/RoomPreview.js';
 import { STATIONS } from '../components/stations.js';
 import { useStore } from '../store/StoreProvider.js';
 import './Clubhouse.css';
@@ -27,8 +28,8 @@ export function ClubhouseRoomRacks({ counts, trackedStoryId, activeRooms, onNavi
       const count = counts[station.v]; const room = `/${station.v}`; const active = activeRooms.has(room);
       const destination = trackedStoryId ? storyRoomPath(room, trackedStoryId) : room;
       const countCopy = count && station.countLabel ? `${count} ${station.countLabel[count === 1 ? 0 : 1]}` : undefined;
-      return <button className="room-cartridge" style={{ '--station-accent': station.accent } as CSSProperties} key={station.v} data-destination={destination} onClick={() => onNavigate(destination)}>
-        <span className="room-cartridge-icon"><Icon name={station.ic} /></span>
+      return <button className="room-cartridge" style={{ '--station-accent': station.accent, '--stage-color': station.accent } as CSSProperties} key={station.v} data-destination={destination} onClick={() => onNavigate(destination)}>
+        <span className="room-cartridge-icon"><RoomIcon kind={previewKindForRoom({ slug: station.v })} /></span>
         <span className="room-cartridge-copy"><b>{station.n}</b><small>{station.d}</small></span>
         <span className={`room-cartridge-signal ${active ? 'active' : ''}`}><i />{countCopy ?? (active ? 'On this route' : station.cue)}</span>
         <span className="room-cartridge-open" aria-hidden="true">›</span>
