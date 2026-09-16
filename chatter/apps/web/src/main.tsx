@@ -10,7 +10,9 @@ import './styles/Mobile.css';
 import './styles/Responsive.css';
 import './styles/RoomInteriors.css';
 import './styles/Controls.css';
+import { applyAfterHours, readAfterHours } from './components/display-mode.js';
 
+applyAfterHours(readAfterHours());
 const root = createRoot(document.getElementById('root')!);
 async function start(askPermission = false) {
   try {

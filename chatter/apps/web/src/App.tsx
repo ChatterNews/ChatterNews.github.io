@@ -10,7 +10,7 @@ import { StoreProvider, useStore } from './store/StoreProvider.js';
 import { useRoleIdentity } from './store/useCurrentUser.js';
 import { isAdviserSession } from './store/role-session.js';
 import { DisplayControls } from './components/DisplayControls.js';
-import { readLowSpec, saveLowSpec } from './components/display-mode.js';
+import { applyAfterHours, readAfterHours, saveAfterHours, readLowSpec, saveLowSpec } from './components/display-mode.js';
 import { Sprite } from './components/Sprite.js';
 import { Reily } from './components/Pip.js';
 import { ReilyContextProvider } from './components/ReilyContextProvider.js';
@@ -69,8 +69,11 @@ function RoomLoading() {
 
 function Shell({ deskMode }: { deskMode: DeskMode }) {
   const [lowSpec, setLowSpec] = useState(readLowSpec);
+  const [afterHours, setAfterHours] = useState(readAfterHours);
   useEffect(() => { document.body.dataset.lowSpec = String(lowSpec); }, [lowSpec]);
-  const screenControls = (inRoom: boolean) => <DisplayControls lowSpec={lowSpec} inRoom={inRoom} onLowSpecChange={(value) => {setLowSpec(value);saveLowSpec(value);}} />;
+  const screenControls = (inRoom: boolean) => <DisplayControls lowSpec={lowSpec} afterHours={afterHours} inRoom={inRoom}
+    onAfterHoursChange={(value) => {applyAfterHours(value);setAfterHours(value);saveAfterHours(value);}}
+    onLowSpecChange={(value) => {setLowSpec(value);saveLowSpec(value);}} />;
   const store = useStore();
   const navigate = useNavigate();
   const location = useLocation();

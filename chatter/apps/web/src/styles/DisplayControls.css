@@ -11,7 +11,15 @@
 .display-controls-dialog header button { width: 44px; font-size: 24px; background: white; }
 .display-fullscreen { width: 100%; margin: 16px 0; padding: 10px; background: #ffe04b; color: #211b39; }
 .display-fullscreen:disabled { opacity: .6; cursor: default; }
-.display-low-spec { display: flex; align-items: center; gap: 12px; padding: 12px 0; cursor: pointer; }
+.display-low-spec,.display-appearance { display: flex; align-items: center; gap: 12px; padding: 12px 0; cursor: pointer; }
+.display-appearance { border-bottom: 1px solid var(--room-edge,#8296a9); }
+.display-appearance input { appearance: none; width: 48px; height: 28px; flex: none; margin: 0; padding: 3px; border: 1px solid #8296a9; border-radius: 20px; background: #b9c8d5; cursor: pointer; }
+.display-appearance input::before { content: ''; display: block; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px #15223966; }
+.display-appearance input:checked { background: #263959; border-color: #62e2e5; }
+.display-appearance input:checked::before { transform: translateX(20px); background: #62e2e5; }
+.display-appearance input:focus-visible { outline: 3px solid #119ed1; outline-offset: 3px; }
+.display-appearance span { display: grid; gap: 4px; }
+.display-appearance small { font-size: 13px; }
 .display-low-spec input { flex: none; width: 24px; height: 24px; accent-color: #211b39; }
 .display-low-spec span { display: grid; gap: 4px; }
 .display-low-spec small,.display-remember { font-size: 13px; }

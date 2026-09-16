@@ -1,5 +1,15 @@
 /** Display preferences belong to this browser, not a student project. */
 export const LOW_SPEC_KEY = 'chatter:display:low-spec';
+export const AFTER_HOURS_KEY = 'chatter:display:after-hours';
+export function readAfterHours(): boolean {
+  try { return window.localStorage.getItem(AFTER_HOURS_KEY) === 'true'; } catch { return false; }
+}
+export function saveAfterHours(enabled: boolean): void {
+  try { window.localStorage.setItem(AFTER_HOURS_KEY, String(enabled)); } catch { /* Still works for this visit. */ }
+}
+export function applyAfterHours(enabled: boolean): void {
+  document.body.dataset.afterHours = String(enabled);
+}
 export function readLowSpec(): boolean {
   try { return window.localStorage.getItem(LOW_SPEC_KEY) === 'true'; } catch { return false; }
 }

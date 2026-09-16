@@ -1,11 +1,32 @@
 /** @vitest-environment jsdom */
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { fullscreenAvailable, isFullscreen, LOW_SPEC_KEY, readLowSpec, saveLowSpec, toggleFullscreen } from './display-mode.js';
+import { AFTER_HOURS_KEY, applyAfterHours, readAfterHours, saveAfterHours, fullscreenAvailable, isFullscreen, LOW_SPEC_KEY, readLowSpec, saveLowSpec, toggleFullscreen } from './display-mode.js';
 beforeEach(() => {
   const data = new Map<string,string>();
   vi.stubGlobal('localStorage', {getItem: vi.fn((key: string) => data.get(key) ?? null),setItem: vi.fn((key: string,value: string) => {data.set(key,value);})});
 });
-afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+afterEach(() => { delete document.body.dataset.afterHours; vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+it('starts in Space Lab and remembers After Hours separately from student work and low-spec mode', () => {
+  expect(readAfterHours()).toBe(false);
+  window.localStorage.setItem('student-work', 'keep');
+  saveLowSpec(true);
+  saveAfterHours(true); applyAfterHours(readAfterHours());
+  expect(document.body.dataset.afterHours).toBe('true');
+  expect(readLowSpec()).toBe(true);
+  expect(window.localStorage.getItem('student-work')).toBe('keep');
+  saveAfterHours(false); applyAfterHours(readAfterHours());
+  expect(document.body.dataset.afterHours).toBe('false');
+  window.localStorage.setItem(AFTER_HOURS_KEY, 'unknown');
+  expect(readAfterHours()).toBe(false);
+});
+it('can change the appearance when browser preference storage is blocked', () => {
+  vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => { throw Error('blocked'); });
+  vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => { throw Error('blocked'); });
+  expect(readAfterHours()).toBe(false);
+  expect(() => saveAfterHours(true)).not.toThrow();
+  applyAfterHours(true);
+  expect(document.body.dataset.afterHours).toBe('true');
+});
 it('remembers low-spec mode without changing project storage', () => {
   window.localStorage.setItem('student-work', 'keep');
   saveLowSpec(true); expect(readLowSpec()).toBe(true);
