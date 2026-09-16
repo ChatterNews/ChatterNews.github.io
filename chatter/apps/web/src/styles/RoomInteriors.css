@@ -46,7 +46,7 @@ body[data-interface='spiral-stage'] :is(.newsroom-hero,.clubhouse-welcome,.showt
 body[data-interface='spiral-stage'] :is(.newsroom-hero,.clubhouse-welcome,.showtime-head,.chatterbox-hero,.stinger-home-hero,.blast-library-head) p {
   margin: 0; max-width: 64ch; color: var(--room-muted); font: 600 14px/1.5 var(--f-ui); text-shadow: none;
 }
-body[data-interface='spiral-stage'] :is(.newsroom-eyebrow,.blast-kicker,.stinger-eyebrow,.showtime-head > div > span,.clubhouse-welcome > div > span) {
+body[data-interface='spiral-stage'] :is(.newsroom-hero,.clubhouse-welcome,.showtime-head,.chatterbox-hero,.stinger-home-hero,.blast-library-head) :is(.newsroom-eyebrow,.blast-kicker,.stinger-eyebrow,.showtime-head > div > span,.clubhouse-welcome > div > span) {
   color: #655284; font: 700 10px/1.4 var(--f-tech); letter-spacing: .09em; text-shadow: none;
 }
 body[data-interface='spiral-stage'] .newsroom-hero .newsroom-hero-icon {
