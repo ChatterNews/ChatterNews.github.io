@@ -35,7 +35,7 @@
   body[data-interface='spiral-stage'] .spiral-room-map-popover { position: fixed; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom,0px) + 70px); width: auto; max-width: none; max-height: calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 140px); transform: none; overflow: auto; }
   body[data-interface='spiral-stage']:has(.spiral-stage-shell[data-work-view='true']):not(:has(.spiral-room-map[open])) :is(.pipdock,.piptab) { opacity: 1; }
   body[data-interface='spiral-stage'] .pipdock.reilly-guide { right: 8px; bottom: calc(env(safe-area-inset-bottom,0px) + 8px); width: 96px; display: block; transform: none; z-index: 910; }
-  body[data-interface='spiral-stage'] .pipbody.reilly-character { width: 96px; height: 48px; display: flex; align-items: center; gap: 4px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); box-shadow: 0 3px 0 var(--ink); animation: none; }
+  body[data-interface='spiral-stage'] .pipbody.reilly-character { width: 96px; height: 48px; display: flex; align-items: center; gap: 4px; border: 0; background: transparent; box-shadow: none; animation: none; }
   body[data-interface='spiral-stage'] .reilly-character .reilly-art { width: 40px; height: 44px; flex: none; filter: none; }
   body[data-interface='spiral-stage'] .compact-help-label { display: block; font: 900 13px var(--f-ui); }
   body[data-interface='spiral-stage'] :is(.reilly-nameplate,.reilly-park) { display: none; }

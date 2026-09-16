@@ -63,7 +63,7 @@ body[data-interface='spiral-stage'] :is(button.danger,.b.hot) { color: #702634; 
 body[data-interface='spiral-stage'] :is(
   .stage-utility, .project-drive-trigger, .who-am-i-trigger,
   .display-controls-trigger, .spiral-stage-brand button,
-  .spiral-room-map > summary, .reilly-character, .reilly-return
+  .spiral-room-map > summary, .reilly-return
 ) {
   border: 2px solid var(--control-ink);
   border-radius: 15px;
@@ -120,7 +120,7 @@ body[data-interface='spiral-stage'] :is(button,summary,[role='button']):disabled
 body[data-interface='spiral-stage'] :is(
   .newsroom-button,.b,.tbtn,.badge-button,.checkin-back,.checkin-primary,.checkin-demo,
   .stage-utility,.project-drive-trigger,.display-controls-trigger,.who-am-i-trigger,
-  .spiral-stage-brand button,.spiral-room-map > summary,.reilly-character,.reilly-return,
+  .spiral-stage-brand button,.spiral-room-map > summary,.reilly-return,
   .desk-toolbar button,.blast-toolbar button,.blast-segmented button,
   .stinger-transport button,.stinger-tools button,.stinger-stage-controls button,
   .showtime-transport button,.showtime-toolbar button,.chatterbox-transport button,
@@ -153,7 +153,7 @@ body[data-interface='spiral-stage'] :is(.tbtn,.desk-toolbar button,.blast-segmen
 @media (max-width: 700px) {
   body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy small { display: none; }
   body[data-interface='spiral-stage'] .spiral-room-map > summary .control-icon { width: 24px; height: 24px; }
-  body[data-interface='spiral-stage'] :is(.reilly-character,.reilly-return,.spiral-room-map > summary) { border-radius: 12px; }
+  body[data-interface='spiral-stage'] :is(.reilly-return,.spiral-room-map > summary) { border-radius: 12px; }
 }
 @media (pointer: coarse) {
   body[data-interface='spiral-stage'] :is(.newsroom-button,.b,.tbtn,.badge-button,.desk-toolbar button,.blast-toolbar button,.project-drive-dialog button) { min-height: 44px; }
