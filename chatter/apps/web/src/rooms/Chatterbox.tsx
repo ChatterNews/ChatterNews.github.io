@@ -1,3 +1,4 @@
+import { ControlIcon, type ControlKind } from '../components/ControlIcon.js';
 import { workspaceStorage } from '../portable/workspace-context.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
@@ -28,12 +29,12 @@ type Notice = { text: string; error?: boolean };
 type AudioChoice = { assetId: string; title: string; durationSec?: number; source: string; storyId?: string };
 type TranscriptPart = { start: number; end: number; text: string };
 
-const STATIONS: Array<{ id: Station; label: string; verb: string; icon: string }> = [
-  { id: 'RUNDOWN', label: 'Rundown', verb: 'Plan the show', icon: '▤' },
-  { id: 'RECORD', label: 'Record', verb: 'Capture voices', icon: '●' },
-  { id: 'CUT', label: 'Cut', verb: 'Shape the episode', icon: '✂' },
-  { id: 'MIX', label: 'Mix', verb: 'Balance the sound', icon: '≋' },
-  { id: 'PACKAGE', label: 'Package', verb: 'Check and hand off', icon: '▣' },
+const STATIONS: Array<{ id: Station; label: string; verb: string; icon: ControlKind }> = [
+  { id: 'RUNDOWN', label: 'Rundown', verb: 'Plan the show', icon: 'list' },
+  { id: 'RECORD', label: 'Record', verb: 'Capture voices', icon: 'record' },
+  { id: 'CUT', label: 'Cut', verb: 'Shape the episode', icon: 'cut' },
+  { id: 'MIX', label: 'Mix', verb: 'Balance the sound', icon: 'mix' },
+  { id: 'PACKAGE', label: 'Package', verb: 'Check and hand off', icon: 'package' },
 ];
 const TRACK_ICONS: Record<PodcastTrack['kind'], string> = { VOICE: '◖))', MUSIC: '♫', SFX: '✦', AMBIENCE: '≈' };
 function omitBase<T extends { id: string; createdAt: number; updatedAt: number }>(value: T): Omit<T, 'id' | 'createdAt' | 'updatedAt'> { const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = value; return rest; }
@@ -256,7 +257,7 @@ export function Chatterbox({ stories, me }: { stories: Story[]; me?: User }) {
   const projectProblems = [...new Set([...podcastProblems(project), ...episodeFindings.filter((finding) => finding.severity === 'BLOCKING').map((finding) => finding.message)])]; const clipSource = selectedClip ? audioUrls.get(selectedClip.assetId) : undefined;
   return <section className="view on newsroom-room chatterbox-room">
     <header className="chatterbox-hero"><div className="chatterbox-radio-mark"><i /><b>CB</b><span>96.7</span></div><div><span className="newsroom-eyebrow">CHATTERBOX PODCAST</span><h1>{show.title}</h1><p>Build an episode from newsroom stories, voices, music, and sound.</p></div><div className="chatterbox-project-pick"><label>Episode<select value={project.id} disabled={!!busy} onChange={(event) => { const next = projects.find((item) => item.id === event.target.value); if (next) void switchProject(next); }}>{starter && <option value={project.id}>{project.title} · starter</option>}{projects.map((item) => <option value={item.id} key={item.id}>{item.title} · {item.state.toLowerCase()}</option>)}</select></label><details ref={newEpisodeMenu}><summary>＋ New episode</summary><div className="chatterbox-format-menu">{PODCAST_FORMATS.map((format) => <button key={format.id} disabled={!!busy} onClick={() => void newEpisode(format.id)}><span><b>{format.title}</b><em>{format.hosts} · {clock(format.segments.reduce((sum, segment) => sum + segment.targetSec, 0))}</em></span><small>{format.promise}</small><i>{format.segments.map((segment) => segment.title).join(' → ')}</i></button>)}<button disabled={!!busy} onClick={() => void newEpisode('TRAILER')}><span><b>Show trailer</b><em>Short introduction · 01:10</em></span><small>Introduce Chatterbox before the first full episode.</small><i>Best moment → Meet the show → Listen next</i></button></div></details></div></header>
-    <nav className="chatterbox-stations" aria-label="Podcast production stations">{STATIONS.map((item, index) => <button key={item.id} aria-current={station === item.id} onClick={() => setStation(item.id)}><span>{item.icon}</span><i>{index + 1}</i><b>{item.label}</b><small>{item.verb}</small></button>)}</nav>
+    <nav className="chatterbox-stations" aria-label="Podcast production stations">{STATIONS.map((item, index) => <button key={item.id} aria-current={station === item.id} onClick={() => setStation(item.id)}><span><ControlIcon kind={item.icon} /></span><i>{index + 1}</i><b>{item.label}</b><small>{item.verb}</small></button>)}</nav>
     <div className="chatterbox-episode-tools"><span><b>{PODCAST_FORMATS.find((format) => format.id === project.formatId)?.title ?? (project.episodeType === 'TRAILER' ? 'Show trailer' : 'Open format')}</b><small>{clock(planDuration)} planned · {clock(duration)} in the cut</small></span><button onClick={() => setShowCoverStudio(true)}>▧ Cover</button><button className={episodeFindings.some((finding) => finding.severity === 'BLOCKING') ? 'needs-work' : ''} onClick={() => setShowEpisodeCheck(true)}>Episode Check <b>{episodeFindings.length}</b></button></div>
     <div className={`chatterbox-status ${notice?.error ? 'error' : ''} ${!notice && !dirty && !showDirty && !busy ? 'idle' : ''}`} role={notice?.error ? 'alert' : 'status'}><span className="chatterbox-status-light" /><p>{busy || (dirty || showDirty ? 'Saving changes…' : notice?.text) || (starter ? 'Add a story card or start editing. Your work saves when you make a change.' : 'All changes saved')}</p>{renderProgress !== undefined && <meter min={0} max={1} value={renderProgress} />}{notice && <button aria-label="Dismiss message" onClick={() => setNotice(undefined)}>×</button>}</div>
     {showEpisodeCheck && <ChatterboxEpisodeCheck findings={episodeFindings} onFocus={focusEpisodeFinding} onClose={() => setShowEpisodeCheck(false)} />}

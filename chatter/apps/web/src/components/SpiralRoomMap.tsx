@@ -1,3 +1,4 @@
+import { ControlIcon } from './ControlIcon.js';
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { RoomPreview } from './RoomPreview.js';
 import { SPIRAL_ROOMS, SPIRAL_ROOM_PURPOSES } from './spiral-navigation.js';
@@ -54,15 +55,15 @@ export function SpiralRoomMap({
   return (
     <details ref={detailsRef} className="spiral-room-map">
       <summary aria-label="Open room map">
-        <span className="spiral-map-dial" aria-hidden="true"><i /><i /><i /><b>CN</b></span>
-        <span><small>Room system</small><b>{active?.name ?? 'Newsroom'}</b></span>
+        <ControlIcon kind="rooms" />
+        <span className="room-map-button-copy"><b>Rooms</b><small>{active?.name ?? 'Newsroom'}</small></span>
       </summary>
       <div className="spiral-room-map-popover" aria-label="Room map">
         <header className="solar-atlas-head">
           <span><small>NEWSROOM SYSTEM</small><b>Pick a planet</b></span>
           <p>Every room has one job. Follow the lit signal or choose the tool you need.</p>
           <div className="solar-atlas-route"><small>STORY ROUTE</small><b>{next ? `Next: ${next.name}` : `Now: ${active?.name ?? 'Clubhouse'}`}</b></div>
-          <button type="button" className="solar-atlas-close" aria-label="Close room system" onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')}><span aria-hidden="true">×</span> Close</button>
+          <button type="button" className="solar-atlas-close" aria-label="Close room system" onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')}><ControlIcon kind="close" /> Close</button>
         </header>
         <div className="solar-atlas">
           <aside className="solar-atlas-home">

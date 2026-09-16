@@ -25,7 +25,7 @@ test('website Finish session works without a folder picker and only offers an ex
   const container = document.createElement('div'); document.body.append(container); root = createRoot(container);
   const story = { id: 'practice', title: 'Practice story', status: 'WORK' } as Story;
   await act(async () => root.render(createElement(MemoryRouter, null, createElement(ProjectDrive, { stories: [story], onChanged: () => {} }))));
-  await click('Story drive');
+  await click('Files');
   const offline = [...document.querySelectorAll('a')].find(link => link.textContent === 'Prepare for offline use');
   expect(offline?.getAttribute('href')).toBe('/offline.html');
   expect(offline?.target).toBe('_blank');

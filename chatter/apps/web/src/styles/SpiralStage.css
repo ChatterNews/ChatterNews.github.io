@@ -481,33 +481,12 @@ body[data-interface='spiral-stage'] .spiral-live-board > :first-child { min-heig
 .stage-utility,
 .spiral-satellite .project-drive-trigger,
 .spiral-satellite .who-am-i-trigger {
-  width: 58px !important;
-  height: 58px !important;
-  min-width: 58px !important;
-  display: grid !important;
-  place-items: center !important;
-  align-content: center !important;
-  gap: 2px !important;
-  padding: 0 !important;
-  border: 2px solid #0d0a1b !important;
-  border-radius: 50% !important;
-  color: #151128 !important;
-  background: var(--stage-paper) !important;
-  box-shadow: 0 5px 0 #0d0a1b, 0 11px 25px rgba(0,0,0,.32), inset 0 1px #fff !important;
+  width: 58px; height: 58px; min-width: 58px;
+  display: grid; place-items: center; align-content: center; gap: 3px; padding: 4px;
 }
-.stage-utility:hover,
-.spiral-satellite .project-drive-trigger:hover,
-.spiral-satellite .who-am-i-trigger:hover { transform: translateY(-3px) rotate(4deg); background: var(--stage-room) !important; }
-.stage-utility:focus-visible,
-.spiral-satellite .project-drive-trigger:focus-visible,
-.spiral-satellite .who-am-i-trigger:focus-visible { outline: 3px solid #fff !important; outline-offset: 4px; }
-.stage-utility span,
-.spiral-satellite .project-drive-trigger span { font: 900 14px/1 var(--f-tech) !important; }
-.stage-utility b,
-.spiral-satellite .project-drive-trigger b { max-width: 48px; font: 900 7px/.95 var(--f-ui) !important; text-align: center; }
 .spiral-satellite .who-am-i-trigger > div:not(.face),
 .spiral-satellite .who-am-i-caret { display: none; }
-.spiral-satellite .who-am-i-trigger .face { width: 54px; height: 54px; border: 0; background: var(--stage-room); box-shadow: none; }
+.spiral-satellite .who-am-i-trigger .face { width: 36px; height: 36px; border: 1.5px solid currentColor; background: var(--stage-room); box-shadow: none; }
 
 /* -------------------------- STORY ROUTE CONSOLE -------------------------- */
 .spiral-workflow-dock {
@@ -898,7 +877,6 @@ body:has(.spiral-room-map[open]) :is(.pipdock,.piptab) { opacity: 0; pointer-eve
 /* Menus and drive dialogs must stay above the mechanical stage. */
 body[data-interface='spiral-stage'] :is(.who-am-i-menu,.project-drive-backdrop,.project-drive-dialog,.badge-manager,.scrim,.sheet,.modal,.dialog) { z-index: 1200 !important; }
 body[data-interface='spiral-stage'] .who-am-i-menu { position: fixed; top: 82px; right: 14px; }
-body[data-interface='spiral-stage'] .project-drive-dialog { border-radius: 18px 60px 18px 60px !important; }
 body[data-interface='spiral-stage'] .pipdock,
 body[data-interface='spiral-stage'] .piptab { z-index: 820; }
 

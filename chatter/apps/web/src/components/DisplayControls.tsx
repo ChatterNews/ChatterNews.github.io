@@ -1,3 +1,4 @@
+import { ControlIcon } from './ControlIcon.js';
 import { useEffect, useRef, useState } from 'react';
 import { WebsiteUpdate } from './WebsiteUpdate.js';
 import { fullscreenAvailable, isFullscreen, toggleFullscreen } from './display-mode.js';
@@ -32,12 +33,12 @@ export function DisplayControls({ lowSpec, onLowSpecChange, inRoom }: {
     <button ref={trigger} type="button" className="display-controls-trigger" data-in-room={inRoom} data-low-spec={lowSpec}
       aria-label={`Screen settings${lowSpec ? ': low-spec mode on' : ''}`} aria-haspopup="dialog" aria-expanded={open}
       onClick={() => {setNotice('');dialog.current?.showModal();setOpen(true);}}>
-      <span aria-hidden="true">⛶</span><b>Screen</b>
+      <ControlIcon kind="screen" /><b>Screen</b>
     </button>
     <dialog ref={dialog} className="display-controls-dialog" aria-labelledby="display-controls-title"
       onCancel={() => {setOpen(false);}} onClose={() => {setOpen(false);}}
       onClick={(event) => {if(event.target===dialog.current) {const r=dialog.current.getBoundingClientRect();if(event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom) close();}}}>
-      <header><h2 id="display-controls-title">Your screen</h2><button type="button" aria-label="Close screen settings" onClick={close}>×</button></header>
+      <header><h2 id="display-controls-title">Your screen</h2><button type="button" aria-label="Close screen settings" onClick={close}><ControlIcon kind="close" /></button></header>
       {standalone && !full ? <p>Orbit is already in its own app window.</p> :
         <button type="button" className="display-fullscreen" onClick={() => void fullscreen()} disabled={!fullscreenAvailable() && !full}>
           {full ? 'Exit fullscreen' : 'Enter fullscreen'}

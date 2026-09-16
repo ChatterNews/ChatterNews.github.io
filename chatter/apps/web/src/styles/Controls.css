@@ -1,0 +1,164 @@
+/* Orbit's control family: molded keys, clear symbols and a short physical press.
+   Scope appearance to controls, not artwork, timeline clips or room previews. */
+:root {
+  --control-ink: #292139;
+  --control-face: #fff4d6;
+  --control-rim: #c5b7a1;
+  --control-accent: #ffe35a;
+  --control-radius: 11px;
+  --control-rest: inset 0 1px 0 #fff9, inset 0 -3px 0 #29213918, 0 3px 0 #292139;
+  --control-down: inset 0 2px 3px #29213926, 0 1px 0 #292139;
+}
+.control-icon { display: block; width: 26px; height: 26px; flex: none; pointer-events: none; }
+
+/* Shared action keys cover the newsroom, creation tools, dialogs and adviser desk.
+   Existing colors still communicate the action's role within each room. */
+body[data-interface='spiral-stage'] :is(
+  .newsroom-button, .b, .tbtn, .badge-button, .checkin-back, .checkin-primary, .checkin-demo,
+  .slate-text-button, .blast-wide-button, .blast-square-button, .blast-publish, .blast-upload,
+  .blast-ready-button, .stinger-icon-button, .greenlight-exception-button,
+  .compact-blast-tools, .compact-show-settings, .compact-media-filters,
+  .clubhouse-welcome button, .clubhouse-section-title > button,
+  .desk-toolbar button, .blast-toolbar button, .blast-segmented button,
+  .stinger-transport button, .stinger-tools button, .stinger-stage-controls button,
+  .showtime-transport button, .showtime-toolbar button, .chatterbox-transport button,
+  .booth-wave-tools button, .booth-prompter-tools button,
+  .project-drive-actions button, .project-drive-finish button, .project-drive-finish a,
+  .display-controls-dialog button, .website-update button,
+  .chatterbox-project-pick summary, .chatterbox-editor-tools button, .chatterbox-cut-buttons button,
+  .chatterbox-import button, .chatterbox-episode-tools > button, .chatterbox-add-segment button,
+  .chatterbox-strip-buttons button, .chatterbox-transcript > button, .chatterbox-episode-check > footer button,
+  .media-bin-card-body footer button, .media-bin-group > header button, .media-bin-empty button,
+  .stinger-file-menu summary, .stinger-add-scene summary, .stinger-row button, .stinger-segmented button,
+  .showtime-head button, .showtime-edit-tools button, .showtime-device-buttons button,
+  .showtime-deliver button, .showtime-cut-top button, .showtime-edit-choice button,
+  .stinger-ready-button, .stinger-recipe-controls > button, .stinger-ready > footer button,
+  .chatterbox-stations button, .stinger-job-strip button, .blast-job-strip button,
+  .solar-atlas-close, .reilly-find-shortcuts button, .reilly-goals button
+) {
+  min-height: 40px;
+  border: 1.5px solid var(--control-ink);
+  border-radius: var(--control-radius);
+  box-shadow: var(--control-rest);
+  font-family: var(--f-ui);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-shadow: none;
+  transform: none;
+  transition: box-shadow 100ms ease, translate 100ms ease, background-color 100ms ease;
+}
+body[data-interface='spiral-stage'] :is(
+  .newsroom-button, .b, .badge-button, .checkin-back, .checkin-demo,
+  .slate-text-button, .blast-wide-button, .blast-square-button,
+  .compact-blast-tools, .compact-show-settings, .compact-media-filters
+):not(.primary,.dark,.danger,.hot,.go) { background: var(--control-face); color: var(--control-ink); }
+body[data-interface='spiral-stage'] :is(.newsroom-button.primary,.b.go,.project-drive-actions .primary,.display-fullscreen) {
+  background: var(--control-accent); color: var(--control-ink);
+}
+body[data-interface='spiral-stage'] :is(.project-drive-finish .primary) { background: #bce78c; color: var(--control-ink); }
+body[data-interface='spiral-stage'] :is(.newsroom-button.dark,.b.dark) { background: #3f3456; color: #fff4d6; }
+body[data-interface='spiral-stage'] :is(button.danger,.b.hot) { color: #702634; background: #ffe0dc; }
+
+/* Main controls share one key silhouette. Files is a folder, not a text badge. */
+body[data-interface='spiral-stage'] :is(
+  .stage-utility, .project-drive-trigger, .who-am-i-trigger,
+  .display-controls-trigger, .spiral-stage-brand button,
+  .spiral-room-map > summary, .reilly-character, .reilly-return
+) {
+  border: 2px solid var(--control-ink);
+  border-radius: 15px;
+  background: var(--control-face);
+  color: var(--control-ink);
+  box-shadow: var(--control-rest);
+  transform: none;
+  text-shadow: none;
+  transition: box-shadow 100ms ease, translate 100ms ease, background-color 100ms ease;
+}
+body[data-interface='spiral-stage'] :is(.stage-utility,.project-drive-trigger,.display-controls-trigger) {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; padding: 4px;
+}
+body[data-interface='spiral-stage'] :is(.stage-utility,.project-drive-trigger,.display-controls-trigger) b {
+  display: block; max-width: none; font: 800 10px/1.1 var(--f-ui); white-space: nowrap;
+}
+body[data-interface='spiral-stage'] .project-drive-trigger .control-icon { color: #684b90; }
+body[data-interface='spiral-stage'] .chatterbox-stations .control-icon { width: 22px; height: 22px; }
+body[data-interface='spiral-stage'] .project-drive-trigger[aria-expanded='true'] { background: #e4d5fb; }
+body[data-interface='spiral-stage'] .stage-utility[aria-current='page'] { background: #ccebf0; }
+body[data-interface='spiral-stage'] .who-am-i-trigger[aria-expanded='true'] { background: #ffe35a; }
+body[data-interface='spiral-stage'] .display-controls-trigger[data-low-spec='true'] { background: #bce78c; }
+body[data-interface='spiral-stage'] .spiral-stage-brand button { background: #ffe35a; }
+body[data-interface='spiral-stage'] .spiral-room-map > summary {
+  display: flex; align-items: center; justify-content: center; gap: 9px; padding: 6px 14px;
+  color: #fff4d6; background: #3f3456;
+}
+body[data-interface='spiral-stage'] .spiral-room-map[open] > summary { background: #5c487a; box-shadow: var(--control-down); }
+body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy { display: grid; gap: 2px; }
+body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy b { font: 900 14px/1.1 var(--f-ui); }
+body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy small { font: 700 10px/1.1 var(--f-ui); color: #e0d5ed; letter-spacing: 0; }
+body[data-interface='spiral-stage'] .spiral-room-map > summary .control-icon { width: 30px; height: 30px; }
+body[data-interface='spiral-stage'] .solar-atlas-close { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+body[data-interface='spiral-stage'] .solar-atlas-close .control-icon { width: 20px; height: 20px; }
+body[data-interface='spiral-stage'] .project-drive-dialog { border-radius: 20px; border-width: 2px; box-shadow: 0 8px 0 #211a3599; }
+body[data-interface='spiral-stage'] .project-drive-dialog > header { border-radius: 17px 17px 0 0; }
+body[data-interface='spiral-stage'] .project-drive-dialog .project-drive-icon { background: #e4d5fb; border-radius: 12px; }
+body[data-interface='spiral-stage'] :is(.project-drive-dialog > header > button,.project-drive-message button[aria-label],.display-controls-dialog header button) {
+  display: grid; place-items: center; flex: none; width: 40px; min-height: 40px; padding: 6px;
+  border: 1.5px solid currentColor; border-radius: 10px; background: #fff4d6; color: #292139;
+  box-shadow: var(--control-rest);
+}
+
+/* Feedback changes the key face; positions stay stable and text remains readable.
+   Shared states also cover room-specific controls that keep their own geometry. */
+body[data-interface='spiral-stage'] :is(button,summary,[role='button']):focus-visible {
+  outline: 3px solid #5b2f91; outline-offset: 3px;
+  box-shadow: 0 0 0 3px #fff4d6, 0 0 0 6px #5b2f91;
+}
+body[data-interface='spiral-stage'] :is(button,summary,[role='button']):disabled {
+  cursor: not-allowed; opacity: .55; filter: none; translate: none; transform: none;
+}
+body[data-interface='spiral-stage'] :is(
+  .newsroom-button,.b,.tbtn,.badge-button,.checkin-back,.checkin-primary,.checkin-demo,
+  .stage-utility,.project-drive-trigger,.display-controls-trigger,.who-am-i-trigger,
+  .spiral-stage-brand button,.spiral-room-map > summary,.reilly-character,.reilly-return,
+  .desk-toolbar button,.blast-toolbar button,.blast-segmented button,
+  .stinger-transport button,.stinger-tools button,.stinger-stage-controls button,
+  .showtime-transport button,.showtime-toolbar button,.chatterbox-transport button,
+  .booth-wave-tools button,.booth-prompter-tools button,
+  .blast-wide-button,.blast-publish,.blast-ready-button,.stinger-icon-button,
+  .project-drive-dialog button,.display-controls-dialog button,.solar-atlas-close,
+  .chatterbox-project-pick summary, .chatterbox-editor-tools button, .chatterbox-cut-buttons button,
+  .chatterbox-import button, .chatterbox-episode-tools > button, .chatterbox-add-segment button,
+  .chatterbox-strip-buttons button, .chatterbox-transcript > button, .chatterbox-episode-check > footer button,
+  .media-bin-card-body footer button, .media-bin-group > header button, .media-bin-empty button,
+  .stinger-file-menu summary, .stinger-add-scene summary, .stinger-row button, .stinger-segmented button,
+  .showtime-head button, .showtime-edit-tools button, .showtime-device-buttons button,
+  .showtime-deliver button, .showtime-cut-top button, .showtime-edit-choice button,
+  .stinger-ready-button, .stinger-recipe-controls > button, .stinger-ready > footer button,
+  .chatterbox-stations button, .stinger-job-strip button, .blast-job-strip button,
+  .clubhouse-welcome button,.clubhouse-section-title > button
+):not(:disabled):active { translate: 0 2px; transform: none; box-shadow: var(--control-down); }
+body[data-interface='spiral-stage'] :is(.tbtn,.desk-toolbar button,.blast-segmented button)[aria-pressed='true'] {
+  background: #dcd0ef; color: #292139; box-shadow: var(--control-down);
+}
+@media (hover: hover) {
+  body[data-interface='spiral-stage'] :is(.newsroom-button,.b,.tbtn,.stage-utility,.project-drive-trigger,.display-controls-trigger,.who-am-i-trigger,.desk-toolbar button):not(:disabled):hover {
+    transform: none; box-shadow: inset 0 1px 0 #fff, inset 0 -3px 0 #29213918, 0 3px 0 #292139, 0 0 0 2px #fff4d680;
+  }
+}
+@media (max-width: 1100px) {
+  body[data-interface='spiral-stage'] :is(.stage-utility,.project-drive-trigger,.display-controls-trigger,.who-am-i-trigger,.spiral-stage-brand button) { border-radius: 12px; }
+  body[data-interface='spiral-stage'] .spiral-satellite .who-am-i-trigger .face { width: 32px; height: 32px; font-size: 14px; }
+}
+@media (max-width: 700px) {
+  body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy small { display: none; }
+  body[data-interface='spiral-stage'] .spiral-room-map > summary .control-icon { width: 24px; height: 24px; }
+  body[data-interface='spiral-stage'] :is(.reilly-character,.reilly-return,.spiral-room-map > summary) { border-radius: 12px; }
+}
+@media (pointer: coarse) {
+  body[data-interface='spiral-stage'] :is(.newsroom-button,.b,.tbtn,.badge-button,.desk-toolbar button,.blast-toolbar button,.project-drive-dialog button) { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-interface='spiral-stage'] :is(button,summary,[role='button']) { transition: none; }
+}
+body[data-low-spec='true'] :is(button,summary,[role='button']) { transition: none; }
