@@ -8,6 +8,7 @@ import { App } from './App.js';
 import { connectReaderDrive, getReaderDrive, isMobileEdition, isWebsiteEdition, returnToReader } from './portable/reader-drive.js';
 import './styles/Mobile.css';
 import './styles/Responsive.css';
+import './styles/RoomInteriors.css';
 import './styles/Controls.css';
 
 const root = createRoot(document.getElementById('root')!);

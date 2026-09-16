@@ -370,7 +370,7 @@ body[data-interface='spiral-stage'] .newsroom-cursor-trail { display: none !impo
 body[data-interface='spiral-stage'] :is(.newsroom-hero,.showtime-head,.stinger-head,.garage-head,.blast-head,.booth-head,.slate-head,.desk-head,.crew-head,.greenlight-head,.reruns-head,.media-bin-head,.chatterbox-head) {
   position: relative;
   overflow: clip;
-  border-radius: 26px 70px 18px 42px !important;
+  border-radius: 26px 70px 18px 42px;
 }
 body[data-interface='spiral-stage'] .spiral-live-board > :first-child { min-height: 100%; }
 

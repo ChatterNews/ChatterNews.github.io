@@ -1,3 +1,4 @@
+import { RoomIcon } from '../components/RoomIcon.js';
 /**
  * The Front Desk - the adviser's room.
  *
@@ -151,7 +152,7 @@ export function FrontDesk({ stories, adviser, me, onChanged }: {
 
   return <section className="view on newsroom-room front-desk-room">
     <header className="newsroom-hero">
-      <div className="newsroom-hero-icon">▤</div>
+      <div className="newsroom-hero-icon"><RoomIcon kind="assignment-dial" /></div>
       <div>
         <div className="newsroom-eyebrow">THE FRONT DESK</div>
         <h1>{items.length === 0 ? 'Nothing needs you right now.' : `${items.length} thing${items.length === 1 ? '' : 's'} need${items.length === 1 ? 's' : ''} you today.`}</h1>

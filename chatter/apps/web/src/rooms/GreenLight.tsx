@@ -1,3 +1,4 @@
+import { RoomIcon } from '../components/RoomIcon.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -138,7 +139,7 @@ export function GreenLight({ stories, adviser, me, onChanged }: {
 
   return <section className="view on newsroom-room greenlight-room">
     <header className="newsroom-hero">
-      <div className="newsroom-hero-icon green">✓</div>
+      <div className="newsroom-hero-icon green"><RoomIcon kind="signal-stack" /></div>
       <div><div className="newsroom-eyebrow">GREEN LIGHT</div><h1>Review</h1><p>Check the message, names, media, credits, permissions, and final presentation.</p></div>
       <div className="newsroom-hero-stats"><b>{waiting.length}<small>in review</small></b><b>{readyStories.length}<small>ready to go</small></b></div>
     </header>

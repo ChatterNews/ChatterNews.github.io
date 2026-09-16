@@ -1,3 +1,4 @@
+import { RoomIcon } from '../components/RoomIcon.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -83,7 +84,7 @@ export function Crew({ stories, adviser, me }: { stories: Story[]; adviser: bool
   }
 
   return <section className="view on newsroom-room crew-room">
-    <header className="newsroom-hero"><div className="newsroom-hero-icon orange">✦</div><div><div className="newsroom-eyebrow">CREW</div><h1>Assignments</h1><p>Choose a role, complete its checklist, and leave a handoff.</p></div><div className="newsroom-hero-stats"><b>{activeMine.length}<small>active</small></b><b>{explored}/6<small>roles completed</small></b></div></header>
+    <header className="newsroom-hero"><div className="newsroom-hero-icon orange"><RoomIcon kind="assignment-dial" /></div><div><div className="newsroom-eyebrow">CREW</div><h1>Assignments</h1><p>Choose a role, complete its checklist, and leave a handoff.</p></div><div className="newsroom-hero-stats"><b>{activeMine.length}<small>active</small></b><b>{explored}/6<small>roles completed</small></b></div></header>
     <div className="newsroom-room-nav">{([['MY', 'My work'], ['JOBS', 'Assignments'], ['SKILLS', 'Work history'], ['TEAM', 'Crew list']] as const).map(([key, label]) => <button key={key} aria-pressed={tab === key} onClick={() => setTab(key)}>{label}{key === 'MY' && <span>{activeMine.length}</span>}</button>)}<button className="newsroom-refresh" onClick={() => { setNotice(undefined); setRevision((value) => value + 1); }}>↻ Refresh</button></div>
     {notice && <div className={`newsroom-notice ${notice.error ? 'error' : ''}`} role={notice.error ? 'alert' : 'status'}>{notice.text}</div>}
 

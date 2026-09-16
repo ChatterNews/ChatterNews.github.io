@@ -1,3 +1,4 @@
+import { RoomIcon } from '../components/RoomIcon.js';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -119,7 +120,7 @@ export function Reruns({ stories, me }: { stories: Story[]; me?: User }) {
   }
 
   return <section className="view on newsroom-room reruns-room">
-    <header className="newsroom-hero reruns-hero"><div className="newsroom-hero-icon">↺</div><div><span className="newsroom-eyebrow">RERUNS</span><h1>Published archive</h1><p>Search headlines, interviews, scripts, and published editions.</p></div><div className="reruns-score"><b>{episodes.length}</b><span>editions</span><b>{published.length}</b><span>published stories</span></div></header>
+    <header className="newsroom-hero reruns-hero"><div className="newsroom-hero-icon"><RoomIcon kind="archive-carousel" /></div><div><span className="newsroom-eyebrow">RERUNS</span><h1>Published archive</h1><p>Search headlines, interviews, scripts, and published editions.</p></div><div className="reruns-score"><b>{episodes.length}</b><span>editions</span><b>{published.length}</b><span>published stories</span></div></header>
     {notice && <div className={`newsroom-notice ${notice.error ? 'error' : ''}`} role={notice.error ? 'alert' : 'status'}><span>{notice.text}</span>{notice.error && <button className="newsroom-button" onClick={() => window.location.reload()}>Retry</button>}<button aria-label="Dismiss message" onClick={() => setNotice(undefined)}>×</button></div>}
     <div className="reruns-search"><Icon name="ic-search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search a headline, a draft, or something somebody said…" aria-label="Search the archive and tape" /><kbd>⌘ K</kbd></div>
     {query.trim() && <section className="reruns-results"><div className="newsroom-section-heading"><div><span className="newsroom-eyebrow">SEARCH RESULTS</span><h2>{hits.length ? `${hits.length} match${hits.length === 1 ? '' : 'es'}` : 'No match yet'}</h2></div><button onClick={() => setQuery('')}>Clear search</button></div>{hits.length ? <div className="reruns-result-list">{hits.map((hit) => { const found = stories.find((story) => story.id === hit.storyId); return <button key={hit.storyId} onClick={() => found && navigate(found.status === 'DONE' ? `/reruns/${found.id}` : storyPath(found))}><span>{hit.where}</span><div><b>{hit.title}</b><p>{hit.snippet}</p></div><i>{found?.status === 'DONE' ? 'Read edition' : 'Continue work'} →</i></button>; })}</div> : <div className="newsroom-empty"><b>Try a name, topic, or exact phrase.</b><p>Recorded words appear here after the take has a transcript.</p></div>}</section>}
