@@ -44,7 +44,7 @@ export function crewHandoffSpecimen(role: CrewRole, story: CrewHandoffStory): Cr
     },
     produce: {
       finished: `Built and balanced the audio for “${title}” from opening through ending.`,
-      location: `Studio → ${title} → latest saved mix.`,
+      location: `Media Bin → ${title} → latest saved audio.`,
       next: `Play “${title}” from start to finish; keep speech in front and check every transition.`,
     },
     picture: {

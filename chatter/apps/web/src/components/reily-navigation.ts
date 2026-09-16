@@ -7,7 +7,6 @@ export const REILY_GOALS = [
   { id: 'plan-project', label: 'Plan a project', room: 'slate' },
   { id: 'write-words', label: 'Write the words', room: 'desk' },
   { id: 'organize-crew', label: 'Organize the crew', room: 'crew' },
-  { id: 'create-music', label: 'Create music', room: 'studio' },
   { id: 'make-podcast', label: 'Make a podcast', room: 'chatterbox' },
   { id: 'design-page', label: 'Design a page', room: 'blast' },
   { id: 'screen-graphics', label: 'Build screen graphics', room: 'stinger' },
@@ -25,6 +24,7 @@ export function goalDestination(goalId: ReilyGoalId): ReilyRoom {
 
 export function reilyRoomPath(room: ReilyRoom, storyId?: string): string {
   if (room === 'home') return '/';
+  if (room === 'studio') return storyId ? storyRoomPath('files', storyId) : '/files';
   return storyId ? storyRoomPath(room, storyId) : `/${room}`;
 }
 

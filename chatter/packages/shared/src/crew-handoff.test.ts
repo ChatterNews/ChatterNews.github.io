@@ -43,7 +43,7 @@ describe('Crew handoff specimens', () => {
       'Desk → Solar race → saved story draft.',
       'Booth → Solar race → selected take.',
       'Green Light → Solar race → open review.',
-      'Studio → Solar race → latest saved mix.',
+      'Media Bin → Solar race → latest saved audio.',
       'Blast → Solar race → latest saved design.',
     ]);
     expect(locations.every((item) => `${item.finished} ${item.location} ${item.next}`.includes('Solar race'))).toBe(true);

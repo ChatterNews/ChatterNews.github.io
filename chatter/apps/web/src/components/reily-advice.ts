@@ -54,7 +54,7 @@ export interface ReilyAdvice {
 
 const ROOM_COPY: Record<ReilyRoom, readonly string[]> = {
   home: [
-    'Start with what you want to make. Reily can point to the room for recording, writing, design, music, video, review, or finished work.',
+    'Start with what you want to make. Reily can point to the room for recording, writing, design, video, review, or finished work.',
     'The lit route follows the active project. Use it when you want the next production step, not just another room.',
     'Open work stays with its project. Pick the project first, then return to the room where you left off.',
     'Assignments are smaller than whole projects. Scan Crew to see the one part that belongs to you.',

@@ -36,13 +36,13 @@ describe('Spiral Stage room previews', () => {
   });
 
   test('marks the docked room as the live object', () => {
-    const room = SPIRAL_ROOMS.find((item) => item.slug === 'studio')!;
+    const room = SPIRAL_ROOMS.find((item) => item.slug === 'chatterbox')!;
     const html = renderToStaticMarkup(createElement(RoomPreview, {
       room, active: true, distance: 0, title: 'Morning show',
     }));
 
     expect(html).toContain('data-preview-active="true"');
-    expect(html).toContain('Studio');
+    expect(html).toContain('Chatterbox');
     expect(html).toContain('Morning show');
   });
 });

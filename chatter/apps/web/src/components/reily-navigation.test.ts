@@ -8,7 +8,6 @@ describe('Reily goal navigation', () => {
       ['plan-project', 'slate'],
       ['write-words', 'desk'],
       ['organize-crew', 'crew'],
-      ['create-music', 'studio'],
       ['make-podcast', 'chatterbox'],
       ['design-page', 'blast'],
       ['screen-graphics', 'stinger'],
@@ -22,7 +21,7 @@ describe('Reily goal navigation', () => {
 
   it('preserves story identity using each room canonical route shape', () => {
     expect(reilyRoomPath('booth', 'story 9')).toBe('/booth/story%209');
-    expect(reilyRoomPath('studio', 'story 9')).toBe('/studio?story=story%209');
+    expect(reilyRoomPath('studio', 'story 9')).toBe('/files?story=story%209');
     expect(reilyRoomPath('home', 'story 9')).toBe('/');
     expect(reilyRoomPath('booth')).toBe('/booth');
   });

@@ -1,6 +1,7 @@
 const ROOM_ALIASES: Readonly<Record<string, string>> = {
   '': 'clubhouse',
-  garage: 'studio',
+  garage: 'files',
+  studio: 'files',
 };
 
 export function atmosphereRoomFromPathname(pathname: string): string {

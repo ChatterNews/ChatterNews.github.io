@@ -20,13 +20,13 @@ function markup(room = 'blast', storyControl: ReactNode = createElement('span', 
 }
 
 describe('Spiral Stage shell', () => {
-  test('renders a live center frame, thirteen snap stations, and utility satellites', () => {
+  test('renders a live center frame, twelve snap stations, and utility satellites', () => {
     const html = markup();
 
     expect(html).toContain('data-navigation-world="newsroom-solar-system"');
     expect(html).toContain('spiral-center-frame');
-    expect(html.match(/data-snap-station=/g)).toHaveLength(13);
-    expect(html.match(/data-process-planet=/g)).toHaveLength(13);
+    expect(html.match(/data-snap-station=/g)).toHaveLength(12);
+    expect(html.match(/data-process-planet=/g)).toHaveLength(12);
     expect(html).toContain('aria-current="page"');
     expect(html).toContain('Blast editor');
     expect(html).toContain('Story route');
@@ -36,13 +36,13 @@ describe('Spiral Stage shell', () => {
   });
 
   test('uses native scroll semantics and exposes direct keyboard navigation', () => {
-    const html = markup('studio');
+    const html = markup('chatterbox');
 
     expect(html).toContain('aria-label="Travel the newsroom solar system"');
     expect(html).toContain('data-stage-scroll="native-snap"');
     expect(html).toContain('aria-label="Open room map"');
     expect(html).toContain('aria-label="Room map"');
-    expect(html.match(/data-map-station=/g)).toHaveLength(13);
+    expect(html.match(/data-map-station=/g)).toHaveLength(12);
     expect(html.match(/data-orbit-band=/g)).toHaveLength(3);
     expect(html).toContain('Plan &amp; report');
     expect(html).toContain('Create');

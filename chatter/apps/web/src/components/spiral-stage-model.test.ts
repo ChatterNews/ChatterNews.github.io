@@ -12,17 +12,17 @@ import {
 describe('Spiral Stage navigation model', () => {
   test('normalizes routed rooms and keeps adviser outside the room sequence', () => {
     expect(roomSlugFromPathname('/')).toBe('');
-    expect(roomSlugFromPathname('/studio/story-1')).toBe('studio');
-    expect(roomSlugFromPathname('/garage')).toBe('studio');
+    expect(roomSlugFromPathname('/studio/story-1')).toBe('files');
+    expect(roomSlugFromPathname('/garage')).toBe('files');
     expect(roomIndexFromSlug('frontdesk')).toBe(-1);
-    expect(roomIndexFromSlug('blast')).toBe(7);
+    expect(roomIndexFromSlug('blast')).toBe(6);
   });
 
   test('turns native scroll into bounded fractional progress and settled stations', () => {
     expect(progressFromScroll(250, 100, SPIRAL_ROOMS.length)).toBe(2.5);
     expect(progressFromScroll(-50, 100, SPIRAL_ROOMS.length)).toBe(0);
     expect(stationFromScroll(250, 100, SPIRAL_ROOMS.length)).toBe(3);
-    expect(stationFromScroll(9999, 100, SPIRAL_ROOMS.length)).toBe(12);
+    expect(stationFromScroll(9999, 100, SPIRAL_ROOMS.length)).toBe(11);
     expect(stationFromScroll(400, 0, SPIRAL_ROOMS.length)).toBe(0);
   });
 

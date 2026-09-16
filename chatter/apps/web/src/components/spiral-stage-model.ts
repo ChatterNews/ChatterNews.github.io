@@ -16,7 +16,7 @@ function clamp(value: number, minimum: number, maximum: number): number {
 
 export function roomSlugFromPathname(pathname: string): string {
   const slug = pathname.split('?')[0]!.split('/').filter(Boolean)[0] ?? '';
-  return slug === 'garage' ? 'studio' : slug;
+  return slug === 'garage' || slug === 'studio' ? 'files' : slug;
 }
 
 export function roomIndexFromSlug(slug: string): number {

@@ -61,8 +61,7 @@ export function SpiralStage({
   const routedIndex = roomIndexFromSlug(currentRoom);
   const initialIndex = Math.max(0, routedIndex);
   const [progress, setProgress] = useState(initialIndex);
-  const [workView, setWorkView] = useState(currentRoom === 'studio');
-  useEffect(() => { if (currentRoom === 'studio') setWorkView(true); }, [currentRoom]);
+  const [workView, setWorkView] = useState(false);
   const scrollerRef = useRef<HTMLElement>(null);
   const frameRequest = useRef<number>();
   const settleTimer = useRef<number>();

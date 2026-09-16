@@ -21,8 +21,8 @@ it('navigates from the compact room picker even when the hidden orbit has no lay
   })));
   const picker = container.querySelector('details')!;
   picker.open = true;
-  act(() => container.querySelector<HTMLButtonElement>('[data-map-station="studio"]')!.click());
-  expect(navigate).toHaveBeenCalledExactlyOnceWith('studio');
+  act(() => container.querySelector<HTMLButtonElement>('[data-map-station="chatterbox"]')!.click());
+  expect(navigate).toHaveBeenCalledExactlyOnceWith('chatterbox');
   expect(picker.open).toBe(false);
   act(() => container.querySelector<HTMLButtonElement>('[aria-label="Go to Clubhouse"]')!.click());
   expect(navigate).toHaveBeenCalledTimes(1); // Already in Clubhouse: do not reload its work.
@@ -60,7 +60,7 @@ it('keeps the current room when a resize restores the desktop orbit', () => {
   act(() => window.dispatchEvent(new Event('resize')));
   act(() => scroller.dispatchEvent(new Event('scrollend')));
   expect(navigate).not.toHaveBeenCalled();
-  expect(scroller.scrollTop).toBe(700);
+  expect(scroller.scrollTop).toBe(600);
   expect(container.textContent).toContain('Existing design');
   act(() => root.unmount());
 });

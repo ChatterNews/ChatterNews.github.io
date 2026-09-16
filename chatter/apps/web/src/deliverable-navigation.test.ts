@@ -8,7 +8,7 @@ describe('Media Bin workspace links', () => {
   });
 
   it('keeps the story attached when reopening every other production room', () => {
-    expect(deliverableRoomPath({ room: 'GARAGE', storyId: 'story-1' })).toBe('/studio?story=story-1');
+    expect(deliverableRoomPath({ room: 'GARAGE', storyId: 'story-1' })).toBe('/files?story=story-1');
     expect(deliverableRoomPath({ room: 'SHOWTIME', storyId: 'story-1' })).toBe('/showtime/story-1');
     expect(deliverableRoomPath({ room: 'STINGER', storyId: 'story-1' })).toBe('/stinger/story-1');
     expect(deliverableRoomPath({ room: 'DESK' })).toBe('/desk');

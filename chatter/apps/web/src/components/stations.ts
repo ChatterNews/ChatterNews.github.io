@@ -10,7 +10,6 @@ export const STATIONS: Station[] = [
   { v: 'crew', n: 'Crew', cls: 's-grape', ic: 'ic-crew', d: 'Choose jobs and pass work forward', group: 'PLAN', accent: '#9275e8', cue: 'Find your assignment', countLabel: ['open assignment', 'open assignments'], c: '' },
   { v: 'desk', n: 'Desk', cls: 's-lime', ic: 'ic-pen', d: 'Write and edit the story', group: 'PLAN', accent: '#9bdd42', cue: 'Open the writing desk', countLabel: ['draft in progress', 'drafts in progress'], c: '' },
   { v: 'booth', n: 'Booth', cls: 's-tang', ic: 'ic-mic', d: 'Record clean voices and interviews', group: 'MAKE', accent: '#ff845e', cue: 'Set up the microphone', countLabel: ['story ready to record', 'stories ready to record'], c: '' },
-  { v: 'studio', n: 'Studio', cls: 's-pink', ic: 'ic-note', d: 'Make music, sound, and mixes', group: 'MAKE', accent: '#ff5f9e', cue: 'Open the sound board', c: '' },
   { v: 'chatterbox', n: 'Chatterbox', cls: 's-cyan', ic: 'ic-mic', d: 'Build and finish podcast episodes', group: 'MAKE', accent: '#54d6d2', cue: 'Open the podcast board', c: '' },
   { v: 'blast', n: 'Blast', cls: 's-grape', ic: 'ic-mail', d: 'Design pages, flyers, and social posts', group: 'MAKE', accent: '#a47ce9', cue: 'Open the layout table', c: '' },
   { v: 'stinger', n: 'Stinger', cls: 's-sun', ic: 'ic-star', d: 'Build titles and broadcast graphics', group: 'MAKE', accent: '#ffd84d', cue: 'Open the graphics switcher', c: '' },

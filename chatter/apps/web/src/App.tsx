@@ -44,7 +44,6 @@ const Booth = lazyNamed(() => import('./rooms/Booth.js'), 'Booth');
 const GreenLight = lazyNamed(() => import('./rooms/GreenLight.js'), 'GreenLight');
 const Crew = lazyNamed(() => import('./rooms/Crew.js'), 'Crew');
 const Reruns = lazyNamed(() => import('./rooms/Reruns.js'), 'Reruns');
-const Studio = lazyNamed(() => import('./rooms/Garage.js'), 'Studio');
 const Blast = lazyNamed(() => import('./rooms/Blast.js'), 'Blast');
 const Stinger = lazyNamed(() => import('./rooms/Stinger.js'), 'Stinger');
 const Showtime = lazyNamed(() => import('./rooms/Showtime.js'), 'Showtime');
@@ -54,7 +53,7 @@ const FrontDesk = lazyNamed(() => import('./rooms/FrontDesk.js'), 'FrontDesk');
 
 function normalizeReilyRoom(room: string): ReilyRoom {
   if (!room) return 'home';
-  if (room === 'garage') return 'studio';
+  if (room === 'garage' || room === 'studio') return 'files';
   return (REILY_ROOMS as readonly string[]).includes(room) ? room as ReilyRoom : 'home';
 }
 
@@ -234,8 +233,8 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
             <Route path="/crew" element={<Crew stories={stories} adviser={adviser} me={me} />} />
             <Route path="/stinger" element={<Stinger stories={stories} me={me} />} />
             <Route path="/stinger/:storyId" element={<Stinger stories={stories} me={me} />} />
-            <Route path="/studio" element={<Studio stories={stories} me={me} />} />
-            <Route path="/garage" element={<Navigate to={`/studio${location.search}`} replace />} />
+            <Route path="/studio" element={<Navigate to={`/files${location.search}`} replace />} />
+            <Route path="/garage" element={<Navigate to={`/files${location.search}`} replace />} />
             <Route path="/blast" element={<Blast me={me} stories={stories} storyId={contextStoryId} />} />
             <Route path="/reruns" element={<Reruns stories={stories} me={me} />} />
             <Route path="/reruns/:storyId" element={<Reruns stories={stories} me={me} />} />

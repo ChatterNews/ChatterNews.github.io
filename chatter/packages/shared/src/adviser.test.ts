@@ -252,7 +252,8 @@ describe('backing the newsroom up', () => {
     expect(readRecords).not.toHaveBeenCalled();
     expect(readBlobs).not.toHaveBeenCalled();
     expect(await store.events.all()).toEqual(eventsBefore);
-    expect(JSON.stringify(eventsBefore)).not.toContain('2468');
+    // Event IDs are random hex and can legitimately contain the PIN's digits.
+    expect(JSON.stringify(eventsBefore.map(event => event.payload))).not.toContain('"2468"');
   });
 
   test('uses the current PIN on every export', async () => {

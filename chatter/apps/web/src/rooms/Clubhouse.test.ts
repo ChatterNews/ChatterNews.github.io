@@ -14,7 +14,9 @@ describe('Clubhouse room racks', () => {
     expect(html).toContain('Plan');
     expect(html).toContain('Make');
     expect(html).toContain('Finish');
-    for (const room of ['Slate', 'Crew', 'Desk', 'Booth', 'Studio', 'Chatterbox', 'Blast', 'Stinger', 'Showtime', 'Green Light', 'Media Bin', 'Reruns']) {
+    expect(html).not.toContain('Studio');
+    expect(html).not.toContain('/studio');
+    for (const room of ['Slate', 'Crew', 'Desk', 'Booth', 'Chatterbox', 'Blast', 'Stinger', 'Showtime', 'Green Light', 'Media Bin', 'Reruns']) {
       expect(html).toContain(room);
     }
     expect(html).toContain('3 active stories');

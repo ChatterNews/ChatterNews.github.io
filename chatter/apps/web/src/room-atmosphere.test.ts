@@ -7,9 +7,9 @@ describe('room atmosphere routing', () => {
     expect(atmosphereRoomFromPathname('/reruns/podcast/episode-3')).toBe('reruns');
   });
 
-  it('uses the Clubhouse atmosphere at the front door and Studio for the old Garage route', () => {
+  it('uses the Clubhouse atmosphere at the front door and Media Bin for the old Garage route', () => {
     expect(atmosphereRoomFromPathname('/')).toBe('clubhouse');
-    expect(atmosphereRoomFromPathname('/garage?story=demo')).toBe('studio');
+    expect(atmosphereRoomFromPathname('/garage?story=demo')).toBe('files');
   });
 });
 
