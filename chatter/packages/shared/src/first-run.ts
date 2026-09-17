@@ -1,3 +1,4 @@
+import { requireAdviserAuthorization } from './access.js';
 import type { Store } from './store.js';
 import type { User } from './types.js';
 import { createAdviser } from './identity.js';
@@ -36,8 +37,9 @@ export async function resetDeviceCheckIn(store: Store, pin?: string): Promise<vo
 
 export async function setupAdviser(
   store: Store,
-  input: { adviserId?: string; penName?: string; pin: string },
+  input: { adviserId?: string; penName?: string; pin: string; authorizationCode: string },
 ): Promise<User> {
+  await requireAdviserAuthorization(input.authorizationCode);
   if (!/^\d{4}$/.test(input.pin)) throw new Error('An adviser PIN is four digits.');
 
   let adviser: User | undefined;
@@ -47,7 +49,7 @@ export async function setupAdviser(
       throw new Error('Choose an active adviser badge.');
     }
   } else {
-    adviser = await createAdviser(store, { penName: input.penName ?? '' });
+    adviser = await createAdviser(store, { penName: input.penName ?? '', authorizationCode: input.authorizationCode });
   }
 
   await store.settings.save({

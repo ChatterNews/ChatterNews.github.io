@@ -41,3 +41,5 @@ export * from './creative.js';
 
 export * from "./studio-editing.js";
 export * from "./studio-session.js";
+
+export * from './access.js';

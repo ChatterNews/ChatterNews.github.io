@@ -30,7 +30,7 @@ describe('local newsroom reset', () => {
   test('requires the adviser PIN before erasing the newsroom', async () => {
     const store = new IdbStore(`chatter-protected-erase-${n++}`);
     await store.open();
-    await setupAdviser(store, { penName: 'Ms. Rivera', pin: '2468' });
+    await setupAdviser(store, { authorizationCode: '1895', penName: 'Ms. Rivera', pin: '2468' });
     const story = await store.stories.create({ title: 'Book fair' });
 
     await expect(eraseNewsroomWithPin(store, '9999')).rejects.toThrow(/PIN/i);

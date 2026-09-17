@@ -5,6 +5,7 @@ export interface AdviserSetupInput {
   adviserId?: string;
   penName?: string;
   pin: string;
+  authorizationCode: string;
 }
 
 export function AdviserBadgeEntry({
@@ -15,7 +16,7 @@ export function AdviserBadgeEntry({
   preferredAdviserId?: string;
   onBack: () => void;
   onSetup: (input: AdviserSetupInput) => Promise<boolean>;
-  onUnlock: (userId: string, pin: string) => Promise<boolean>;
+  onUnlock: (userId: string, pin: string, authorizationCode: string) => Promise<boolean>;
 }) {
   const initialId = useMemo(
     () => advisers.find((user) => user.id === preferredAdviserId)?.id ?? advisers[0]?.id ?? '',
@@ -23,6 +24,7 @@ export function AdviserBadgeEntry({
   );
   const [selectedId, setSelectedId] = useState(initialId);
   const [penName, setPenName] = useState('');
+  const [authorizationCode, setAuthorizationCode] = useState('');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState<string>();
@@ -38,12 +40,12 @@ export function AdviserBadgeEntry({
     setBusy(true);
     try {
       const ok = hasPin
-        ? await onUnlock(selectedId, pin)
-        : await onSetup({ ...(selectedId ? { adviserId: selectedId } : { penName }), pin });
+        ? await onUnlock(selectedId, pin, authorizationCode)
+        : await onSetup({ ...(selectedId ? { adviserId: selectedId } : { penName }), pin, authorizationCode });
       if (!ok) setError(hasPin ? 'That PIN did not open the adviser desk.' : 'The adviser badge was not made. Press the button to try again.');
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : 'The adviser badge was not made. Press the button to try again.');
-    } finally { setBusy(false); }
+    } finally { setAuthorizationCode(''); setPin(''); setConfirmPin(''); setBusy(false); }
   }
 
   return <section className="checkin-card adviser-entry" aria-labelledby="adviser-entry-title">
@@ -74,11 +76,14 @@ export function AdviserBadgeEntry({
       <input autoFocus value={penName} placeholder="Ms. Rivera" onChange={(event) => setPenName(event.target.value)} />
     </label>}
 
+    <label className="checkin-field"><span>Adviser authorization code</span><input type="password" inputMode="numeric" autoComplete="off" maxLength={4} value={authorizationCode} onChange={event => setAuthorizationCode(event.target.value.replace(/\D/g, '').slice(0, 4))} /></label>
+    <p>Ask your lead adviser for the authorization code. Your desk PIN below is separate.</p>
     <div className="adviser-pin-fields">
       <label className="checkin-field">
         <span>Adviser PIN</span>
         <input
           autoFocus={hasPin || advisers.length > 0}
+          type="password"
           inputMode="numeric"
           autoComplete="off"
           maxLength={4}
@@ -90,6 +95,7 @@ export function AdviserBadgeEntry({
       {!hasPin && <label className="checkin-field">
         <span>Confirm PIN</span>
         <input
+          type="password"
           inputMode="numeric"
           autoComplete="off"
           maxLength={4}

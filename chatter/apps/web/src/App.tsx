@@ -23,6 +23,7 @@ import { ModelProvider } from './ml/ModelProvider.js';
 import { GateProvider } from './gate/GateProvider.js';
 import { lazyNamed } from './room-loaders.js';
 import { WhoAmI } from './components/WhoAmI.js';
+import { SchoolAccess } from './components/SchoolAccess.js';
 import { NewsroomCheckIn } from './components/NewsroomCheckIn.js';
 import { RoomAtmosphere } from './components/RoomAtmosphere.js';
 import { SpiralStage } from './components/SpiralStage.js';
@@ -203,7 +204,7 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
   }
 
   return (
-    <>
+    <SchoolAccess key={identity.session.userId} userId={identity.session.userId} adviser={adviser} stories={stories} onCheckOut={handBack}>
       <Sprite />
       <RoomAtmosphere room={atmosphereRoom} />
       <div className="rays" /><div className="dots" />
@@ -260,7 +261,7 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
           onRevealRoom={revealRoom}
         />
       </ReilyContextProvider>
-    </>
+    </SchoolAccess>
   );
 }
 

@@ -7,7 +7,7 @@ import { workspaceStorage } from '../portable/workspace-context.js';
  * authority exists only after a staff badge and the device PIN agree.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { verifyAdviserPin, type Store, type User } from '@chatter/shared';
+import { verifyAdviserAuthorization, verifyAdviserPin, type Store, type User } from '@chatter/shared';
 import {
   clearRoleSession, readRoleSession, resolveRoleSession, writeRoleSession,
   type RoleSession,
@@ -31,7 +31,7 @@ export interface RoleIdentity {
   advisers: User[];
   preferredAdviserId?: string;
   chooseStudent: (userId: string) => Promise<boolean>;
-  unlockAdviser: (userId: string, pin: string) => Promise<boolean>;
+  unlockAdviser: (userId: string, pin: string, authorizationCode: string) => Promise<boolean>;
   switchAdviser: (userId: string) => Promise<boolean>;
   checkout: () => void;
   refresh: () => void;
@@ -88,10 +88,11 @@ export function useRoleIdentity(store: Store | null): RoleIdentity {
     try { localStore()?.setItem(PREFERRED_ADVISER_KEY, userId); } catch { /* preference is optional */ }
   }, []);
 
-  const unlockAdviser = useCallback(async (userId: string, pin: string) => {
+  const unlockAdviser = useCallback(async (userId: string, pin: string, authorizationCode: string) => {
     if (!store) return false;
     const user = users.find((item) => item.id === userId) ?? await store.users.get(userId) as User | undefined;
     if (!user || user.role !== 'ADVISER' || !user.active) return false;
+    if (!await verifyAdviserAuthorization(authorizationCode)) return false;
     if (!await verifyAdviserPin(store, pin)) return false;
     persistSession({ kind: 'ADVISER', userId, unlocked: true });
     rememberAdviser(userId);

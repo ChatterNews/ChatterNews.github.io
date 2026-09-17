@@ -10,6 +10,7 @@
  * Before this, `useCurrentUser` resolved the kid seat to a hardcoded "Maya R."
  * and the teacher seat to whichever adviser came first out of the store.
  */
+import { requireAdviserAuthorization } from './access.js';
 import type { Store } from './store.js';
 import type { RoleAssign, User } from './types.js';
 import type { Decider } from './quarantine.js';
@@ -74,7 +75,8 @@ export async function createStudent(
 }
 
 /** A second adviser, a substitute, or next year's teacher. */
-export async function createAdviser(store: Store, input: { penName: string }): Promise<User> {
+export async function createAdviser(store: Store, input: { penName: string; authorizationCode: string }): Promise<User> {
+  await requireAdviserAuthorization(input.authorizationCode);
   const penName = await checkName(store, input.penName);
   const user = await store.users.create({ name: penName, penName, role: 'ADVISER', active: true });
   await store.events.append({ action: 'adviser.added', target: user.id, payload: { penName } });

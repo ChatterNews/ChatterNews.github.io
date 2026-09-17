@@ -61,7 +61,7 @@ describe('making a badge', () => {
 describe('the badge table', () => {
   test('shows the kids, not the adviser', async () => {
     await createStudent(store, { penName: 'Sam T.' });
-    await createAdviser(store, { penName: 'Ms. Boone' });
+    await createAdviser(store, { authorizationCode: '1895', penName: 'Ms. Boone' });
 
     const badges = await badgeTable(store);
     expect(badges.map((badge) => badge.penName)).toEqual(['Sam T.']);
@@ -100,22 +100,22 @@ describe('the badge table', () => {
 
 describe('advisers', () => {
   test('an adviser can be added mid-year, which the seed could not do', async () => {
-    const user = await createAdviser(store, { penName: 'Mr. Alvarez' });
+    const user = await createAdviser(store, { authorizationCode: '1895', penName: 'Mr. Alvarez' });
     expect(user.role).toBe('ADVISER');
     expect(user.active).toBe(true);
   });
 
   test('two advisers can share one newsroom', async () => {
-    await createAdviser(store, { penName: 'Ms. Boone' });
-    await createAdviser(store, { penName: 'Mr. Alvarez' });
+    await createAdviser(store, { authorizationCode: '1895', penName: 'Ms. Boone' });
+    await createAdviser(store, { authorizationCode: '1895', penName: 'Mr. Alvarez' });
 
     const advisers = (await store.users.list()).filter((user) => user.role === 'ADVISER');
     expect(advisers).toHaveLength(2);
   });
 
   test('the same name rules apply', async () => {
-    await createAdviser(store, { penName: 'Ms. Boone' });
-    await expect(createAdviser(store, { penName: 'ms. boone' })).rejects.toThrow(/already/i);
+    await createAdviser(store, { authorizationCode: '1895', penName: 'Ms. Boone' });
+    await expect(createAdviser(store, { authorizationCode: '1895', penName: 'ms. boone' })).rejects.toThrow(/already/i);
   });
 });
 
@@ -131,7 +131,7 @@ describe('retiring a badge', () => {
   });
 
   test('removing the final adviser badge clears the device PIN for the next setup', async () => {
-    const adviser = await createAdviser(store, { penName: 'Ms. Boone' });
+    const adviser = await createAdviser(store, { authorizationCode: '1895', penName: 'Ms. Boone' });
     await store.settings.save({ adviserPin: '2468' });
 
     await retireBadge(store, adviser.id, { actor: adviser.id, role: 'ADVISER' });

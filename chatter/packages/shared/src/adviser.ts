@@ -19,11 +19,9 @@ import { quarantined, type Decider } from './quarantine.js';
 import { reviewMediaKey, reviewProgress } from './newsroom.js';
 
 /**
- * The seat is not a lock - at Tier 0 there is no server that could enforce
- * one, and a student can press the Adviser button. What this does guarantee
- * is that every adviser-only write records who made it, so the audit log
- * tells the truth even though the toggle does not guard the door.
- * SPEC S9b moves real enforcement to Tier 1a.
+ * Adviser entry requires the general authorization code and the device PIN.
+ * These local checks deter casual access; a public client is not a server-enforced
+ * identity boundary. Adviser writes also record who made the decision.
  */
 function mustBeAdviser(decider: Decider): void {
   if (decider.role && decider.role !== 'ADVISER' && decider.role !== 'ADMIN') {
@@ -154,6 +152,8 @@ export async function holdStory(store: Store, storyId: string, decider: Decider)
 // ------------------------------------------------------------------ settings
 
 export interface NewsroomSettings {
+  /** Device-local grants; never transferred in newsroom/project exports. */
+  studentAccessExceptions?: import('./access.js').StudentAccessException[];
   /** Device-local marker for the Newsroom Check-In contract. */
   setupVersion?: 1;
   /** Which entrance this computer offered most recently. It grants no authority. */
@@ -193,6 +193,7 @@ export async function saveSettings(
 ): Promise<NewsroomSettings> {
   mustBeAdviser(decider);
 
+  if (patch.studentAccessExceptions !== undefined) throw new Error('Use the authorized extra-days control to change student access.');
   if (patch.adviserPin !== undefined && patch.adviserPin !== '' && !/^\d{4}$/.test(patch.adviserPin)) {
     throw new Error('A PIN is four digits, or empty for no PIN.');
   }
@@ -261,6 +262,7 @@ export async function newsroomBackup(store: Store, pin: string): Promise<Newsroo
 
   // The PIN is a door on this computer, not part of the newsroom's record.
   const {
+    studentAccessExceptions: _exceptions,
     adviserPin: _pin,
     setupVersion: _setupVersion,
     preferredDesk: _preferredDesk,

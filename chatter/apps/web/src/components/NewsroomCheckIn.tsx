@@ -2,7 +2,7 @@ import { workspaceStorage } from '../portable/workspace-context.js';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  completeDeviceSetup, firstRunState, getSettings, newsroomBackup, NewsroomBackupAccessError, resetDeviceCheckIn,
+  SCHOOL_HOURS, completeDeviceSetup, firstRunState, getSettings, newsroomBackup, NewsroomBackupAccessError, resetDeviceCheckIn,
   setupAdviser,
   type FirstRunState, type User,
 } from '@chatter/shared';
@@ -29,7 +29,7 @@ export function NewsroomCheckInView({
     <section className="checkin-counter" aria-labelledby="checkin-title">
       <header className="checkin-console-head">
         <div className="checkin-station-mark" aria-hidden="true"><i>CN</i><span>ON AIR</span></div>
-        <div className="checkin-title"><span>Chatter newsroom</span><h1 id="checkin-title">Choose your desk</h1><p>Your badge opens the controls you need.</p></div>
+        <div className="checkin-title"><span>Chatter newsroom</span><h1 id="checkin-title">Choose your desk</h1><p>Student hours: {SCHOOL_HOURS}.</p></div>
         <div className="checkin-signal" aria-label="Newsroom ready"><span>Signal ready</span><i /><i /><i /><i /><i /></div>
       </header>
       {notice && <div className={`checkin-notice ${notice.error ? 'error' : ''}`} role={notice.error ? 'alert' : 'status'}>{notice.text}</div>}
@@ -160,7 +160,7 @@ export function NewsroomCheckIn({
   preferredAdviserId?: string;
   onStudentPicked: (userId: string, room?: string) => Promise<boolean>;
   onIdentityChanged: () => void;
-  onAdviserUnlock: (userId: string, pin: string) => Promise<boolean>;
+  onAdviserUnlock: (userId: string, pin: string, authorizationCode: string) => Promise<boolean>;
   onEnterDemo: () => void;
   demoMode?: boolean;
 }) {
@@ -250,13 +250,13 @@ export function NewsroomCheckIn({
     const adviser = await setupAdviser(store, input);
     onIdentityChanged();
     setHasPin(true);
-    const unlocked = await onAdviserUnlock(adviser.id, input.pin);
+    const unlocked = await onAdviserUnlock(adviser.id, input.pin, input.authorizationCode);
     if (unlocked) navigate('/frontdesk');
     return unlocked;
   }
 
-  async function adviserUnlock(userId: string, pin: string): Promise<boolean> {
-    const unlocked = await onAdviserUnlock(userId, pin);
+  async function adviserUnlock(userId: string, pin: string, authorizationCode: string): Promise<boolean> {
+    const unlocked = await onAdviserUnlock(userId, pin, authorizationCode);
     if (unlocked) navigate('/frontdesk');
     return unlocked;
   }

@@ -3,17 +3,19 @@ export type RoleSession =
   | { kind: 'STUDENT'; userId: string }
   | { kind: 'ADVISER'; userId: string; unlocked: true };
 
+// Old PIN-only adviser sessions must reauthorize; student sessions survive.
 const ROLE_SESSION_KEY = 'chatter.roleSession.v1';
+const AUTHORIZATION_VERSION = 2;
 
 export function readRoleSession(storage: Storage): RoleSession {
   try {
     const raw = storage.getItem(ROLE_SESSION_KEY);
     if (!raw) return { kind: 'NONE' };
-    const value = JSON.parse(raw) as Partial<RoleSession>;
+    const value = JSON.parse(raw) as Partial<RoleSession> & { authorizationVersion?: number };
     if (value.kind === 'STUDENT' && typeof value.userId === 'string' && value.userId) {
       return { kind: 'STUDENT', userId: value.userId };
     }
-    if (value.kind === 'ADVISER' && typeof value.userId === 'string' && value.userId && value.unlocked === true) {
+    if (value.kind === 'ADVISER' && typeof value.userId === 'string' && value.userId && value.unlocked === true && value.authorizationVersion === AUTHORIZATION_VERSION) {
       return { kind: 'ADVISER', userId: value.userId, unlocked: true };
     }
   } catch { /* malformed or unavailable storage starts checked out */ }
@@ -25,7 +27,7 @@ export function writeRoleSession(storage: Storage, session: RoleSession): void {
     storage.removeItem(ROLE_SESSION_KEY);
     return;
   }
-  storage.setItem(ROLE_SESSION_KEY, JSON.stringify(session));
+  storage.setItem(ROLE_SESSION_KEY, JSON.stringify(session.kind === 'ADVISER' ? { ...session, authorizationVersion: AUTHORIZATION_VERSION } : session));
 }
 
 export function clearRoleSession(storage: Storage): void {

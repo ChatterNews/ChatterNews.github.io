@@ -25,6 +25,7 @@ export function WhoAmI({ me, choices, students, adviser, onChoose, onChanged, on
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [managing, setManaging] = useState(false);
+  const [authorizationCode, setAuthorizationCode] = useState('');
   const [penName, setPenName] = useState('');
   const [error, setError] = useState<string>();
   const wrap = useRef<HTMLDivElement>(null);
@@ -47,13 +48,13 @@ export function WhoAmI({ me, choices, students, adviser, onChoose, onChanged, on
   async function add() {
     setError(undefined);
     try {
-      const user = await createAdviser(store, { penName });
+      const user = await createAdviser(store, { penName, authorizationCode });
       onChanged();
       await onChoose(user.id);
       setAdding(false); setPenName(''); setOpen(false);
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : 'That did not work.');
-    }
+    } finally { setAuthorizationCode(''); }
   }
 
   async function remove(userId: string): Promise<boolean> {
@@ -112,6 +113,7 @@ export function WhoAmI({ me, choices, students, adviser, onChoose, onChanged, on
               aria-label="New adviser name"
               onChange={(event) => { setPenName(event.target.value); setError(undefined); }}
             />
+            <input type="password" aria-label="Adviser authorization code" placeholder="Authorization code" inputMode="numeric" autoComplete="off" maxLength={4} value={authorizationCode} onChange={event => setAuthorizationCode(event.target.value.replace(/\D/g, '').slice(0, 4))} />
             <button type="submit" disabled={!penName.trim()}>Add</button>
           </form> : <button className="who-am-i-option add" role="menuitem" onClick={() => setAdding(true)}>
             + Add another adviser

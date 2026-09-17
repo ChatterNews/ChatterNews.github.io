@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import {
-  CREW_ROLES, GRADE_BANDS, JOB_GUIDES, MAX_PEN_NAME, badgeTable, createStudent,
+  SCHOOL_HOURS, studentAccessAllowed, CREW_ROLES, GRADE_BANDS, JOB_GUIDES, MAX_PEN_NAME, badgeTable, createStudent,
   type PressBadge, type CrewRole,
 } from '@chatter/shared';
 import { useStore } from '../store/StoreProvider.js';
@@ -35,6 +35,8 @@ export function BadgeTable({ onPicked, onBack, onStoryOpened }: {
   const [madeId, setMadeId] = useState<string>();
   const [error, setError] = useState<string>();
   const [driveMessage, setDriveMessage] = useState<{ text: string; error: boolean }>();
+  const [regularHours, setRegularHours] = useState(() => studentAccessAllowed(''));
+  useEffect(() => { const timer = window.setInterval(() => setRegularHours(studentAccessAllowed('')), 2000); return () => clearInterval(timer); }, []);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -156,6 +158,7 @@ export function BadgeTable({ onPicked, onBack, onStoryOpened }: {
         <StoryDriveOpen
           store={store}
           gate={gate}
+          disabled={!regularHours}
           className="badge-button ghost"
           onMessage={setDriveMessage}
           onOpened={(result) => {
@@ -168,6 +171,7 @@ export function BadgeTable({ onPicked, onBack, onStoryOpened }: {
         </button>
       </div>}
 
+      {!regularHours && <p className="badge-foot">Student hours: {SCHOOL_HOURS}. If your adviser approved extra days, choose your badge first.</p>}
       <p className="badge-foot">{CREW_ROLES.length} production roles are available in Crew.</p>
     </div>
   </div>;

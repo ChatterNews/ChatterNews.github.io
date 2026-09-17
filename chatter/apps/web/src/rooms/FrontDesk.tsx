@@ -1,3 +1,4 @@
+import { SchoolAccessSettings } from '../components/SchoolAccessSettings.js';
 import { RoomIcon } from '../components/RoomIcon.js';
 /**
  * The Front Desk - the adviser's room.
@@ -172,6 +173,8 @@ export function FrontDesk({ stories, adviser, me, onChanged }: {
     </div>
 
     {notice && <div className={`newsroom-notice ${notice.error ? 'error' : ''}`} role={notice.error ? 'alert' : 'status'}>{notice.text}</div>}
+
+    {me && <SchoolAccessSettings adviserId={me.id} students={studentRoster} />}
 
     {needsFrontDeskStoryDrive(stories) && <section className="front-desk-story-drive">
       <div className="front-desk-drive-mark" aria-hidden="true">USB</div>

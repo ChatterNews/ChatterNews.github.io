@@ -15,7 +15,7 @@ beforeEach(async () => {
 
 describe('adviser setup', () => {
   test('creates the first adviser and records the device PIN', async () => {
-    const adviser = await setupAdviser(store, { penName: 'Ms. Rivera', pin: '2468' });
+    const adviser = await setupAdviser(store, { authorizationCode: '1895', penName: 'Ms. Rivera', pin: '2468' });
 
     expect(adviser).toMatchObject({ penName: 'Ms. Rivera', role: 'ADVISER', active: true });
     expect(await verifyAdviserPin(store, '2468')).toBe(true);
@@ -24,24 +24,24 @@ describe('adviser setup', () => {
   });
 
   test('legacy setup reuses an adviser without replacing existing work', async () => {
-    const adviser = await createAdviser(store, { penName: 'Mr. Alvarez' });
+    const adviser = await createAdviser(store, { authorizationCode: '1895', penName: 'Mr. Alvarez' });
     const story = await store.stories.create({ title: 'Solar race' });
 
-    const selected = await setupAdviser(store, { adviserId: adviser.id, pin: '1357' });
+    const selected = await setupAdviser(store, { authorizationCode: '1895', adviserId: adviser.id, pin: '1357' });
 
     expect(selected.id).toBe(adviser.id);
     expect(await store.stories.get(story.id)).toMatchObject({ title: 'Solar race' });
   });
 
   test('rejects malformed PINs before creating an adviser', async () => {
-    await expect(setupAdviser(store, { penName: 'Ms. Rivera', pin: '12' })).rejects.toThrow(/four digits/i);
-    await expect(setupAdviser(store, { penName: 'Ms. Rivera', pin: 'abcd' })).rejects.toThrow(/four digits/i);
+    await expect(setupAdviser(store, { authorizationCode: '1895', penName: 'Ms. Rivera', pin: '12' })).rejects.toThrow(/four digits/i);
+    await expect(setupAdviser(store, { authorizationCode: '1895', penName: 'Ms. Rivera', pin: 'abcd' })).rejects.toThrow(/four digits/i);
     expect(await store.users.list()).toEqual([]);
   });
 
   test('refuses to set up with a student badge', async () => {
     const student = await store.users.create({ name: 'Maya R.', penName: 'Maya R.', role: 'STUDENT', active: true });
-    await expect(setupAdviser(store, { adviserId: student.id, pin: '2468' })).rejects.toThrow(/adviser badge/i);
+    await expect(setupAdviser(store, { authorizationCode: '1895', adviserId: student.id, pin: '2468' })).rejects.toThrow(/adviser badge/i);
   });
 });
 
@@ -67,7 +67,7 @@ describe('first-run state', () => {
   });
 
   test('requires the configured adviser PIN before resetting desk setup', async () => {
-    const adviser = await setupAdviser(store, { penName: 'Ms. Rivera', pin: '2468' });
+    const adviser = await setupAdviser(store, { authorizationCode: '1895', penName: 'Ms. Rivera', pin: '2468' });
     const student = await store.users.create({ name: 'Maya R.', penName: 'Maya R.', role: 'STUDENT', active: true });
     const story = await store.stories.create({ title: 'Book fair', bylineIds: [student.id] });
 

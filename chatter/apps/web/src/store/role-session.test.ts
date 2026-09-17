@@ -40,6 +40,11 @@ describe('role session storage', () => {
     expect(isAdviserSession({ kind: 'STUDENT', userId: 'student-1' })).toBe(false);
   });
 
+  test('old PIN-only adviser sessions must reauthorize', () => {
+    const storage = memoryStorage({ 'chatter.roleSession.v1': JSON.stringify({ kind: 'ADVISER', userId: 'teacher-1', unlocked: true }) });
+    expect(readRoleSession(storage)).toEqual({ kind: 'NONE' });
+  });
+
   test('old persistent identity keys cannot grant authority', () => {
     const storage = memoryStorage({
       'chatter.whoAmI': 'student-1',
