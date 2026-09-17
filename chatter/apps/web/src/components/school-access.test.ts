@@ -44,11 +44,13 @@ test('closing flushes drafts, preserves the mounted editor and blocks shortcuts'
   expect(save).toHaveBeenCalledOnce(); expect(removed).toBe(0);
   expect(container.querySelector('textarea')).toBe(editor);
   expect(editor?.parentElement?.hidden).toBe(true);
+  expect(document.body.dataset.schoolClosed).toBe('true');
   const shortcut = vi.fn(); window.addEventListener('keydown', shortcut);
   container.querySelector('main')!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
   window.removeEventListener('keydown', shortcut); expect(shortcut).not.toHaveBeenCalled();
   await tick('2026-09-21T19:00:00Z');
   expect(editor?.parentElement?.hidden).toBe(false); expect(mounted).toBe(1);
+  expect(document.body.dataset.schoolClosed).toBe('false');
 });
 test('a recording or failed save keeps its controls available, then locks after successful save', async () => {
   let busy = true;

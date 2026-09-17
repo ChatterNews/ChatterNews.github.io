@@ -14,3 +14,6 @@
 
 .school-access-settings { color: var(--room-ink, #21364a); }
 .school-access-settings input, .school-access-settings select { background: #f7f9fc; color: #21364a; }
+
+/* Room dialogs live outside the editor wrapper. Preserve their state while locked. */
+body[data-school-closed='true'] :is(.slate-modal-shade, .sample-shelf-backdrop) { display: none !important; }

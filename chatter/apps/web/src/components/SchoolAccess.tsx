@@ -54,6 +54,7 @@ export function SchoolAccess({ userId, adviser, stories, onCheckOut, children }:
   const closed = state === 'CLOSED' || state === 'CHECKING';
   if (!closed) mountedRooms.current = true;
   useEffect(() => {
+    document.body.dataset.schoolClosed = String(closed);
     if (rooms.current) rooms.current.inert = closed;
     if (!closed) return;
     window.dispatchEvent(new Event('orbit-school-closed'));
@@ -64,7 +65,7 @@ export function SchoolAccess({ userId, adviser, stories, onCheckOut, children }:
       event.stopImmediatePropagation();
     };
     window.addEventListener('keydown', blockRoomShortcuts, true);
-    return () => window.removeEventListener('keydown', blockRoomShortcuts, true);
+    return () => { delete document.body.dataset.schoolClosed; window.removeEventListener('keydown', blockRoomShortcuts, true); };
   }, [closed]);
   return <>
     {state === 'FINISHING' && <aside className="school-finishing" role="alert"><b>Session time has ended.</b> {message} Finish the current recording or resolve the save, then Orbit will lock automatically.</aside>}
