@@ -592,8 +592,10 @@ export interface PodcastTrack {
   duckUnderVoice: boolean;
 }
 
-/** A non-destructive use of one approved source recording. */
+/** A non-destructive source recording; pending imports require approval before playback in a mix. */
 export interface PodcastClip {
+  /** Source-audio seconds of a manually verified shared clap/word. */
+  syncCueSec?: number;
   id: string;
   assetId: string;
   trackId: string;
