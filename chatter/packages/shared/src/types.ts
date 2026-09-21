@@ -594,6 +594,8 @@ export interface PodcastTrack {
 
 /** A non-destructive source recording; pending imports require approval before playback in a mix. */
 export interface PodcastClip {
+  /** Optional soft reduction when another selected conversation microphone is louder. */
+  reduceWhenQuiet?: boolean;
   /** Source-audio seconds of a manually verified shared clap/word. */
   syncCueSec?: number;
   id: string;
@@ -621,6 +623,9 @@ export interface PodcastChapter {
 
 /** A complete Chatterbox edit, from rundown through mastering decisions. */
 export interface PodcastProject extends Base {
+  /** A/B switch retains each clip’s quieter-mic selection. */
+  voiceReductionBypassed?: boolean;
+
   title: string;
   description: string;
   authorId?: string;

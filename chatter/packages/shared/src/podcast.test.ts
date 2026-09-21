@@ -51,9 +51,11 @@ describe('Chatterbox podcast projects', () => {
   test('measures and splits non-destructive clips', () => {
     const show = createPodcastShow(); const project = createPodcastProject(show); const trackId = project.tracks[0]!.id;
     const clip = makePodcastClip({ assetId: 'voice', trackId, name: 'Host', durationSec: 20, startSec: 5 });
+    clip.reduceWhenQuiet = true;
     clip.omittedRanges = [{ start: 4, end: 6 }];
     expect(podcastClipDuration(clip)).toBe(18); expect(podcastDuration({ clips: [clip] })).toBe(23);
     const parts = splitPodcastClip(clip, 15)!;
+    expect(parts.every(part => part.reduceWhenQuiet)).toBe(true);
     expect(parts[0].trimOutSec).toBe(10); expect(parts[1].trimInSec).toBe(10); expect(parts[1].startSec).toBe(15);
   });
 

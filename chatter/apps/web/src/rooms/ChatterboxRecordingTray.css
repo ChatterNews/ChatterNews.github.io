@@ -11,3 +11,14 @@
 .recording-tray audio { width: 100%; margin: 12px 0; }
 .recording-tray button { min-height: 40px; }
 .recording-tray-notices { max-height: 220px; overflow: auto; line-height: 1.6; }
+
+.conversation-assist { margin: 20px 0; padding: 18px; border: 2px solid var(--room-edge, #8296a9); border-radius: 12px; background: var(--room-panel, #e4eaf2); }
+.conversation-assist select { width: 100%; margin: 8px 0 12px; }
+.conversation-check { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.conversation-results ul { padding-left: 20px; }
+.conversation-results li { margin: 16px 0; }
+.conversation-results small { display: block; }
+.conversation-assist details { margin-top: 18px; }
+.conversation-assist summary { cursor: pointer; font-weight: bold; padding: 10px 0; }
+.conversation-assist details button { margin: 5px; }
+@media (max-width: 520px) { .conversation-assist { padding: 12px; } .conversation-assist button { width: 100%; } }

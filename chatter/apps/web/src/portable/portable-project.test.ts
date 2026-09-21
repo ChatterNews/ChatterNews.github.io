@@ -29,7 +29,7 @@ describe('portable USB story projects', () => {
     showtimeInput.clips = [makeShowtimeClip({ assetId: footage.assetId!, name: 'Opening shot', durationSec: 8 })];
     await first.showtimeProjects.create(showtimeInput);
     const podcastShowDraft = createPodcastShow({ authorId: kid.id }); const { id: _podcastShowId, createdAt: _podcastShowCreated, updatedAt: _podcastShowUpdated, ...podcastShowInput } = podcastShowDraft; const podcastShow = await first.podcastShows.create(podcastShowInput);
-    const podcastDraft = createPodcastProject(podcastShow, { authorId: kid.id }); podcastDraft.title = 'Gym floor episode'; podcastDraft.storyIds = [story.id]; podcastDraft.clips = [{ ...makePodcastClip({ assetId: ingested.assetId!, trackId: podcastDraft.tracks[0]!.id, name: 'Host tape', durationSec: 12 }), syncCueSec: 2.35, startSec: 1.4 }]; const { id: _podcastId, createdAt: _podcastCreated, updatedAt: _podcastUpdated, ...podcastInput } = podcastDraft; await first.podcastProjects.create(podcastInput);
+    const podcastDraft = createPodcastProject(podcastShow, { authorId: kid.id }); podcastDraft.title = 'Gym floor episode'; podcastDraft.voiceReductionBypassed = true; podcastDraft.storyIds = [story.id]; podcastDraft.clips = [{ ...makePodcastClip({ assetId: ingested.assetId!, trackId: podcastDraft.tracks[0]!.id, name: 'Host tape', durationSec: 12 }), syncCueSec: 2.35, startSec: 1.4, reduceWhenQuiet: true }]; const { id: _podcastId, createdAt: _podcastCreated, updatedAt: _podcastUpdated, ...podcastInput } = podcastDraft; await first.podcastProjects.create(podcastInput);
     await first.samplerPresets.create({ storyId: story.id, name: 'Gym thump sampler', sampleName: 'gym-thump.webm', sourceAssetId: ingested.assetId!, settings: { ...DEFAULT_SAMPLER_SETTINGS, layout: 'SLICE', slicePoints: [0, .4, 1] }, durationSec: 12, transientPoints: [0, .4, 1] });
     await saveDeliverable(first, { bytes: new TextEncoder().encode('Gym floor\n\nThe gym floor reopens Friday.'), title: 'Gym floor · writing copy', fileName: 'gym-floor-writing.txt', kind: 'DOCUMENT', room: 'DESK', stage: 'WORKING', mime: 'text/plain', storyId: story.id, authorId: kid.id });
     await first.episodes.create({
@@ -60,9 +60,9 @@ describe('portable USB story projects', () => {
     expect(showtime.clips[0]).toMatchObject({ name: 'Opening shot' });
     expect(showtime.clips[0]!.assetId).not.toBe(footage.assetId);
     const podcast = (await second.podcastProjects.list())[0]!;
-    expect(podcast).toMatchObject({ title: 'Gym floor episode', storyIds: [imported.story.id], authorId: (await second.users.list())[0]!.id });
+    expect(podcast).toMatchObject({ voiceReductionBypassed: true, title: 'Gym floor episode', storyIds: [imported.story.id], authorId: (await second.users.list())[0]!.id });
     expect(podcast.clips[0]!.assetId).not.toBe(ingested.assetId);
-    expect(podcast.clips[0]).toMatchObject({ syncCueSec: 2.35, startSec: 1.4 });
+    expect(podcast.clips[0]).toMatchObject({ syncCueSec: 2.35, startSec: 1.4, reduceWhenQuiet: true });
     expect(await second.assets.get(podcast.clips[0]!.assetId)).toMatchObject({ gateStatus: 'QUARANTINED' });
     const sampler = (await second.samplerPresets.list())[0]!;
     expect(sampler).toMatchObject({ storyId: imported.story.id, name: 'Gym thump sampler', settings: { layout: 'SLICE' } });

@@ -1,4 +1,5 @@
 import type { PodcastClip, PodcastProject, PodcastVoicePreset } from '@chatter/shared';
+import { quieterMicCurves, VOICE_LEVEL_HZ } from './voice-reduction.js';
 import type { TakeAudio } from './take-audio.js';
 
 export interface PodcastSource { bytes: Uint8Array; mime: string }
@@ -52,7 +53,31 @@ export async function renderPodcastMix(project: PodcastProject, sources: Map<str
   const sampleRate = 44_100; const context = new OfflineAudioContext(2, Math.ceil((duration + .25) * sampleRate), sampleRate); const master = context.createGain(); master.connect(context.destination);
   const decoded = new Map<string, AudioBuffer>(); const unique = [...new Set(project.clips.map((clip) => clip.assetId))];
   for (let index = 0; index < unique.length; index++) { const id = unique[index]!; const source = sources.get(id); if (!source) continue; decoded.set(id, await decode(context, source.bytes)); onProgress?.((index + 1) / Math.max(1, unique.length) * .25); }
-  const anySolo = project.tracks.some((track) => track.solo); const speaking = voiceWindows(project); let scheduled = 0;
+  const anySolo = project.tracks.some((track) => track.solo);
+  const eligible = project.clips.filter(clip => {
+    const track = project.tracks.find(t => t.id === clip.trackId);
+    return !project.voiceReductionBypassed && clip.reduceWhenQuiet && track?.kind === 'VOICE' && !track.muted && !clip.muted && (!anySolo || track.solo) && decoded.has(clip.assetId);
+  });
+  const curves = quieterMicCurves(eligible.map(clip => {
+    const buffer = decoded.get(clip.assetId)!;
+    const levels = new Float32Array(Math.ceil(duration * VOICE_LEVEL_HZ) + 1);
+    let timeline = clip.startSec;
+    for (const range of keptPodcastRanges(clip)) {
+      for (let sourceTime = range.start; sourceTime < range.end; sourceTime += 1 / VOICE_LEVEL_HZ) {
+        const from = Math.floor(sourceTime * buffer.sampleRate), to = Math.min(buffer.length, Math.floor(Math.min(range.end, sourceTime + 1 / VOICE_LEVEL_HZ) * buffer.sampleRate));
+        let sum = 0, count = 0;
+        for (let c = 0; c < buffer.numberOfChannels; c++) {
+          const samples = buffer.getChannelData(c);
+          for (let i = from; i < to; i += 4) { sum += samples[i]! ** 2; count++; }
+        }
+        const at = Math.floor((timeline + sourceTime - range.start) * VOICE_LEVEL_HZ);
+        levels[at] = Math.max(levels[at] ?? 0, Math.sqrt(sum / Math.max(1, count)));
+      }
+      timeline += range.end - range.start;
+    }
+    return { id: clip.id, levels };
+  }));
+  const speaking = voiceWindows(project); let scheduled = 0;
   for (const clip of project.clips) {
     const track = project.tracks.find((item) => item.id === clip.trackId); const buffer = decoded.get(clip.assetId);
     if (!track || !buffer || clip.muted || track.muted || anySolo && !track.solo) continue;
@@ -62,7 +87,14 @@ export async function renderPodcastMix(project: PodcastProject, sources: Map<str
       const source = context.createBufferSource(); source.buffer = buffer; const clipGain = context.createGain(); const base = dbGain(clip.gainDb + track.volumeDb);
       clipGain.gain.setValueAtTime(0, offset); clipGain.gain.linearRampToValueAtTime(base, offset + Math.min(clip.fadeInSec, length / 2)); clipGain.gain.setValueAtTime(base, Math.max(offset, offset + length - Math.min(clip.fadeOutSec, length / 2))); clipGain.gain.linearRampToValueAtTime(0, offset + length);
       if (track.duckUnderVoice) for (const window of speaking) { const from = Math.max(offset, window.start); const to = Math.min(offset + length, window.end); if (to > from) { clipGain.gain.setValueAtTime(base, Math.max(offset, from - .18)); clipGain.gain.linearRampToValueAtTime(base * .24, from); clipGain.gain.setValueAtTime(base * .24, to); clipGain.gain.linearRampToValueAtTime(base, Math.min(offset + length, to + .28)); } }
-      source.connect(clipGain); let tail: AudioNode = clipGain; if (track.kind === 'VOICE') tail = wireVoicePalette(context, tail, track.voicePreset, track.effectAmount);
+      source.connect(clipGain);
+      const reduction = context.createGain(); clipGain.connect(reduction);
+      const curve = curves.get(clip.id);
+      if (curve) {
+        reduction.gain.setValueAtTime(curve[Math.floor(offset * VOICE_LEVEL_HZ)] ?? 1, offset);
+        for (let i = Math.ceil(offset * VOICE_LEVEL_HZ); i / VOICE_LEVEL_HZ < offset + length; i++) reduction.gain.linearRampToValueAtTime(curve[i] ?? 1, i / VOICE_LEVEL_HZ);
+      }
+      let tail: AudioNode = reduction; if (track.kind === 'VOICE') tail = wireVoicePalette(context, tail, track.voicePreset, track.effectAmount);
       const pan = context.createStereoPanner(); pan.pan.value = track.pan; tail.connect(pan); pan.connect(master); source.start(offset, range.start, Math.min(length, Math.max(0, buffer.duration - range.start))); offset += length; scheduled++;
     }
   }
