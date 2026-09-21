@@ -1,3 +1,4 @@
+import { LoadingStatus } from './LoadingStatus.js';
 import { useRef, useState } from 'react';
 import type { Gate, Store } from '@chatter/shared';
 import { importPortableStory } from '../portable/portable-project.js';
@@ -66,6 +67,7 @@ export function StoryDriveOpen({
       disabled={disabled || busy}
       onClick={() => input.current?.click()}
     >{busy ? 'Opening story…' : label}</button>
+    {busy && <LoadingStatus label="Opening story…" detail="Reading the story and checking its media." />}
     <input
       ref={input}
       hidden

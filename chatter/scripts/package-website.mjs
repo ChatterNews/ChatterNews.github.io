@@ -43,7 +43,7 @@ const previousBase = process.env.ORBIT_PREVIOUS_SITE || (process.env.GITHUB_REPO
 const compatibility = await retainWebsiteHistory({ previousBase, site, manifest });
 await writeFile(join(site, 'compatibility.json'), JSON.stringify(compatibility));
 await writeFile(join(site, 'compatibility.mjs'), `export const compatibility = ${JSON.stringify(compatibility)};\n`);
-for (const name of ['index.html', 'offline.html', 'start.js', 'sw.js', 'gateway.mjs', 'launch.mjs', 'offline.mjs', 'privacy.html', 'update.mjs', 'history.mjs', 'recovery.js', 'recovery.mjs']) await cp(join(root, 'website', name), join(site, name));
+for (const name of ['index.html', 'offline.html', 'loading.css', 'start.js', 'sw.js', 'gateway.mjs', 'launch.mjs', 'offline.mjs', 'privacy.html', 'update.mjs', 'history.mjs', 'recovery.js', 'recovery.mjs']) await cp(join(root, 'website', name), join(site, name));
 for (const name of ['reader.css', 'core.mjs', 'control.mjs', 'icon.svg', 'manifest.webmanifest']) await cp(join(root, 'reader', name), join(site, name));
 await writeFile(join(site, 'release.mjs'), `export const manifest = ${manifestJSON};\nexport const trust = ${JSON.stringify(trust)};\n`);
 await writeFile(join(site, '.nojekyll'), '');

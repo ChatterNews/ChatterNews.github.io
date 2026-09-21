@@ -1,3 +1,4 @@
+import { LoadingStatus } from '../components/LoadingStatus.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -268,7 +269,7 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
     {(!project.programPlan || recipePickerOpen) ? <ShowtimeRecipePicker onChoose={chooseRecipe} /> : <ShowtimeRundownRail project={project} onChangeRecipe={() => setRecipePickerOpen(true)} />}
     <div className="modes" role="tablist" aria-label="Showtime workspace">{([['ROLL', '◉', 'Roll', 'Shoot'], ['LIVE', '⌁', 'Live', 'Switch'], ['CUT', '✂', 'Cut', 'Edit']] as const).map(([id, icon, label, sub]) => <button className="mode" role="tab" aria-selected={mode === id} aria-pressed={mode === id} key={id} onClick={() => setMode(id)}><b>{icon}</b><span>{label}<small>{sub}</small></span></button>)}</div>
     {notice && <div className={`showtime-notice ${notice.error ? 'error' : ''}`} role={notice.error ? 'alert' : 'status'}><span>{notice.text}</span><button onClick={() => setNotice(undefined)}>×</button></div>}
-    {busy && <div className="showtime-busy" role="status"><b>{busy}</b>{renderProgress !== undefined && <><progress value={renderProgress} max={1} /><span>{Math.round(renderProgress * 100)}%</span></>}</div>}
+    {busy && <LoadingStatus label={busy} progress={renderProgress} />}
 
     {mode === 'ROLL' && <div className="showtime-roll">
       <div className="showtime-camera-stage" style={{ aspectRatio: `${format.width}/${format.height}` }}><video ref={cameraVideo} muted playsInline className={mirror ? 'mirror' : ''} />{guides && <div className="showtime-guides" />}{cameraState !== 'READY' && <button disabled={cameraState === 'ASKING'} onClick={() => void startCamera()}>{cameraState === 'ASKING' ? 'Opening camera…' : 'Start camera'}</button>}{countdown && <strong className="showtime-countdown">{countdown}</strong>}{rollRecording && <span className="showtime-rec">● REC {time(recordSeconds)}</span>}</div>

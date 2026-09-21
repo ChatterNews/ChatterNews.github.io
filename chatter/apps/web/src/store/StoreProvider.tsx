@@ -1,3 +1,4 @@
+import { LoadingStatus } from '../components/LoadingStatus.js';
 /**
  * Opens the local store once and hands it to the rooms.
  *
@@ -55,9 +56,7 @@ export function StoreProvider({ children, dbName = 'chatter' }: { children: Reac
 
   if (!store) {
     return (
-      <div className="wrap" style={{ padding: 40 }}>
-        <h1>Loading Chatter…</h1>
-      </div>
+      <LoadingStatus screen label="Opening your saved work…" detail="Connecting to this device’s newsroom." />
     );
   }
 

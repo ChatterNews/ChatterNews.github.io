@@ -38,3 +38,25 @@ test('website Finish session works without a folder picker and only offers an ex
   expect(handoff.share).not.toHaveBeenCalled();
   expect(document.body.textContent).toContain('Download started');
 });
+
+test('session packing shows progress until it settles and keeps retry available after failure', async () => {
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+  vi.stubEnv('VITE_ORBIT_WEB', 'true');
+  let fail!: (error: Error) => void;
+  handoff.prepare.mockReturnValue(new Promise((_resolve, reject) => { fail = reject; }));
+  const container = document.createElement('div'); document.body.append(container); root = createRoot(container);
+  const story = { id: 'practice', title: 'Practice story', status: 'WORK' } as Story;
+  await act(async () => root.render(createElement(MemoryRouter, null, createElement(ProjectDrive, { stories: [story], onChanged: () => {} }))));
+  await click('Files');
+  await click('Finish session');
+  expect(document.querySelector('progress[aria-label="Packing your session…"]')).not.toBeNull();
+  expect(document.querySelector<HTMLButtonElement>('button[aria-label="Close story files"]')?.disabled).toBe(true);
+  await act(async () => fail(new Error('Practice save failed')));
+  expect(document.querySelector('progress')).toBeNull();
+  expect(document.body.textContent).toContain('Practice save failed');
+  expect(document.querySelector<HTMLButtonElement>('button[aria-label="Close story files"]')?.disabled).toBe(false);
+  expect(handoff.download).not.toHaveBeenCalled();
+  handoff.prepare.mockResolvedValue({ file: new File(['practice'], 'retry.zip'), stories: 1 });
+  await click('Finish session');
+  expect(document.body.textContent).toContain('retry.zip');
+});

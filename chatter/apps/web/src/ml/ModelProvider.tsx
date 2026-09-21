@@ -1,3 +1,4 @@
+import { LoadingStatus } from '../components/LoadingStatus.js';
 /**
  * Loads the two on-device models and runs the transcript queue.
  *
@@ -51,6 +52,7 @@ export function ModelProvider({ children }: { children: ReactNode }) {
     pendingTranscripts: 0,
   });
 
+  const [checkerActive, setCheckerActive] = useState(false);
   const transcriber = useRef<WhisperInTab>();
   const classifier = useRef<SafetyClassifier>();
 
@@ -65,6 +67,7 @@ export function ModelProvider({ children }: { children: ReactNode }) {
         if (classifier.current?.ready) return true;
         if (loading) return loading;
 
+        setCheckerActive(true);
         setModels((m) => ({ ...m, checkerState: 'loading', checkerProgress: 0 }));
         const attempt = (async () => {
           try {
@@ -91,7 +94,7 @@ export function ModelProvider({ children }: { children: ReactNode }) {
           }
         })();
         loading = attempt;
-        void attempt.finally(() => { if (loading === attempt) loading = undefined; });
+        void attempt.finally(() => { if (loading === attempt) loading = undefined; if (!cancelled) setCheckerActive(false); });
         return attempt;
       },
       async classify(bytes, mime) {
@@ -152,5 +155,11 @@ export function ModelProvider({ children }: { children: ReactNode }) {
     };
   }, [store]);
 
-  return <ModelContext.Provider value={models}>{children}</ModelContext.Provider>;
+  return <ModelContext.Provider value={models}>{children}
+    {(checkerActive || models.pendingTranscripts > 0) && <aside className="orbit-background-work" aria-label="Background processing">
+      <LoadingStatus label={checkerActive ? 'Preparing the picture checker…' : 'Making transcripts…'}
+        progress={checkerActive && models.checkerProgress > 0 && models.checkerProgress < 100 ? models.checkerProgress / 100 : undefined}
+        detail={checkerActive ? 'The first picture check needs to load its tools.' : `${models.pendingTranscripts} recording${models.pendingTranscripts === 1 ? '' : 's'} in the queue. You can keep working.`} />
+    </aside>}
+  </ModelContext.Provider>;
 }

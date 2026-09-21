@@ -1,3 +1,4 @@
+import { LoadingStatus } from '../components/LoadingStatus.js';
 import { workspaceStorage } from '../portable/workspace-context.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
@@ -461,6 +462,7 @@ export function Stinger({ stories, me }: { stories: Story[]; me?: User }) {
 
       {isStingerTemplateShelfVisible({ hasOpenProject: true, shelfRequested: templateShelfOpen }) && <div className="stinger-template-overlay" role="dialog" aria-modal="true" aria-label="Stinger templates"><button className="stinger-template-backdrop" aria-label="Close templates" onClick={() => setTemplateShelfOpen(false)} /><div className="stinger-template-dialog"><StingerTemplateShelf familyId={starterFamilyId} onChooseFamily={setStarterFamilyId} onChooseDirection={(familyId, directionId) => void start(familyId, directionId)} onClose={() => setTemplateShelfOpen(false)} /></div></div>}
 
+      {exporting !== undefined && <LoadingStatus label="Rendering your graphic…" progress={exporting} detail="Keep this tab open until the file is ready." />}
       {note && <div className="stinger-note" role="status"><span>{note}</span><button aria-label="Dismiss message" onClick={() => setNote(undefined)}>×</button></div>}
       {showReadyCheck && <StingerReadyCheck findings={checkMotionPackage(project)} onClose={() => { setShowReadyCheck(false); setPendingExport(false); }} onContinue={pendingExport ? () => { setPendingExport(false); setShowReadyCheck(false); void exportVideo(); } : undefined} onRepair={repairFinding} onFocus={(targetSceneId, elementId) => { setSceneId(targetSceneId); setSelectedId(elementId); setShowReadyCheck(false); setPendingExport(false); }} />}
       {project.creativeRecipe?.mode === 'GUIDED' && <nav className="stinger-guided-strip" aria-label="Guided graphics steps"><span><b>GUIDED SWITCHER</b><small>Work left to right. The package keeps its visual system.</small></span><button onClick={() => { const item = scene?.elements.find((entry) => entry.kind === 'TEXT'); setSelectedId(item?.id); setInspector('DESIGN'); }}>1 · Words</button><button onClick={() => setInspector('BRAND')}>2 · Show look</button><button onClick={() => { const item = scene?.elements.find((entry) => entry.kind === 'TEXT'); setSelectedId(item?.id); setInspector('MOTION'); }}>3 · Timing</button><button onClick={togglePreview}>4 · Preview</button></nav>}

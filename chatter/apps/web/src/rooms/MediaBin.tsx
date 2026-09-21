@@ -1,3 +1,4 @@
+import { LoadingStatus } from '../components/LoadingStatus.js';
 import { RoomIcon } from '../components/RoomIcon.js';
 import { useEffect, useMemo, useState } from 'react';
 import { deliverableBytes, deliverableTypeLabel, storyRoomPath, type Deliverable, type DeliverableKind, type DeliverableRoom, type Story, type User } from '@chatter/shared';
@@ -26,14 +27,17 @@ export function MediaBin({ stories, adviser, me }: { stories: Story[]; adviser: 
   const store = useStore(); const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [listing, setListing] = useState(true);
+  const [preparing, setPreparing] = useState(false);
+  const [downloads, setDownloads] = useState(0);
   const [files, setFiles] = useState<Deliverable[]>([]); const [users, setUsers] = useState<User[]>([]); const [loaded, setLoaded] = useState<Record<string, LoadedFile>>({});
   const [scope, setScope] = useState<Scope>(adviser ? 'ALL' : 'MINE'); const [query, setQuery] = useState(''); const [storyId, setStoryId] = useState(() => searchParams.get('story') ?? 'ALL'); const [kind, setKind] = useState<DeliverableKind | 'ALL'>('ALL'); const [room, setRoom] = useState<DeliverableRoom | 'ALL'>('ALL'); const [notice, setNotice] = useState<string>(); const [revision, setRevision] = useState(0);
 
   useEffect(() => { setScope(adviser ? 'ALL' : 'MINE'); }, [adviser]);
   useEffect(() => { const requested = searchParams.get('story'); if (requested) setStoryId(requested); }, [searchParams]);
-  useEffect(() => { let live = true; void Promise.all([store.deliverables.list(), store.users.list()]).then(([nextFiles, nextUsers]) => { if (!live) return; setFiles(nextFiles.sort((a, b) => b.updatedAt - a.updatedAt)); setUsers(nextUsers); }).catch(() => setNotice('The Media Bin did not open. Press Refresh to try again.')); return () => { live = false; }; }, [store, revision]);
+  useEffect(() => { let live = true; setListing(true); void Promise.all([store.deliverables.list(), store.users.list()]).then(([nextFiles, nextUsers]) => { if (!live) return; setFiles(nextFiles.sort((a, b) => b.updatedAt - a.updatedAt)); setUsers(nextUsers); }).catch(() => { if (live) setNotice('The Media Bin did not open. Press Refresh to try again.'); }).finally(() => { if (live) setListing(false); }); return () => { live = false; }; }, [store, revision]);
   useEffect(() => {
-    let live = true; const urls: string[] = [];
+    let live = true; const urls: string[] = []; setPreparing(files.length > 0);
     void (async () => {
       const next: Record<string, LoadedFile> = {};
       for (const item of files) {
@@ -43,7 +47,8 @@ export function MediaBin({ stories, adviser, me }: { stories: Story[]; adviser: 
         else { const url = URL.createObjectURL(new Blob([bytes as unknown as BlobPart], { type: item.mime })); urls.push(url); next[item.id] = { url }; }
       }
       if (live) setLoaded(next); else urls.forEach((url) => URL.revokeObjectURL(url));
-    })();
+    })().catch(() => { if (live) setNotice('Some previews could not load. Press Refresh to try again.'); })
+      .finally(() => { if (live) setPreparing(false); });
     return () => { live = false; urls.forEach((url) => URL.revokeObjectURL(url)); };
   }, [files, store]);
 
@@ -58,18 +63,20 @@ export function MediaBin({ stories, adviser, me }: { stories: Story[]; adviser: 
   }, [filtered, stories]);
 
   async function download(item: Deliverable) {
-    setNotice(undefined);
+    setNotice(undefined); setDownloads(n => n + 1);
     try { const bytes = await deliverableBytes(store, item); const url = URL.createObjectURL(new Blob([bytes as unknown as BlobPart], { type: item.mime })); const link = document.createElement('a'); link.href = url; link.download = item.fileName; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
     catch (error) { setNotice(error instanceof Error ? error.message : 'That file could not be downloaded.'); }
+    finally { setDownloads(n => n - 1); }
   }
 
   return <section className="view on newsroom-room media-bin-room">
     <header className="newsroom-hero media-bin-hero"><div className="newsroom-hero-icon"><RoomIcon kind="media-wheel" /></div><div><span className="newsroom-eyebrow">FILES</span><h1>Media Bin</h1><p>Preview and download saved audio, images, video, documents, and packages.</p></div><div className="newsroom-hero-stats"><b>{files.length}<small>saved files</small></b><b>{new Set(files.map((item) => item.storyId).filter(Boolean)).size}<small>stories</small></b></div></header>
     <div className="media-bin-scope"><div role="group" aria-label="Whose files">{!adviser && <button aria-pressed={scope === 'MINE'} onClick={() => setScope('MINE')}>My files</button>}<button aria-pressed={scope === 'ALL'} onClick={() => setScope('ALL')}>{adviser ? 'All crew files' : 'All story files'}</button></div><button onClick={() => { setNotice(undefined); setRevision((value) => value + 1); }}>↻ Refresh</button></div>
+    {(listing || preparing || downloads > 0) && <LoadingStatus label={downloads > 0 ? 'Preparing your download…' : listing ? 'Opening the Media Bin…' : 'Loading media previews…'} />}
     {notice && <div className="newsroom-notice error" role="alert">{notice}</div>}
     <div className="media-bin-filters" data-filters-open={filtersOpen}><label><span>Find a file</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, filename, story, or room" /></label><button type="button" className="compact-media-filters" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(open => !open)}>Filters{[storyId, kind, room].filter(value => value !== 'ALL').length ? ` (${[storyId, kind, room].filter(value => value !== 'ALL').length})` : ''} {filtersOpen ? '▴' : '▾'}</button><label><span>Story</span><select value={storyId} onChange={(event) => setStoryId(event.target.value)}><option value="ALL">Every story</option>{stories.map((story) => <option key={story.id} value={story.id}>{story.title}</option>)}<option value="STANDALONE">Standalone work</option></select></label><label><span>Type</span><select value={kind} onChange={(event) => setKind(event.target.value as DeliverableKind | 'ALL')}><option value="ALL">Every file type</option>{KINDS.map((item) => <option key={item} value={item}>{deliverableTypeLabel(item)}</option>)}</select></label><label><span>Made in</span><select value={room} onChange={(event) => setRoom(event.target.value as DeliverableRoom | 'ALL')}><option value="ALL">Every room</option>{ROOMS.filter(item => item !== 'GARAGE' || files.some(file => file.room === 'GARAGE')).map((item) => <option key={item} value={item}>{roomLabel(item)}</option>)}</select></label></div>
     <SavedStudioProjects stories={stories} />
     {groups.map(([groupId, items]) => { const story = stories.find((item) => item.id === groupId); return <section className="media-bin-group" key={groupId}><header><div><span>{story ? story.status.toLowerCase() : 'independent project'}</span><h2>{story?.title ?? 'Standalone work'}</h2><p>{items.length} file{items.length === 1 ? '' : 's'} · {[...new Set(items.map((item) => deliverableTypeLabel(item.kind)))].join(' + ')}</p></div>{story && <button onClick={() => navigate(storyRoomPath('slate', story.id))}>Open story plan →</button>}</header><div className="media-bin-grid">{items.map((item) => { const preview = loaded[item.id]; const author = users.find((user) => user.id === item.authorId); const authorLabel = author?.penName ?? (item.authorId ? 'Crew member' : 'Chatter crew'); return <article key={item.id}><div className={`media-bin-preview kind-${item.kind.toLowerCase()}`}>{preview?.missing ? <div className="media-bin-missing">!<span>File missing</span></div> : item.kind === 'AUDIO' && preview?.url ? <audio controls preload="metadata" src={preview.url} /> : item.kind === 'VIDEO' && preview?.url ? <video controls preload="metadata" src={preview.url} /> : (item.kind === 'IMAGE' || item.kind === 'DESIGN') && preview?.url ? <img src={preview.url} alt={`Preview of ${item.title}`} /> : item.mime === 'application/pdf' && preview?.url ? <iframe src={preview.url} title={`Preview of ${item.title}`} /> : preview?.text ? <pre>{preview.text}</pre> : <span>{item.kind === 'PACKAGE' ? '⬡' : item.kind === 'DOCUMENT' ? 'Aa' : '▣'}</span>}</div><div className="media-bin-card-body"><div><span className={`media-bin-stage ${item.stage.toLowerCase()}`}>{item.stage.toLowerCase()}</span><span>{roomLabel(item.room).toLowerCase()}</span></div><h3>{item.title}</h3><code>{item.fileName}</code><p>{authorLabel} · {fileSize(item.bytes)} · {new Date(item.updatedAt).toLocaleString()}</p><footer><button onClick={() => void download(item)}>Download</button>{item.room !== 'GARAGE' && <button onClick={() => navigate(deliverableRoomPath(item))}>Open {roomLabel(item.room)} →</button>}</footer></div></article>; })}</div></section>; })}
-    {!filtered.length && <div className="media-bin-empty"><span>▣</span><h2>{files.length ? 'No files match these filters.' : 'The first export lands here.'}</h2><p>{scope === 'MINE' ? 'Make or export something in a production room, or open All story files to see the crew’s work.' : 'Booth takes, Blast pages, motion graphics, and finished writing will collect here.'}</p><button onClick={() => navigate('/booth')}>Record something in Booth →</button></div>}
+    {!listing && !notice && !filtered.length && <div className="media-bin-empty"><span>▣</span><h2>{files.length ? 'No files match these filters.' : 'The first export lands here.'}</h2><p>{scope === 'MINE' ? 'Make or export something in a production room, or open All story files to see the crew’s work.' : 'Booth takes, Blast pages, motion graphics, and finished writing will collect here.'}</p><button onClick={() => navigate('/booth')}>Record something in Booth →</button></div>}
   </section>;
 }

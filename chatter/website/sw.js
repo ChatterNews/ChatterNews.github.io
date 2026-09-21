@@ -8,7 +8,7 @@ import { parsePublishedRelease, validateHistory } from './history.mjs';
 
 const BASE = new URL(self.registration.scope);
 const SHELL_CACHE = `orbit-website-shell-${manifest.releaseId}`;
-const SHELL_PATHS = ['', 'index.html', 'offline.html', 'start.js', 'reader.css', 'core.mjs', 'control.mjs', 'gateway.mjs', 'launch.mjs', 'offline.mjs', 'release.mjs', 'manifest.webmanifest', 'icon.svg', 'privacy.html', 'update.mjs', 'history.mjs', 'compatibility.mjs', 'compatibility.json', 'startup.mjs', 'recovery.js', 'recovery.mjs'].map((name) => new URL(name, BASE).pathname);
+const SHELL_PATHS = ['', 'index.html', 'offline.html', 'start.js', 'reader.css', 'loading.css', 'core.mjs', 'control.mjs', 'gateway.mjs', 'launch.mjs', 'offline.mjs', 'release.mjs', 'manifest.webmanifest', 'icon.svg', 'privacy.html', 'update.mjs', 'history.mjs', 'compatibility.mjs', 'compatibility.json', 'startup.mjs', 'recovery.js', 'recovery.mjs'].map((name) => new URL(name, BASE).pathname);
 // Source and license archives stay available, but are not startup downloads.
 const DOCUMENT_PATHS = ['Orbit-app-source.zip', 'Orbit-licenses.zip', 'THIRD_PARTY_NOTICES.md', 'REBUILD.txt'].map(name => new URL(name, BASE).pathname);
 const currentFiles = new Map(manifest.files.map(file => [file.sha256, file]));

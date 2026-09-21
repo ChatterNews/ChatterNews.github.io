@@ -1,3 +1,4 @@
+import { LoadingStatus } from './components/LoadingStatus.js';
 import { workspaceStorage, workspaceStoreName } from './portable/workspace-context.js';
 /**
  * The shell: header, room tabs, the track, and Reily. Reproduces the
@@ -61,10 +62,7 @@ function normalizeReilyRoom(room: string): ReilyRoom {
 
 function RoomLoading() {
   return (
-    <section className="room-loading" role="status" aria-live="polite">
-      <span className="room-loading-orbit" aria-hidden="true" />
-      <b>Opening the room…</b>
-    </section>
+    <LoadingStatus label="Opening the room…" detail="Loading its tools. The first visit can take a little longer." />
   );
 }
 
@@ -172,7 +170,7 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
   };
 
   if (!identity.loaded) {
-    return <div className="wrap" style={{ padding: 40 }}><h1>Opening the badge table…</h1></div>;
+    return <LoadingStatus screen label="Opening the badge table…" detail="Finding the badges on this device." />;
   }
 
   if (identity.session.kind === 'NONE') {

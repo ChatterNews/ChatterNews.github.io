@@ -28,7 +28,9 @@ function report(update) {
 async function connect() {
   if (!window.isSecureContext || !navigator.serviceWorker || !navigator.storage?.getDirectory || !navigator.locks || !window.caches) throw new Error('This browser is missing the local storage Orbit needs. Try an up-to-date Chrome or Safari, with school permission to use local website storage.');
   await verifyManifest(new TextEncoder().encode(JSON.stringify(manifest)), trust);
+  if (!offline) say('Opening your desk…', 'Loading the newsroom. Your first visit may take a little longer.', 'busy');
   const registration = await ensureReaderController(BASE);
+  if (!offline) say('Checking for updated tools…', 'Your desk will open automatically.', 'busy');
   activeRelease = await checkWebsiteUpdate(BASE) || trust.releaseId;
   registration.addEventListener('updatefound', () => {
     registration.installing?.addEventListener('statechange', () => {
@@ -38,9 +40,11 @@ async function connect() {
   document.querySelector('#update-note').hidden = !registration.waiting;
 }
 function enter() {
+  if (!offline) say('Opening your desk…', 'Loading your badges and saved work.', 'busy');
   return launchWebsite({ base: BASE, releaseId: activeRelease, route: window.location.hash, connect: () => ready });
 }
 async function setup() {
+  if (!offline) { openButton.hidden = true; progress.hidden = false; progress.removeAttribute('value'); say('Opening your desk…', 'Getting Chatter News ready.', 'busy'); }
   ready = connect();
   await ready;
   if (offline && activeRelease !== trust.releaseId) { window.location.reload(); return; }
@@ -73,7 +77,8 @@ openButton.addEventListener('click', () => {
 cancel.addEventListener('click', () => active?.abort());
 window.addEventListener('beforeunload', (event) => { if (active) { event.preventDefault(); event.returnValue = ''; } });
 function showError(error) {
-  say('Orbit could not open yet.', error.message, 'error');
+  if (!offline) progress.hidden = true;
+  say('Orbit could not open yet.', error?.message || 'Try opening again.', 'error');
   openButton.hidden = false;
 }
 void setup().catch(showError);

@@ -6,9 +6,11 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' https: ws: wss:; frame-src 'self' blob:; manifest-src 'self'">
 <title>Chatter Clubhouse</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%99%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/src/components/LoadingStatus.css">
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><div class="orbit-loading-screen"><section class="orbit-loading" role="status"><div class="orbit-loading-heading"><b>Opening your desk…</b></div><progress max="1" aria-label="Opening your desk"></progress><p>Loading Chatter News.</p></section></div></div>
+<noscript>Turn on JavaScript to open Chatter News.</noscript>
 <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

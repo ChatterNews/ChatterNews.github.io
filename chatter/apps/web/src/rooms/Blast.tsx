@@ -1,3 +1,4 @@
+import { LoadingStatus } from '../components/LoadingStatus.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -493,6 +494,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
   const layerClipboard = useRef<BlastElement[]>([]);
   const saveTimer = useRef<number>();
   const pendingJobs = useRef(0);
+  const [working, setWorking] = useState(0);
   const objectUrls = useRef<string[]>([]);
 
   useEffect(() => {
@@ -867,7 +869,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
 
   async function importImage(file: File) {
     setError(undefined); setReilyProblem(undefined);
-    pendingJobs.current += 1;
+    pendingJobs.current += 1; setWorking(pendingJobs.current);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
       const result = await gate.ingest({ bytes, source: 'upload', meta: { kind: 'IMAGE', mime: file.type || 'image/jpeg', origin: 'UPLOAD', license: 'OWN', actor: me?.id } });
@@ -892,7 +894,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
       setReilyProblem('import');
       setError('That picture could not be read. Press Add photo to choose it again or try a different file.');
     } finally {
-      pendingJobs.current -= 1;
+      pendingJobs.current -= 1; setWorking(pendingJobs.current);
       if (imageInput.current) imageInput.current.value = '';
     }
   }
@@ -913,7 +915,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
   async function exportSvg() {
     setError(undefined); setReilyProblem(undefined);
     if (!project || !page) return;
-    pendingJobs.current += 1;
+    pendingJobs.current += 1; setWorking(pendingJobs.current);
     try {
       const sources = await imageSourcesForExport(); const fileName = `${safeName(project.title)}-${project.pages.indexOf(page) + 1}.svg`; const blob = new Blob([pageSvg(project, page, sources)], { type: 'image/svg+xml' }); const bytes = new Uint8Array(await blob.arrayBuffer());
       await saveDeliverable(store, { bytes, title: `${project.title} · ${page.name}`, fileName, kind: 'DESIGN', room: 'BLAST', stage: 'WORKING', mime: 'image/svg+xml', storyId: project.storyId, authorId: me?.id, sourceProjectId: project.id, width: project.width, height: project.height });
@@ -921,13 +923,13 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
     } catch {
       setReilyProblem('export');
       setError('The SVG was not made. Press SVG to try exporting again.');
-    } finally { pendingJobs.current -= 1; }
+    } finally { pendingJobs.current -= 1; setWorking(pendingJobs.current); }
   }
 
   async function exportPng(useAsPodcastCover = false, handoff = false) {
     setError(undefined); setReilyProblem(undefined);
     if (!project || !page) return;
-    pendingJobs.current += 1;
+    pendingJobs.current += 1; setWorking(pendingJobs.current);
     try {
       await waitForEditorFonts();
       const sources = await imageSourcesForExport(); const fileName = `${safeName(project.title)}-${project.pages.indexOf(page) + 1}.png`;
@@ -945,13 +947,13 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
     } catch {
       setReilyProblem('export');
       setError('The PNG was not made. Press PNG to try exporting again.');
-    } finally { pendingJobs.current -= 1; }
+    } finally { pendingJobs.current -= 1; setWorking(pendingJobs.current); }
   }
 
   async function exportPdf() {
     setError(undefined); setReilyProblem(undefined);
     if (!project || !project.pages.length) return;
-    pendingJobs.current += 1;
+    pendingJobs.current += 1; setWorking(pendingJobs.current);
     try {
       await waitForEditorFonts();
       const sources = await imageSourcesForExport();
@@ -966,7 +968,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
     } catch {
       setReilyProblem('export');
       setError('The PDF was not made. Press PDF to try exporting again.');
-    } finally { pendingJobs.current -= 1; }
+    } finally { pendingJobs.current -= 1; setWorking(pendingJobs.current); }
   }
 
   function applyRichCommand(command: 'bold' | 'italic' | 'underline' | 'strikeThrough') {
@@ -1054,6 +1056,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
 
   return (
     <div className={`blast-room blast-editor ${project.creativeRecipe?.mode === 'GUIDED' ? 'blast-guided' : 'blast-freeform'}`}>
+      {working > 0 && <LoadingStatus label="Preparing your design files…" detail="Reading images, checking media, or saving your export. Keep this tab open." />}
       <input ref={imageInput} hidden type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importImage(file); }} />
       <header className="blast-toolbar" data-tools-open={compactToolsOpen}>
         <button className="blast-brand" onClick={() => setShowLibrary(true)}><span>BLAST</span><small>Design studio</small></button>

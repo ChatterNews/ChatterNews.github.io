@@ -1,3 +1,4 @@
+import { LoadingStatus } from './components/LoadingStatus.js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, HashRouter } from 'react-router-dom';
@@ -16,7 +17,7 @@ applyAfterHours(readAfterHours());
 const root = createRoot(document.getElementById('root')!);
 async function start(askPermission = false) {
   try {
-    if (isWebsiteEdition()) root.render(<main className="checkin-room" role="status"><h1>Opening Orbit…</h1></main>);
+    root.render(<LoadingStatus screen label="Opening your desk…" detail="Getting your newsroom ready." />);
     if (!await prepareWebsiteStart()) return;
     await connectReaderDrive(askPermission);
     const drive = getReaderDrive();
