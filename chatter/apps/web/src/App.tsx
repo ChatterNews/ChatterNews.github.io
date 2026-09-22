@@ -48,8 +48,9 @@ const GreenLight = lazyNamed(() => import('./rooms/GreenLight.js'), 'GreenLight'
 const Crew = lazyNamed(() => import('./rooms/Crew.js'), 'Crew');
 const Reruns = lazyNamed(() => import('./rooms/Reruns.js'), 'Reruns');
 const Blast = lazyNamed(() => import('./rooms/Blast.js'), 'Blast');
-const Stinger = lazyNamed(() => import('./rooms/Stinger.js'), 'Stinger');
+const Stinger = lazyNamed(() => import('./rooms/StingerVideo.js'), 'StingerVideo');
 const Showtime = lazyNamed(() => import('./rooms/Showtime.js'), 'Showtime');
+const Foley = lazyNamed(() => import('./rooms/Foley.js'), 'Foley');
 const Chatterbox = lazyNamed(() => import('./rooms/Chatterbox.js'), 'Chatterbox');
 const MediaBin = lazyNamed(() => import('./rooms/MediaBin.js'), 'MediaBin');
 const FrontDesk = lazyNamed(() => import('./rooms/FrontDesk.js'), 'FrontDesk');
@@ -236,6 +237,8 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
             <Route path="/crew" element={<Crew stories={stories} adviser={adviser} me={me} />} />
             <Route path="/stinger" element={<Stinger stories={stories} me={me} />} />
             <Route path="/stinger/:storyId" element={<Stinger stories={stories} me={me} />} />
+            <Route path="/foley" element={<Foley stories={stories} me={me} />} />
+            <Route path="/foley/:storyId" element={<Foley stories={stories} me={me} />} />
             <Route path="/studio" element={<Navigate to={`/files${location.search}`} replace />} />
             <Route path="/garage" element={<Navigate to={`/files${location.search}`} replace />} />
             <Route path="/blast" element={<Blast me={me} stories={stories} storyId={contextStoryId} />} />

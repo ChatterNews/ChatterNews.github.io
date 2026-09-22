@@ -28,6 +28,7 @@ beforeEach(() => {
 afterEach(async () => {
   await act(async () => root.unmount());
   container.remove();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -112,4 +113,48 @@ describe('Chatterbox saving during a session', () => {
     await expect(finishing).rejects.toThrow('My unlinked reporting notes');
     expect((await store.podcastProjects.list())[0]!.title).toBe('My unlinked reporting notes');
   });
+
+  it('Undo removes first-added credits and Redo restores them after a failed save', async () => {
+    await open();
+    const station = (label: string) => [...container.querySelectorAll<HTMLButtonElement>('.chatterbox-stations button')].find(button => button.querySelector('b')?.textContent === label)!;
+    await act(async () => station('Package').click());
+    const input = container.querySelector<HTMLTextAreaElement>('[aria-label="Episode credits"]')!;
+    await change(input, 'Lee — sound design');
+    const create = vi.spyOn(store.podcastProjects, 'create').mockRejectedValueOnce(new Error('quota'));
+    await act(async () => { await expect(flushSessionCheckpoints(store)).rejects.toThrow('quota'); });
+    expect(input.value).toBe('Lee — sound design');
+    create.mockRestore();
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+    await act(async () => station('Cut').click());
+    const button = (label: string) => [...container.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent === label)!;
+    await act(async () => button('Undo').click());
+    await act(async () => flushSessionCheckpoints(store));
+    expect((await store.podcastProjects.list())[0]!.credits).toBeUndefined();
+    await act(async () => button('Redo').click());
+    await act(async () => flushSessionCheckpoints(store));
+    expect((await store.podcastProjects.list())[0]!.credits).toBe('Lee — sound design');
+    await act(async () => button('Undo').click());
+    await act(async () => flushSessionCheckpoints(store));
+    expect((await store.podcastProjects.list())[0]!.credits).toBeUndefined();
+  });
+
+  it('drains edits made while the checkpoint save is in flight before declaring completion', async () => {
+    await open();
+    const input = [...container.querySelectorAll<HTMLInputElement>('input')].find(input => input.parentElement?.textContent?.startsWith('Episode title'))!;
+    await change(input, 'First draft');
+    let release!: () => void; let entered!: () => void;
+    const blocked = new Promise<void>(resolve => { release = resolve; });
+    const started = new Promise<void>(resolve => { entered = resolve; });
+    const create = store.podcastProjects.create.bind(store.podcastProjects);
+    const spy = vi.spyOn(store.podcastProjects, 'create').mockImplementation(async value => { entered(); await blocked; return create(value); });
+    const saving = flushSessionCheckpoints(store);
+    try {
+      await started;
+      await change(input, 'Latest draft while saving');
+    } finally { release(); }
+    await act(async () => saving);
+    spy.mockRestore();
+    expect((await store.podcastProjects.list())[0]!.title).toBe('Latest draft while saving');
+  });
+
 });

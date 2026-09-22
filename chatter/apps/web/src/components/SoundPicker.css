@@ -1,0 +1,18 @@
+.sound-picker { width:min(44rem,calc(100vw - 2rem)); max-height:calc(100dvh - 2rem); overflow:auto; color:var(--ink,#192726); background:var(--paper,#fffdf5); border:2px solid currentColor; border-radius:12px; padding:1.25rem; }
+.sound-picker::backdrop { background:#102623aa; }
+.sound-picker header { display:flex; justify-content:space-between; gap:1rem; align-items:start; }
+.sound-picker h2,.sound-picker p { margin:0 0 .65rem; }
+.sound-picker label { display:grid; gap:.3rem; margin:.75rem 0; font-weight:700; }
+.sound-picker input,.sound-picker select { padding:.7rem; font:inherit; width:100%; box-sizing:border-box; }
+.sound-picker ul { list-style:none; padding:0; }
+.sound-picker li { display:flex; gap:.65rem; align-items:center; padding:.8rem 0; border-bottom:1px solid #9995; }
+.sound-picker li>div { flex:1; min-width:0; }
+.sound-picker small { display:block; overflow-wrap:anywhere; line-height:1.5; }
+.sound-picker button { min-height:40px; padding:.45rem .7rem; font:inherit; cursor:pointer; }
+.sound-picker button:disabled { opacity:.5; cursor:default; }
+.sound-picker audio { width:100%; margin:.5rem 0; }
+.sound-picker [role=alert] { padding:.75rem; background:#ffd9c7; color:#722500; }
+.sound-picker footer { display:grid; gap:.65rem; }
+.sound-handoff-bar { display:flex; flex-wrap:wrap; gap:.65rem; align-items:center; margin:.7rem 0; }
+.sound-credits-preview { white-space:pre-wrap; max-height:45vh; overflow:auto; }
+@media(max-width:480px) { .sound-picker li { flex-wrap:wrap; } .sound-picker li>div { flex-basis:100%; } }

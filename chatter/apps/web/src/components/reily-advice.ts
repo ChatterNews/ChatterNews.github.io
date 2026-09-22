@@ -1,7 +1,7 @@
 import type { Story } from '@chatter/shared';
 
 export const REILY_ROOMS = [
-  'home', 'slate', 'crew', 'desk', 'booth', 'studio', 'chatterbox',
+  'home', 'slate', 'crew', 'desk', 'booth', 'studio', 'chatterbox', 'foley',
   'blast', 'stinger', 'showtime', 'greenlight', 'files', 'reruns', 'frontdesk',
 ] as const;
 
@@ -93,6 +93,14 @@ const ROOM_COPY: Record<ReilyRoom, readonly string[]> = {
     'Drop a marker after a strong moment or a mistake. The marker is a map for the person who edits later.',
     'Choose the take that is clear and believable. The most perfect take is not always the one people want to hear.',
   ],
+  foley: [
+    'Give each sound a job. A small cue can mark a change without covering the speaker.',
+    'Keep the creator, source page and license with your imported sounds. Different files can have different terms.',
+    'Save a sound version before placing it in a video or podcast. You can return to its layers later.',
+    'Record a few seconds of quiet before your effect. It helps you hear what belongs to the room and what belongs to the sound.',
+    'A short fade can soften a click at a cut. Listen across the join before saving the cue.',
+    'Layer a sound softly under the voice first. Bring it up only as much as the story needs.',
+  ],
   studio: [
     'Name the song sections before filling the timeline. Intro, verse, hook, bridge, and outro give every block a job.',
     'Audition a sound with the other tracks playing. A huge solo sound may crowd the voice or drums inside the song.',
@@ -118,6 +126,9 @@ const ROOM_COPY: Record<ReilyRoom, readonly string[]> = {
     'Whitespace is part of the layout. Empty space can group related pieces and give the main message room to land.',
   ],
   stinger: [
+    'Build the picture story first. Then add voice, music, captions, and graphics on their own tracks.',
+    'Import footage here, ask an adviser to approve it, then mark the part you want in Source and append it to the timeline.',
+    'Choose a story to download the editable video and its source media together. Watch the exported video before handoff.',
     'Keep important words and faces inside title-safe. Screens crop differently, especially when the graphic sits over video.',
     'Give each screen one main message. A viewer should understand it before the graphic leaves.',
     'Read the words aloud at a calm pace, then leave a beat. That is the minimum useful screen duration.',
@@ -126,12 +137,12 @@ const ROOM_COPY: Record<ReilyRoom, readonly string[]> = {
     'Use motion to reveal hierarchy: first the category, then the name, then the supporting detail. Movement should clarify the order.',
   ],
   showtime: [
-    'Name and sort source clips before the timeline fills up. A clear bin makes every later edit faster.',
-    'Cut where an action or thought changes. The viewer follows meaning more easily when picture changes have a reason.',
-    'Use B-roll to show what the speaker means, cover a trim, or establish place—not only to decorate the interview.',
-    'Balance music under the quietest important voice, not only under the loudest speaker.',
-    'Watch once with the sound off. Captions, titles, and pictures should still carry the essential message.',
-    'Watch the complete export from its first frame to its last. Check cuts, captions, credits, silence, and the final held image.',
+    'Check the camera frame and microphone level before recording a full take.',
+    'Record five steady seconds before and after the action so the editor has room to trim.',
+    'Prepare the next source in Preview before taking it to Program.',
+    'Ask the crew for a quiet room tone recording to help smooth sound between cuts.',
+    'Before a live switch, check that the next graphic has the correct names and facts.',
+    'Use Edit in Stinger to open this recording project on its video timeline.',
   ],
   greenlight: [
     'Review the work as its audience will receive it. Read the page, watch the cut, or hear the episode from beginning to end.',
@@ -222,8 +233,8 @@ const RECOVERY_COPY: Record<ReilyRecoveryKind, { room: ReilyRoom; text: string }
   'stinger.export': { room: 'stinger', text: 'Your graphic package is still editable. Stop the preview, retry the export, and confirm the finished file appears in Media Bin.' },
   'showtime.camera': { room: 'showtime', text: 'No recorded shot was changed. Check camera permission and source, then make a short Roll test before the full take.' },
   'showtime.microphone': { room: 'showtime', text: 'No recorded shot was changed. Check microphone permission and the selected input, then test the level again.' },
-  'showtime.media': { room: 'showtime', text: 'Your existing edit did not change. Rechoose the source file and wait for its thumbnail and duration before cutting it in.' },
-  'showtime.export': { room: 'showtime', text: 'Your timeline is still editable. Stop preview playback, retry the render, and watch the finished file before handoff.' },
+  'showtime.media': { room: 'stinger', text: 'Your existing edit did not change. Rechoose the source file and wait for its thumbnail and duration before cutting it in.' },
+  'showtime.export': { room: 'stinger', text: 'Your timeline is still editable. Stop preview playback, retry the render, and watch the finished file before handoff.' },
   'greenlight.load': { room: 'greenlight', text: 'No review decision changed. Retry loading the project, then open the actual deliverable before leaving a note or release decision.' },
 };
 
@@ -239,7 +250,7 @@ function roomCards(): ReilyAdvice[] {
 
 function focusCards(): ReilyAdvice[] {
   return (Object.entries(FOCUS_COPY) as Array<[ReilyFocus, readonly [string, string]]>).flatMap(([focus, copy]) => {
-    const room = focus.split('.')[0] as ReilyRoom;
+    const room = (focus === 'showtime.cut' || focus === 'showtime.captions' ? 'stinger' : focus.split('.')[0]) as ReilyRoom;
     return copy.map((text, index) => ({
       id: `${focus.replace('.', '-')}-${String(index + 1).padStart(2, '0')}`,
       room,

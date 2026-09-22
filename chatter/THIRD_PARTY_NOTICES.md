@@ -32,3 +32,18 @@ nothing else; the muxer puts the WebM container around them.
 MIT imposes no source-availability obligation. It is recorded here because the
 app deliberately avoids adding a large second media runtime when the browser
 codecs plus a small container writer are sufficient.
+
+## Foley stock audio — CC0 1.0
+
+Foley includes 38 selected recordings and designed sounds from Kenney Impact
+Sounds, Interface Sounds and Music Jingles; BigSoundBank contributors Joseph
+SARDIN, Pierre SIBANARCO, Dorian CLAIR and DavidGreck; and artisticdude's Swishes
+Sound Pack on OpenGameArt. Each source identifies CC0 1.0 Universal.
+
+Complete file-level provenance and conversion details are in
+[the shipped library manifest](apps/web/public/sounds/foley/v1/README.md), with
+original Kenney pack license notices alongside it. Original WAV bytes remain
+unchanged; selected OGG files were decoded to PCM WAV without changing their
+source sample rate/channels. Attribution travels with adopted sound entries.
+
+Sonniss GDC is an external resource link only; no Sonniss assets are redistributed.

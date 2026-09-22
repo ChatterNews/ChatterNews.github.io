@@ -1,14 +1,17 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, test } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, test, vi } from 'vitest';
 import { createShowtimeProject, makeShowtimeClip } from '@chatter/shared';
 import { ShowtimeCutWorkspace } from './ShowtimeCutWorkspace.js';
+
+vi.mock('../store/StoreProvider.js', () => ({ useStore: () => ({}) }));
 
 describe('Showtime magnetic Cut workspace', () => {
   test('presents source editing, a Program transport, and the standard multitrack lanes', () => {
     const project = createShowtimeProject({ title: 'Morning bulletin' });
     project.clips.push(makeShowtimeClip({ assetId: 'take', name: 'Anchor take', durationSec: 8 }));
-    const html = renderToStaticMarkup(createElement(ShowtimeCutWorkspace, {
+    const html = renderToStaticMarkup(createElement(MemoryRouter, {}, createElement(ShowtimeCutWorkspace, {
       project,
       assets: [],
       urls: new Map(),
@@ -18,7 +21,7 @@ describe('Showtime magnetic Cut workspace', () => {
       onCommit: () => undefined,
       onShoot: () => undefined,
       onNotice: () => undefined,
-    }));
+    })));
 
     expect(html).toContain('SOURCE');
     expect(html).toContain('PROGRAM');

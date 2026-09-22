@@ -5,6 +5,7 @@
  * long as it is needed for the purpose it was collected for. Raw takes expire.
  * Published work is a different class of thing and persists.
  */
+import { soundSourceAssetIds } from './sound.js';
 import type { Store } from './store.js';
 import type { Asset, Take, Transcript, Episode, User, Release, Appearance, Credit } from './types.js';
 
@@ -50,6 +51,22 @@ async function publishedAssetIds(store: Store): Promise<Set<string>> {
     }
   }
 
+  // Archived library items still protect bytes: archive is reversible.
+  for (const item of await store.soundItems.list()) protectedAssets.add(item.assetId);
+  for (const project of await store.soundProjects.list()) for (const id of soundSourceAssetIds(project)) protectedAssets.add(id);
+  for (const revision of await store.soundRevisions.list()) {
+    protectedAssets.add(revision.assetId);
+    for (const id of [...revision.sourceAssetIds, ...soundSourceAssetIds(revision.snapshot)]) protectedAssets.add(id);
+  }
+  for (const operation of await store.soundOperations.list()) if (operation.state === 'STAGED') {
+    if (operation.item) protectedAssets.add(operation.item.assetId);
+    for (const item of operation.imported?.items ?? []) protectedAssets.add(item.assetId);
+    for (const project of operation.imported?.projects ?? []) for (const id of soundSourceAssetIds(project)) protectedAssets.add(id);
+    for (const revision of [...(operation.imported?.revisions ?? []), ...(operation.revision ? [operation.revision] : [])]) {
+      protectedAssets.add(revision.assetId);
+      for (const id of [...revision.sourceAssetIds, ...soundSourceAssetIds(revision.snapshot)]) protectedAssets.add(id);
+    }
+  }
   return protectedAssets;
 }
 

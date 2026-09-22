@@ -155,12 +155,12 @@ export function deskOutline(node: ProseNode): Array<{ text: string; level: numbe
   walk(node); return found;
 }
 
-export function deskDelivery(story: Pick<Story, 'channels' | 'creationRecipeId'>): { next: 'BOOTH' | 'BLAST' | 'SHOWTIME' | 'REVIEW'; stepId: string; label: string; explanation: string } {
+export function deskDelivery(story: Pick<Story, 'channels' | 'creationRecipeId'>): { next: 'BOOTH' | 'BLAST' | 'STINGER' | 'REVIEW'; stepId: string; label: string; explanation: string } {
   const recipe = resolveStoryCreationRecipe(story);
   if (recipe.id === 'podcast') return { next: 'BOOTH', stepId: 'record', label: 'Hand script to Booth', explanation: 'The next contribution is a clean voice take for the episode cut.' };
   if (recipe.id === 'poster') return { next: 'BLAST', stepId: 'design', label: 'Take the words to Blast', explanation: 'The next contribution is the page people will see.' };
-  if (recipe.id === 'video') return { next: 'SHOWTIME', stepId: 'cut', label: 'Take the script to Showtime', explanation: 'The next contribution is the picture-and-sound edit.' };
-  if (recipe.id === 'show') return { next: 'SHOWTIME', stepId: 'produce', label: 'Take the rundown to Showtime', explanation: 'The next contribution is the assembled news show.' };
+  if (recipe.id === 'video') return { next: 'STINGER', stepId: 'cut', label: 'Take the script to Stinger', explanation: 'The next contribution is the picture-and-sound edit.' };
+  if (recipe.id === 'show') return { next: 'STINGER', stepId: 'produce', label: 'Take the rundown to Stinger', explanation: 'The next contribution is the assembled news show.' };
   return { next: 'REVIEW', stepId: 'check', label: 'Send draft to Green Light', explanation: 'This is a written story, so its next contribution is a second set of eyes.' };
 }
 

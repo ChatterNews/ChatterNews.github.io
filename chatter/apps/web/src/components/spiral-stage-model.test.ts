@@ -15,14 +15,14 @@ describe('Spiral Stage navigation model', () => {
     expect(roomSlugFromPathname('/studio/story-1')).toBe('files');
     expect(roomSlugFromPathname('/garage')).toBe('files');
     expect(roomIndexFromSlug('frontdesk')).toBe(-1);
-    expect(roomIndexFromSlug('blast')).toBe(6);
+    expect(roomIndexFromSlug('blast')).toBe(SPIRAL_ROOMS.findIndex(room => room.slug === 'blast'));
   });
 
   test('turns native scroll into bounded fractional progress and settled stations', () => {
     expect(progressFromScroll(250, 100, SPIRAL_ROOMS.length)).toBe(2.5);
     expect(progressFromScroll(-50, 100, SPIRAL_ROOMS.length)).toBe(0);
     expect(stationFromScroll(250, 100, SPIRAL_ROOMS.length)).toBe(3);
-    expect(stationFromScroll(9999, 100, SPIRAL_ROOMS.length)).toBe(11);
+    expect(stationFromScroll(9999, 100, SPIRAL_ROOMS.length)).toBe(SPIRAL_ROOMS.length - 1);
     expect(stationFromScroll(400, 0, SPIRAL_ROOMS.length)).toBe(0);
   });
 

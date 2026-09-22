@@ -8,6 +8,7 @@ export type RoomPreviewKind =
   | 'typewriter'
   | 'microphone'
   | 'podcast-reels'
+  | 'sound-console'
   | 'print-carousel'
   | 'broadcast-lens'
   | 'edit-monitor'
@@ -22,6 +23,7 @@ const PREVIEW_KIND_BY_ROOM: Record<string, RoomPreviewKind> = {
   desk: 'typewriter',
   booth: 'microphone',
   chatterbox: 'podcast-reels',
+  foley: 'sound-console',
   blast: 'print-carousel',
   stinger: 'broadcast-lens',
   showtime: 'edit-monitor',

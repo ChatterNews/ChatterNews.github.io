@@ -43,3 +43,9 @@ export * from "./studio-editing.js";
 export * from "./studio-session.js";
 
 export * from './access.js';
+
+export * from './video-graphics.js';
+
+export * from './video-credits.js';
+
+export * from './sound.js';

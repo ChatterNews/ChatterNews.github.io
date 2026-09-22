@@ -1,3 +1,4 @@
+import { exportSoundPack } from '../audio/sound-pack.js';
 import { flushStudioSaves, type Store } from '@chatter/shared';
 import { flushSessionCheckpoints } from '../store/session-checkpoint.js';
 import { flushPodcastSaves } from '../rooms/podcast-workspace.js';
@@ -44,7 +45,8 @@ export async function finishSession(store: Store, destination: SessionDirectory,
   await flushStudioSaves(store);
   await flushPodcastSaves(store);
   const stories = await store.stories.list();
-  if (!stories.length) throw new Error('Create a story in Slate before finishing a session.');
+  const hasSounds = (await store.soundItems.list()).length > 0 || (await store.soundProjects.list()).length > 0 || (await store.soundCollections.list()).length > 0;
+  if (!stories.length && !hasSounds) throw new Error('Create a story in Slate before finishing a session.');
   await checkStoryLinks(store, new Set(stories.map((story) => story.id)));
   const folderName = `Orbit-session-${new Date().toISOString().replace(/[:.]/g, '-')}-${crypto.randomUUID().slice(0, 8)}`;
   // Every attempt gets its own folder; a failed attempt cannot overwrite a previous handoff.
@@ -56,6 +58,12 @@ export async function finishSession(store: Store, destination: SessionDirectory,
     const file = `${index + 1}-${packed.fileName}`;
     await writeVerifiedFile(await folder.getFileHandle(file, { create: true }), packed.blob);
     files.push({ title: story.title, file, bytes: packed.blob.size });
+  }
+  if (hasSounds) {
+    onProgress('Packing and verifying the club sound library…');
+    const packed = await exportSoundPack(store);
+    await writeVerifiedFile(await folder.getFileHandle(packed.fileName, { create: true }), packed.blob);
+    files.push({ title: 'Club sound library', file: packed.fileName, bytes: packed.blob.size });
   }
   const receipt = new Blob([JSON.stringify({ format: 'orbit-session-receipt', version: 1, completedAt: new Date().toISOString(), files }, null, 2)], { type: 'application/json' });
   await writeVerifiedFile(await folder.getFileHandle('SESSION-COMPLETE.json', { create: true }), receipt);

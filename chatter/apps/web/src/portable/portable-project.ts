@@ -1,3 +1,4 @@
+import { exportSoundPack, importSoundPack, type SoundPackMaps } from '../audio/sound-pack.js';
 import { flushSessionCheckpoints } from '../store/session-checkpoint.js';
 import { flushPodcastSaves } from '../rooms/podcast-workspace.js';
 import JSZip from 'jszip';
@@ -6,11 +7,11 @@ import { sanitizedRichText } from '../rooms/blast-rich-text.js';
 import {
   Gate, type Appearance, type Asset, type Credit, type CrewTask, type Episode,
   type BlastProject, type Deliverable, type MotionPackage, type PodcastProject, type PodcastShow, type Release, type RoleAssign, type ShowtimeProject, type Store, type Story,
-  publishingReceipt, flushStudioSaves,
+  publishingReceipt, flushStudioSaves, videoProjectAssetIds, isVideoGraphic, remapVideoGraphics,
   type StudioProject, type GarageSamplerPreset, type StoryReview, type Take, type Transcript, type User,
 } from '@chatter/shared';
 
-export const PORTABLE_PROJECT_VERSION = 6;
+export const PORTABLE_PROJECT_VERSION = 7;
 const MAX_PROJECT_BYTES = 2_000_000_000;
 const MANIFEST_FILE = 'story.chatter.json';
 
@@ -43,6 +44,7 @@ export interface PortableStoryProject {
   podcastProjects?: PodcastProject[];
   studioProjects?: StudioProject[];
   samplerPresets?: GarageSamplerPreset[];
+  soundPack?: string;
 }
 
 export function portableFileName(story: Pick<Story, 'slug'>): string {
@@ -52,7 +54,7 @@ export function portableFileName(story: Pick<Story, 'slug'>): string {
 export function isPortableStoryProject(value: unknown): value is PortableStoryProject {
   if (!value || typeof value !== 'object') return false;
   const item = value as Partial<PortableStoryProject>;
-  return item.format === 'chatter-story' && [1, 2, 3, 4, 5, PORTABLE_PROJECT_VERSION].includes(item.version ?? -1) && typeof item.projectId === 'string' && !!item.story && Array.isArray(item.assets) && Array.isArray(item.takes) && (item.studioProjects === undefined || (Array.isArray(item.studioProjects) && item.studioProjects.length <= 100 && item.studioProjects.every(isPortableStudioRecord)));
+  return (item.showtimeProjects === undefined || (Array.isArray(item.showtimeProjects) && item.showtimeProjects.every(project => (project.credits === undefined || (typeof project.credits === 'string' && project.credits.length <= 10000)) && Array.isArray(project.titles) && project.titles.every(title => title.motion === undefined || isVideoGraphic(title.motion))))) && item.format === 'chatter-story' && [1, 2, 3, 4, 5, 6, PORTABLE_PROJECT_VERSION].includes(item.version ?? -1) && typeof item.projectId === 'string' && !!item.story && Array.isArray(item.assets) && Array.isArray(item.takes) && (item.studioProjects === undefined || (Array.isArray(item.studioProjects) && item.studioProjects.length <= 100 && item.studioProjects.every(isPortableStudioRecord)));
 }
 
 function mediaIds(packages: MotionPackage[]): string[] {
@@ -91,7 +93,7 @@ export async function exportPortableStory(store: Store, input: Story): Promise<{
   const samplerPresets = allSamplerPresets.filter((item) => item.storyId === story.id);
   const studioProjects = allStudioProjects.filter((item) => item.storyId === story.id);
   if (!studioProjects.every(isPortableStudioRecord)) throw new Error('A Studio session has missing source references or damaged arrangement data. Restore it before saving the Story Drive.');
-  const assetIds = new Set([...credits.map((item) => item.assetId), ...takes.flatMap((item) => [item.assetId, ...(item.renderedAssetId ? [item.renderedAssetId] : [])]), ...mediaIds(motionPackages), ...blastMediaIds(blasts), ...showtimeProjects.flatMap((item) => item.clips.map((clip) => clip.assetId)), ...podcastProjects.flatMap((item) => [item.artworkAssetId, ...item.clips.map((clip) => clip.assetId)]), ...podcastShows.flatMap((item) => [item.coverAssetId, item.themeAssetId, item.outroAssetId]), ...samplerPresets.map((item) => item.sourceAssetId), ...studioProjects.flatMap(studioMediaIds)].filter((id): id is string => !!id));
+  const assetIds = new Set([...credits.map((item) => item.assetId), ...takes.flatMap((item) => [item.assetId, ...(item.renderedAssetId ? [item.renderedAssetId] : [])]), ...mediaIds(motionPackages), ...blastMediaIds(blasts), ...showtimeProjects.flatMap(videoProjectAssetIds), ...podcastProjects.flatMap((item) => [item.artworkAssetId, ...item.clips.map((clip) => clip.assetId)]), ...podcastShows.flatMap((item) => [item.coverAssetId, item.themeAssetId, item.outroAssetId]), ...samplerPresets.map((item) => item.sourceAssetId), ...studioProjects.flatMap(studioMediaIds)].filter((id): id is string => !!id));
   for (const id of studioProjects.flatMap(studioMediaIds)) if (!allAssets.some((asset) => asset.id === id)) throw new Error('A Studio source file is missing. Restore it before saving the Story Drive.');
   const availableAssetIds = new Set(allAssets.map((asset) => asset.id));
   for (const id of assetIds) if (!availableAssetIds.has(id)) throw new Error(`A linked source file (${id.slice(0, 8)}) is missing. Restore it or remove the missing reference before saving the Story Drive.`);
@@ -116,6 +118,9 @@ export async function exportPortableStory(store: Store, input: Story): Promise<{
     const file = `outputs/${item.id}/${item.fileName.replace(/[^a-z0-9._-]+/gi, '-')}`; zip.file(file, bytes); portableDeliverables.push({ record: item, file });
   }
   const project: PortableStoryProject = { format: 'chatter-story', version: PORTABLE_PROJECT_VERSION, projectId, exportedAt: Date.now(), story, users, assets: portableAssets, takes, transcripts, credits, appearances, releases, roleAssigns, crewTasks, reviews, episodes, motionPackages, blasts, deliverables: portableDeliverables, showtimeProjects, podcastShows, podcastProjects, samplerPresets, studioProjects };
+  const sounds = await exportSoundPack(store, story.id);
+  zip.file('sounds.soundpack', await sounds.blob.arrayBuffer());
+  project.soundPack = 'sounds.soundpack';
   zip.file(MANIFEST_FILE, JSON.stringify(project, null, 2));
   return { blob: await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } }), fileName: portableFileName(story), project };
 }
@@ -128,16 +133,24 @@ function remapBlast(item: BlastProject, storyId: string, assetIds: Map<string, s
   return { ...item, storyId, pages: item.pages.map((page) => ({ ...page, elements: page.elements.map((element) => ({ ...element, ...(element.richText ? { richText: sanitizedRichText(element.richText) } : {}), ...(element.imageAssetId ? { imageAssetId: assetIds.get(element.imageAssetId) } : {}) })) })) };
 }
 
-function remapShowtime(item: ShowtimeProject, storyId: string, assetIds: Map<string, string>, userIds: Map<string, string>): Omit<ShowtimeProject, 'id' | 'createdAt' | 'updatedAt'> {
-  return { ...item, storyId, ...(item.authorId ? { authorId: userIds.get(item.authorId) ?? item.authorId } : {}), clips: item.clips.flatMap((clip) => { const assetId = assetIds.get(clip.assetId); return assetId ? [{ ...clip, assetId }] : []; }) };
+function remapSoundUse(clip: { assetId: string; soundProjectId?: string; soundRevisionId?: string; soundItemId?: string }, sounds: SoundPackMaps | undefined, assetId: string) {
+  const hasSound = clip.soundProjectId || clip.soundRevisionId || clip.soundItemId;
+  if (hasSound && (!sounds || (clip.soundProjectId && !sounds.projects.has(clip.soundProjectId)) || (clip.soundRevisionId && !sounds.revisions.has(clip.soundRevisionId)) || (clip.soundItemId && !sounds.items.has(clip.soundItemId)) || sounds.assets.get(clip.assetId) !== assetId)) throw new Error('The story has an incomplete or mismatched editable sound attachment. Restore a complete Story Drive.');
+  return { soundProjectId: clip.soundProjectId ? sounds?.projects.get(clip.soundProjectId) : undefined,
+    soundRevisionId: clip.soundRevisionId ? sounds?.revisions.get(clip.soundRevisionId) : undefined,
+    soundItemId: clip.soundItemId ? sounds?.items.get(clip.soundItemId) : undefined, soundRequestId: undefined };
+}
+
+function remapShowtime(item: ShowtimeProject, storyId: string, assetIds: Map<string, string>, userIds: Map<string, string>, sounds?: SoundPackMaps): Omit<ShowtimeProject, 'id' | 'createdAt' | 'updatedAt'> {
+  return { ...item, storyId, titles: remapVideoGraphics(item.titles, assetIds), ...(item.authorId ? { authorId: userIds.get(item.authorId) ?? item.authorId } : {}), clips: item.clips.flatMap((clip) => { const assetId = assetIds.get(clip.assetId); return assetId ? [{ ...clip, assetId, ...remapSoundUse(clip, sounds, assetId) }] : []; }) };
 }
 
 function remapPodcastShow(item: PodcastShow, assetIds: Map<string, string>, userIds: Map<string, string>): Omit<PodcastShow, 'id' | 'createdAt' | 'updatedAt'> {
   return { ...item, ...(item.authorId ? { authorId: userIds.get(item.authorId) ?? item.authorId } : {}), hostIds: item.hostIds.map((id) => userIds.get(id) ?? id), ...(item.coverAssetId ? { coverAssetId: assetIds.get(item.coverAssetId) } : {}), ...(item.themeAssetId ? { themeAssetId: assetIds.get(item.themeAssetId) } : {}), ...(item.outroAssetId ? { outroAssetId: assetIds.get(item.outroAssetId) } : {}) };
 }
 
-function remapPodcastProject(item: PodcastProject, showId: string, storyId: string, assetIds: Map<string, string>, userIds: Map<string, string>): Omit<PodcastProject, 'id' | 'createdAt' | 'updatedAt'> {
-  return { ...item, showId, storyIds: [storyId], ...(item.authorId ? { authorId: userIds.get(item.authorId) ?? item.authorId } : {}), ...(item.artworkAssetId ? { artworkAssetId: assetIds.get(item.artworkAssetId) } : {}), segments: item.segments.map((segment) => segment.storyId ? { ...segment, storyId } : segment), clips: item.clips.flatMap((clip) => { const assetId = assetIds.get(clip.assetId); return assetId ? [{ ...clip, assetId }] : []; }) };
+function remapPodcastProject(item: PodcastProject, showId: string, storyId: string, assetIds: Map<string, string>, userIds: Map<string, string>, sounds?: SoundPackMaps): Omit<PodcastProject, 'id' | 'createdAt' | 'updatedAt'> {
+  return { ...item, showId, storyIds: [storyId], ...(item.authorId ? { authorId: userIds.get(item.authorId) ?? item.authorId } : {}), ...(item.artworkAssetId ? { artworkAssetId: assetIds.get(item.artworkAssetId) } : {}), segments: item.segments.map((segment) => segment.storyId ? { ...segment, storyId } : segment), clips: item.clips.flatMap((clip) => { const assetId = assetIds.get(clip.assetId); return assetId ? [{ ...clip, assetId, ...remapSoundUse(clip, sounds, assetId) }] : []; }) };
 }
 
 async function importReleases(store: Store, project: PortableStoryProject, userIds: Map<string, string>): Promise<void> {
@@ -181,6 +194,8 @@ export async function importPortableStory(store: Store, gate: Gate, file: File):
   const parsed = JSON.parse(await manifestEntry.async('string')) as unknown;
   if (!isPortableStoryProject(parsed)) throw new Error('This Chatter story file uses an unsupported or damaged format.');
   const project = parsed;
+  const hasSoundUse = [...(project.showtimeProjects ?? []).flatMap(p => p.clips), ...(project.podcastProjects ?? []).flatMap(p => p.clips)].some(c => c.soundProjectId || c.soundRevisionId || c.soundItemId);
+  if ((project.soundPack !== undefined && project.soundPack !== 'sounds.soundpack') || (hasSoundUse && !project.soundPack) || (project.soundPack && !zip.file(project.soundPack))) throw new Error('The story is missing its editable sound attachment. Restore a complete Story Drive.');
   if (project.assets.length > 5000) throw new Error('This project contains too many media records to open safely.');
   const packagedAssetIds = new Set(project.assets.map((item) => item.record.id));
   if ((project.studioProjects ?? []).flatMap(studioMediaIds).some((id) => !packagedAssetIds.has(id))) throw new Error('The Story Drive is missing a Studio source asset.');
@@ -202,6 +217,12 @@ export async function importPortableStory(store: Store, gate: Gate, file: File):
   const existingStory = (await store.stories.list()).find((item) => item.portableId === project.projectId);
   const storyInput = { title: project.story.title, slug: project.story.slug, channels: project.story.channels, status: project.story.status, body: project.story.body, bylineIds: project.story.bylineIds.map((id) => userIds.get(id)).filter((id): id is string => !!id), portableId: project.projectId, ...(project.story.creationRecipeId ? { creationRecipeId: project.story.creationRecipeId } : {}), ...(project.story.workflowStepId ? { workflowStepId: project.story.workflowStepId } : {}), ...(project.story.ownerId && userIds.get(project.story.ownerId) ? { ownerId: userIds.get(project.story.ownerId) } : {}), ...(project.story.dueAt !== undefined ? { dueAt: project.story.dueAt } : {}), ...(project.story.durationSec !== undefined ? { durationSec: project.story.durationSec } : {}), ...(project.story.brief ? { brief: project.story.brief } : {}) };
   const story = existingStory ? await store.stories.update(existingStory.id, storyInput) : await store.stories.create(storyInput);
+  let sounds: SoundPackMaps | undefined;
+  if (project.soundPack !== undefined) {
+    if (project.soundPack !== 'sounds.soundpack') throw new Error('Invalid sound pack attachment.');
+    const entry = zip.file(project.soundPack); if (!entry) throw new Error('The story is missing its editable sound pack.');
+    sounds = (await importSoundPack(store, gate, new Blob([await entry.async('uint8array') as BlobPart]), story.id)).maps;
+  }
   const currentTakes = (await store.takes.list()).filter((item) => item.storyId === story.id); const takeIds = new Map<string, string>();
   for (const take of project.takes) {
     const assetId = assetIds.get(take.assetId); if (!assetId) continue;
@@ -226,9 +247,9 @@ export async function importPortableStory(store: Store, gate: Gate, file: File):
   } }
   const currentMotion = (await store.motionPackages.list()).filter((item) => item.storyId === story.id); for (const item of project.motionPackages) { const patch = remapMotion(item, story.id, assetIds); const existing = currentMotion.find((row) => row.title === item.title); if (existing) await store.motionPackages.update(existing.id, patch); else await store.motionPackages.create(patch); }
   const currentBlasts = (await store.blasts.list()).filter((item) => item.storyId === story.id); for (const item of project.blasts ?? []) { const patch = remapBlast(item, story.id, assetIds); const existing = currentBlasts.find((row) => row.title === item.title); if (existing) await store.blasts.update(existing.id, patch); else await store.blasts.create(patch); }
-  const currentShowtime = (await store.showtimeProjects.list()).filter((item) => item.storyId === story.id); for (const item of project.showtimeProjects ?? []) { const patch = remapShowtime(item, story.id, assetIds, userIds); const existing = currentShowtime.find((row) => row.title === item.title); if (existing) await store.showtimeProjects.update(existing.id, patch); else await store.showtimeProjects.create(patch); }
+  const currentShowtime = (await store.showtimeProjects.list()).filter((item) => item.storyId === story.id); for (const item of project.showtimeProjects ?? []) { const patch = remapShowtime(item, story.id, assetIds, userIds, sounds); const existing = currentShowtime.find((row) => row.title === item.title); if (existing) await store.showtimeProjects.update(existing.id, patch); else await store.showtimeProjects.create(patch); }
   const podcastShowIds = new Map<string, string>(); const currentPodcastShows = await store.podcastShows.list(); for (const item of project.podcastShows ?? []) { const patch = remapPodcastShow(item, assetIds, userIds); const existing = currentPodcastShows.find((row) => row.title.toLowerCase() === item.title.toLowerCase()); const saved = existing ? await store.podcastShows.update(existing.id, patch) : await store.podcastShows.create(patch); podcastShowIds.set(item.id, saved.id); }
-  const podcastProjectIds = new Map<string, string>(); const currentPodcastProjects = (await store.podcastProjects.list()).filter((item) => item.storyIds.includes(story.id)); for (const item of project.podcastProjects ?? []) { const showId = podcastShowIds.get(item.showId) ?? (await store.podcastShows.list())[0]?.id; if (!showId) continue; const patch = remapPodcastProject(item, showId, story.id, assetIds, userIds); const existing = currentPodcastProjects.find((row) => row.title === item.title); const saved = existing ? await store.podcastProjects.update(existing.id, patch) : await store.podcastProjects.create(patch); podcastProjectIds.set(item.id, saved.id); }
+  const podcastProjectIds = new Map<string, string>(); const currentPodcastProjects = (await store.podcastProjects.list()).filter((item) => item.storyIds.includes(story.id)); for (const item of project.podcastProjects ?? []) { const showId = podcastShowIds.get(item.showId) ?? (await store.podcastShows.list())[0]?.id; if (!showId) continue; const patch = remapPodcastProject(item, showId, story.id, assetIds, userIds, sounds); const existing = currentPodcastProjects.find((row) => row.title === item.title); const saved = existing ? await store.podcastProjects.update(existing.id, patch) : await store.podcastProjects.create(patch); podcastProjectIds.set(item.id, saved.id); }
   const samplerPresetIds = new Map<string, string>();
   const currentSamplerPresets = (await store.samplerPresets.list()).filter((item) => item.storyId === story.id); for (const item of project.samplerPresets ?? []) { const patch = remapSamplerPreset(item, story.id, assetIds); if (!patch) continue; const existing = currentSamplerPresets.find((row) => row.name === item.name && row.sampleName === item.sampleName); const saved = existing ? await store.samplerPresets.update(existing.id, patch) : await store.samplerPresets.create(patch); samplerPresetIds.set(item.id, saved.id); }
   const currentStudio = (await store.studioProjects.list()).filter((item) => item.storyId === story.id);

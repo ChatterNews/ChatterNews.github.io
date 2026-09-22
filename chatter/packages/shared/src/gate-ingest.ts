@@ -10,6 +10,7 @@ import type { Store } from './store.js';
 import type { AssetKind, Origin, GateStatus } from './types.js';
 import { type GateConfig, type RouteResult, sourceAllowed, upstreamFlags, route } from './gate.js';
 import { sha256 } from './ids.js';
+import { STOCK_SOUND_HASHES } from './stock-sound-hashes.js';
 
 export interface Classifier {
   /** False until the on-device model has loaded. The Gate fails closed on it. */
@@ -39,6 +40,8 @@ export interface IngestInput {
   meta: IngestMeta;
   /** True only when this device just produced these bytes. */
   ownDevice?: boolean;
+  /** Exact, bundled catalog recording. The Gate verifies its immutable hash; this is not a license claim. */
+  bundledSoundId?: string;
 }
 
 export interface GateResult {
@@ -86,11 +89,29 @@ export class Gate {
     //   IMAGE            classified, and fails CLOSED if the model is not up
     //   own work         approved - a take from the Booth or a beat bounced in
     //                    the Studio, made on this device, never from outside
+    //   bundled sound    approved only after its catalog ID and bytes match
     //   anything else    quarantined for a person, because nothing here can
     //                    screen it and it did not come from this microphone
     //
     // Every kind still gets hashed, credited and audited below.
-    const routed = await this.screen(bytes, meta, input.ownDevice === true);
+    let hash: string | undefined;
+    let routed: RouteResult;
+    if (input.bundledSoundId !== undefined) {
+      // A caller-supplied identifier is never permission on its own. It must
+      // identify the exact bytes in the release's checked recording catalog.
+      if (meta.kind !== 'AUDIO' || meta.mime !== 'audio/wav') {
+        return this.decide({ status: 'REJECTED', reason: 'stock-sound-type-mismatch' }, input);
+      }
+      const id = input.bundledSoundId;
+      const expected = typeof id === 'string' && Object.prototype.hasOwnProperty.call(STOCK_SOUND_HASHES, id)
+        ? STOCK_SOUND_HASHES[id] : undefined;
+      if (!expected) return this.decide({ status: 'REJECTED', reason: 'unknown-stock-sound' }, input);
+      hash = await sha256(bytes);
+      if (hash !== expected) return this.decide({ status: 'REJECTED', reason: 'stock-sound-hash-mismatch' }, input);
+      routed = { status: 'APPROVED', reason: 'verified-stock-sound' };
+    } else {
+      routed = await this.screen(bytes, meta, input.ownDevice === true);
+    }
     if (routed.status === 'REJECTED') {
       // Bytes are discarded here: never hashed into the blob store, never
       // written to OPFS, never rendered.
@@ -98,10 +119,22 @@ export class Gate {
     }
 
     // Stages 6, 7 - freeze and credit.
-    const hash = await sha256(bytes);
+    hash ??= await sha256(bytes);
     const existing = await this.store.assets.bySha256(hash);
     if (existing) {
-      return this.decide({ ...routed, assetId: existing.id }, input);
+      // Deduplication never upgrades a previous review decision. Report the
+      // actual row's status, so the returned result and audit cannot imply an
+      // approval that did not happen, including for verified catalog bytes.
+      if (input.bundledSoundId !== undefined && (existing.kind !== 'AUDIO' || existing.mime !== 'audio/wav')) {
+        return this.decide({ status: 'REJECTED', assetId: existing.id, reason: 'stock-sound-existing-type-mismatch' }, input);
+      }
+      return this.decide({
+        status: existing.gateStatus, assetId: existing.id,
+        ...(existing.gateScore !== undefined ? { score: existing.gateScore } : {}),
+        ...(existing.gateStatus === routed.status
+          ? (routed.reason ? { reason: routed.reason } : {})
+          : { reason: 'existing-asset-status-preserved' }),
+      }, input);
     }
 
     await this.store.blobs.put(bytes);
@@ -166,6 +199,7 @@ export class Gate {
         reason: result.reason,
         source: input.source,
         kind: input.meta.kind,
+        ...(input.bundledSoundId !== undefined ? { bundledSoundId: input.bundledSoundId } : {}),
       },
     });
     return result;

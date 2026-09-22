@@ -48,7 +48,7 @@ export const STORY_CREATION_RECIPES: readonly StoryCreationRecipe[] = [
   {
     id: 'video', label: 'Video story', shortLabel: 'WATCH', mark: '▶', accent: '#ff8054',
     description: 'A video story with a script, footage, titles, sound, and a final cut.', channels: ['video'],
-    steps: [common.idea, common.report, { id: 'script', label: 'Script', icon: 'ic-pen', room: '/desk', next: 'Write the words and picture plan for the edit.', action: 'Open Desk' }, { id: 'cut', label: 'Cut', icon: 'ic-tv', room: '/showtime', next: 'Build the picture, sound, and titles on the timeline.', action: 'Open Showtime' }, common.check, common.export, common.out],
+    steps: [common.idea, common.report, { id: 'script', label: 'Script', icon: 'ic-pen', room: '/desk', next: 'Write the words and picture plan for the edit.', action: 'Open Desk' }, { id: 'cut', label: 'Cut', icon: 'ic-tv', room: '/stinger', next: 'Build the picture, sound, and titles on the timeline.', action: 'Open Stinger' }, common.check, common.export, common.out],
     workStep: 'script', boothStep: 'cut',
   },
   {
@@ -60,7 +60,7 @@ export const STORY_CREATION_RECIPES: readonly StoryCreationRecipe[] = [
   {
     id: 'show', label: 'News show', shortLabel: 'AIR', mark: 'TV', accent: '#8d6ddb',
     description: 'A complete bulletin or program with a rundown, segments, graphics, and a master.', channels: ['segment'],
-    steps: [common.idea, common.report, { id: 'rundown', label: 'Rundown', icon: 'ic-pen', room: '/desk', next: 'Write the order, timing, and words that hold the show together.', action: 'Open Desk' }, { id: 'produce', label: 'Produce', icon: 'ic-tv', room: '/showtime', next: 'Assemble the program, sound, and screen graphics.', action: 'Open Showtime' }, common.check, common.export, common.out],
+    steps: [common.idea, common.report, { id: 'rundown', label: 'Rundown', icon: 'ic-pen', room: '/desk', next: 'Write the order, timing, and words that hold the show together.', action: 'Open Desk' }, { id: 'produce', label: 'Produce', icon: 'ic-tv', room: '/stinger', next: 'Assemble the program, sound, and screen graphics.', action: 'Open Stinger' }, common.check, common.export, common.out],
     workStep: 'rundown', boothStep: 'produce',
   },
 ] as const;
@@ -133,7 +133,9 @@ export async function completeRecipeProduction(store: Store, storyId: string, ro
   const recipe = resolveStoryCreationRecipe(story);
   const checkIndex = recipe.steps.findIndex((step) => step.id === 'check');
   const finishingStep = recipe.steps[checkIndex - 1];
-  const normalizedRoom = `/${room.replace(/^\//, '').toLowerCase()}`;
+  const requestedRoom = `/${room.replace(/^\//, '').toLowerCase()}`;
+  // Saved video records retain their SHOWTIME room for compatibility.
+  const normalizedRoom = requestedRoom === '/showtime' ? '/stinger' : requestedRoom;
   if (!finishingStep || finishingStep.room !== normalizedRoom) throw new Error(`${room} is not the ${recipe.label} finishing room.`);
   return advanceStoryWorkflow(store, storyId, 'check');
 }

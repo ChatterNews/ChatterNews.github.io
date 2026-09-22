@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { addAudioClip, addTrack, createPodcastProject, createPodcastShow, createShowtimeProject, DEFAULT_GATE_CONFIG, DEFAULT_SAMPLER_SETTINGS, emptyProject, Gate, makePodcastClip, makeShowtimeClip, MemoryStore, saveDeliverable } from '@chatter/shared';
+import { withVideoEndCredits, addAudioClip, addTrack, createMotionPackage, makeVideoGraphic, createPodcastProject, createPodcastShow, createShowtimeProject, DEFAULT_GATE_CONFIG, DEFAULT_SAMPLER_SETTINGS, emptyProject, Gate, makePodcastClip, makeShowtimeClip, MemoryStore, saveDeliverable } from '@chatter/shared';
 import { exportPortableStory, importPortableStory, isPortableStoryProject, portableFileName } from './portable-project.js';
 import { element } from '../rooms/blast-model.js';
 
@@ -27,6 +27,12 @@ describe('portable USB story projects', () => {
     const showtimeDraft = createShowtimeProject({ title: 'Gym floor video', authorId: kid.id, storyId: story.id });
     const { id: _showtimeId, createdAt: _showtimeCreated, updatedAt: _showtimeUpdated, ...showtimeInput } = showtimeDraft;
     showtimeInput.clips = [makeShowtimeClip({ assetId: footage.assetId!, name: 'Opening shot', durationSec: 8 })];
+    const graphics = createMotionPackage('bulletin', { title: 'Gym title' });
+    graphics.scenes[0]!.elements[0]!.imageAssetId = picture.assetId;
+    showtimeInput.titles = [makeVideoGraphic(graphics, graphics.scenes[0]!.id, 1)];
+    showtimeInput.credits = 'Alex S. — Reporting and editing';
+    const withCredits = withVideoEndCredits({ ...showtimeDraft, ...showtimeInput });
+    showtimeInput.titles = withCredits.titles;
     await first.showtimeProjects.create(showtimeInput);
     const podcastShowDraft = createPodcastShow({ authorId: kid.id }); const { id: _podcastShowId, createdAt: _podcastShowCreated, updatedAt: _podcastShowUpdated, ...podcastShowInput } = podcastShowDraft; const podcastShow = await first.podcastShows.create(podcastShowInput);
     const podcastDraft = createPodcastProject(podcastShow, { authorId: kid.id }); podcastDraft.title = 'Gym floor episode'; podcastDraft.voiceReductionBypassed = true; podcastDraft.storyIds = [story.id]; podcastDraft.clips = [{ ...makePodcastClip({ assetId: ingested.assetId!, trackId: podcastDraft.tracks[0]!.id, name: 'Host tape', durationSec: 12 }), syncCueSec: 2.35, startSec: 1.4, reduceWhenQuiet: true }]; const { id: _podcastId, createdAt: _podcastCreated, updatedAt: _podcastUpdated, ...podcastInput } = podcastDraft; await first.podcastProjects.create(podcastInput);
@@ -57,8 +63,14 @@ describe('portable USB story projects', () => {
     expect(blast.pages[0]!.elements[0]!.imageAssetId).toBeTruthy();
     const showtime = (await second.showtimeProjects.list())[0]!;
     expect(showtime).toMatchObject({ title: 'Gym floor video', storyId: imported.story.id, authorId: (await second.users.list())[0]!.id });
+    expect(showtime.credits).toBe('Alex S. — Reporting and editing');
+    expect(showtime.titles.at(-1)!.projectCredits).toBe(showtime.credits);
     expect(showtime.clips[0]).toMatchObject({ name: 'Opening shot' });
     expect(showtime.clips[0]!.assetId).not.toBe(footage.assetId);
+    const graphicImage = showtime.titles[0]!.motion!.scenes[0]!.elements[0]!.imageAssetId!;
+    expect(graphicImage).not.toBe(picture.assetId);
+    expect(await second.assets.get(graphicImage)).toMatchObject({ kind: 'IMAGE' });
+    expect(showtime.titles[0]).toMatchObject({ startSec: 1, motion: { title: 'Gym title' } });
     const podcast = (await second.podcastProjects.list())[0]!;
     expect(podcast).toMatchObject({ voiceReductionBypassed: true, title: 'Gym floor episode', storyIds: [imported.story.id], authorId: (await second.users.list())[0]!.id });
     expect(podcast.clips[0]!.assetId).not.toBe(ingested.assetId);
@@ -86,7 +98,7 @@ describe('portable USB story projects', () => {
     await first.studioProjects.create({ storyId: story.id, project: song });
 
     const exported = await exportPortableStory(first, story);
-    expect(exported.project.version).toBe(6);
+    expect(exported.project.version).toBe(7);
     expect(exported.project.studioProjects).toHaveLength(1);
 
     const second = new MemoryStore('studio-portable-two'); await second.open();
@@ -110,4 +122,33 @@ describe('portable USB story projects', () => {
     const imported = await importPortableStory(second, new Gate(second, DEFAULT_GATE_CONFIG, classifier), new File([exported.blob], exported.fileName));
     expect(imported.story).toMatchObject({ creationRecipeId, workflowStepId });
   });
+});
+
+test('a story moves its pinned Foley version, frozen credits, and editable original bytes', async () => {
+  const { makeSoundProject, emptySoundAttribution } = await import('@chatter/shared');
+  const { saveSoundProject, saveSoundVersion } = await import('../audio/sound-repository.js');
+  const { encodeTakeWav } = await import('../audio/take-audio.js');
+  const first = new MemoryStore(); const gate = new Gate(first, DEFAULT_GATE_CONFIG, classifier);
+  const story = await first.stories.create({ title: 'Sound story' });
+  const original = encodeTakeWav({ channels: [new Float32Array([0, .1, .3, 0])], duration: .0005, sampleRate: 8000 });
+  const source = await gate.ingest({ bytes: original, source: 'recording', ownDevice: true, meta: { kind: 'AUDIO', origin: 'RECORDING', mime: 'audio/wav' } });
+  const library = await first.soundItems.create({ assetId: source.assetId!, name: 'Keys', attribution: { ...emptySoundAttribution(), creator: 'Sam', license: 'CC BY 4.0' }, tags: [], collectionIds: [], favorite: false, archived: false, duration: .0005, peaks: [] });
+  const p = makeSoundProject('Keys cue', story.id); p.credits = 'Sam: recording'; p.clips = [{ id: 'sound-clip', name: 'Keys', trackId: p.tracks[0]!.id, assetId: source.assetId!, libraryItemId: library.id, start: 0, sourceIn: 0, sourceOut: .0005, rate: 1, repeats: 1, gainDb: 0, fadeIn: 0, fadeOut: 0 }];
+  const saved = await saveSoundProject(first, p, 0);
+  const rendered = encodeTakeWav({ channels: [new Float32Array([0, .2, .4, 0])], duration: .0005, sampleRate: 8000 });
+  const item = await saveSoundVersion(first, gate, saved, { bytes: rendered, duration: .0005, peaks: [], peak: .4 });
+  const video = createShowtimeProject({ title: 'News', storyId: story.id }); video.clips = [{ ...makeShowtimeClip({ assetId: item.assetId, name: item.name, durationSec: .0005 }), soundProjectId: saved.id, soundRevisionId: item.revisionId, soundItemId: item.id }]; await first.showtimeProjects.create(video);
+  const exported = await exportPortableStory(first, story); const second = new MemoryStore(); await importPortableStory(second, new Gate(second, DEFAULT_GATE_CONFIG, classifier), new File([exported.blob], 'story.chatter'));
+  const clip = (await second.showtimeProjects.list())[0]!.clips[0]!; const revision = await second.soundRevisions.get(clip.soundRevisionId!);
+  expect(revision?.projectId).toBe(clip.soundProjectId); expect(revision?.assetId).toBe(clip.assetId); expect(revision?.snapshot.credits).toBe('Sam: recording');
+  const originalAsset = await second.assets.get(revision!.snapshot.clips[0]!.assetId!); expect(await second.blobs.get(originalAsset!.sha256)).toEqual(original);
+  expect(revision!.attribution.some(a => a.creator === 'Sam')).toBe(true); expect(originalAsset?.gateStatus).toBe('QUARANTINED');
+  const { default: JSZip } = await import('jszip'); const damaged = await JSZip.loadAsync(await exported.blob.arrayBuffer());
+  const manifest = JSON.parse(await damaged.file('story.chatter.json')!.async('string')); delete manifest.soundPack; damaged.file('story.chatter.json', JSON.stringify(manifest));
+  const missing = new MemoryStore();
+  await expect(importPortableStory(missing, new Gate(missing, DEFAULT_GATE_CONFIG, classifier), new File([await damaged.generateAsync({ type: 'blob' })], 'missing.chatter'))).rejects.toThrow('editable sound attachment');
+  expect(await missing.showtimeProjects.list()).toHaveLength(0);
+  manifest.soundPack = 'sounds.soundpack'; manifest.showtimeProjects[0].clips[0].soundRevisionId = 'unknown-revision'; damaged.file('story.chatter.json', JSON.stringify(manifest));
+  await expect(importPortableStory(missing, new Gate(missing, DEFAULT_GATE_CONFIG, classifier), new File([await damaged.generateAsync({ type: 'blob' })], 'wrong.chatter'))).rejects.toThrow('editable sound attachment');
+
 });

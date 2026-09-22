@@ -269,12 +269,14 @@ export async function newsroomBackup(store: Store, pin: string): Promise<Newsroo
     ...keptSettings
   } = settings as Record<string, unknown>;
 
+  const [soundProjects, soundItems, soundRevisions, soundCollections, soundOperations] = await Promise.all([store.soundProjects.list(), store.soundItems.list(), store.soundRevisions.list(), store.soundCollections.list(), store.soundOperations.list()]);
   return {
     format: 'chatter-newsroom',
     version: 1,
     exportedAt: Date.now(),
     deviceId: store.deviceId,
     records: {
+      soundProjects, soundItems, soundRevisions, soundCollections, soundOperations,
       stories, assets, users, takes, transcripts, credits, appearances, releases,
       roleAssigns, badges, episodes, deliverables, blasts, motionPackages, showtimeProjects,
       podcastShows, podcastProjects, samplerPresets, studioProjects, crewTasks, reviews, events, settings: [keptSettings],

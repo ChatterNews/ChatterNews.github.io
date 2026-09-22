@@ -249,7 +249,7 @@ export function insertShowtimePrimary(project: ShowtimeProject, clip: ShowtimeCl
     const index = next.findIndex((item) => showtimeClipStart({ ...normalized, clips: next }, item) >= at);
     if (index < 0) next.push(inserted); else next.splice(index, 0, inserted);
   }
-  return rebuildClipOrder(normalized, next);
+  return rebuildClipOrder({ ...normalized, titles: normalized.titles.map(title => title.startSec >= at ? { ...title, startSec: title.startSec + showtimeClipDuration(inserted), endSec: title.endSec + showtimeClipDuration(inserted) } : title) }, next);
 }
 
 export function overwriteShowtimePrimary(project: ShowtimeProject, clip: ShowtimeClip, atSequenceSec: number): ShowtimeProject {
@@ -278,7 +278,12 @@ export function rippleDeleteShowtimeClip(project: ShowtimeProject, clipId: strin
   const start = showtimeClipStart(normalized, target); const amount = showtimeClipDuration(target);
   const primary = primaryClips(normalized).filter((clip) => clip.id !== clipId).map((clip) => showtimeClipStart(normalized, clip) > start ? { ...clip, startSec: Math.max(start, showtimeClipStart(normalized, clip) - amount) } : clip);
   const others = normalized.clips.filter((clip) => !isPrimary(clip) && clip.anchorClipId !== clipId);
-  return rebuildClipOrder(normalized, primary, others);
+  const titles = normalized.titles.map(title => {
+    if (title.startSec < start) return title;
+    const nextStart = Math.max(start, title.startSec - amount);
+    return { ...title, startSec: nextStart, endSec: nextStart + title.endSec - title.startSec };
+  });
+  return rebuildClipOrder({ ...normalized, titles }, primary, others);
 }
 
 function reflowPrimary(project: ShowtimeProject, primary: ShowtimeClip[]): ShowtimeProject {

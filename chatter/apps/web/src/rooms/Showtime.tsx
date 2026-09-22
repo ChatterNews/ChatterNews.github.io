@@ -1,8 +1,12 @@
+import { validateSoundLineage } from '../audio/sound-handoff.js';
+import { exportPortableStory } from '../portable/portable-project.js';
+import { VideoMediaReview } from './VideoMediaReview.js';
 import { LoadingStatus } from '../components/LoadingStatus.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
+  videoProjectAssetIds, insertShowtimePrimary, showtimeClipEnd,
   applyShowtimeRecipe, completeRecipeProduction, createShowtimeProject, defaultShowtimeTitle, JobQueue, makeShowtimeClip, newId, saveDeliverable,
   SHOWTIME_FORMATS, showtimeClipDuration, showtimeCutCheck, showtimeDuration, splitShowtimeClip, validateShowtimeProject,
   type Asset, type Credit, type MotionPackage, type ShowtimeClip, type ShowtimeFormat, type ShowtimeProject,
@@ -20,6 +24,7 @@ import { ShowtimeCutWorkspace } from './ShowtimeCutWorkspace.js';
 import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
 import { showtimeReilyFocus, showtimeReilyRecovery } from '../components/reily-room-focus.js';
 import './Showtime.css';
+import './StingerVideo.css';
 
 type Mode = 'ROLL' | 'LIVE' | 'CUT';
 type LiveSource = 'CAMERA' | 'SCREEN' | 'BLACK' | `ASSET:${string}`;
@@ -41,20 +46,49 @@ function drawSource(context: CanvasRenderingContext2D, source: LiveSource, width
   else if (source !== 'BLACK') { context.fillStyle = '#372d49'; context.fillRect(0, 0, width, height); context.fillStyle = '#fff6e4'; context.textAlign = 'center'; context.font = `900 ${Math.max(18, height * .04)}px Nunito`; context.fillText(source === 'CAMERA' ? 'START CAMERA' : source === 'SCREEN' ? 'SHARE A SCREEN' : 'CLIP LOADING', width / 2, height / 2); }
 }
 
-export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User; storyId?: string }) {
+export function Showtime({ stories, me, storyId, editor = false }: { stories: Story[]; me?: User; storyId?: string; editor?: boolean }) {
   const store = useStore(); const { gate } = useGate(); const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>('ROLL'); const [projects, setProjects] = useState<ShowtimeProject[]>([]); const [project, setProject] = useState<ShowtimeProject>();
+  const [searchParams] = useSearchParams(); const requestedProjectId = searchParams.get('project');
+  const [mode, setMode] = useState<Mode>(editor ? 'CUT' : 'ROLL'); const [projects, setProjects] = useState<ShowtimeProject[]>([]); const [project, setProject] = useState<ShowtimeProject>();
   const [assets, setAssets] = useState<Asset[]>([]); const [credits, setCredits] = useState<Credit[]>([]); const [motion, setMotion] = useState<MotionPackage[]>([]); const [transcripts, setTranscripts] = useState<Transcript[]>([]); const [urls, setUrls] = useState<Map<string, string>>(new Map()); const [assetDurations, setAssetDurations] = useState<Map<string, number>>(new Map()); const [assetFrames, setAssetFrames] = useState<Map<string, { width: number; height: number }>>(new Map()); const [availableAssetIds, setAvailableAssetIds] = useState<Set<string>>(); const sourceBytes = useRef<Map<string, ShowtimeSource>>(new Map());
+  const [mediaLoading, setMediaLoading] = useState(false);
   const [dirty, setDirty] = useState(false); const [notice, setNotice] = useState<Notice>(); const [busy, setBusy] = useState(''); const [renderProgress, setRenderProgress] = useState<number>();
   const [selectedAssetId, setSelectedAssetId] = useState<string>(); const [selectedClipId, setSelectedClipId] = useState<string>(); const [selectedTitleId, setSelectedTitleId] = useState<string>(); const [recipePickerOpen, setRecipePickerOpen] = useState(false); const saveTimer = useRef<number>(); const editRevision = useRef(0); const importPicker = useRef<HTMLInputElement>(null);
   const [cutReilyTitleKind, setCutReilyTitleKind] = useState<ShowtimeTitle['kind']>(); const [reilyProblem, setReilyProblem] = useState<'camera' | 'microphone' | 'media' | 'export'>();
   const [previewSource, setPreviewSource] = useState<LiveSource>('CAMERA'); const [programSource, setProgramSource] = useState<LiveSource>('BLACK');
   const hydratedSources = useRef<Map<string, HydratedSource>>(new Map()); const hydrationRevision = useRef(0);
   const initializedFor = useRef<string>();
+  const currentProject = useRef<ShowtimeProject>(); currentProject.current = project;
+  const dirtyProject = useRef(dirty); dirtyProject.current = dirty;
+  const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const importInFlight = useRef(false);
+  const writeProject = useCallback((snapshot: ShowtimeProject) => {
+    const write = saveQueue.current.catch(() => undefined).then(() => store.showtimeProjects.update(snapshot.id, omitBase(snapshot)));
+    saveQueue.current = write; return write;
+  }, [store]);
+  async function flushVideo() {
+    window.clearTimeout(saveTimer.current);
+    const snapshot = currentProject.current; const revision = editRevision.current;
+    if (!snapshot || !dirtyProject.current) { await saveQueue.current; return; }
+    const saved = await writeProject(snapshot);
+    if (currentProject.current?.id === snapshot.id && revision === editRevision.current) { currentProject.current = saved; dirtyProject.current = false; setProject(saved); setDirty(false); setProjects(rows => rows.map(row => row.id === saved.id ? saved : row)); }
+  }
+  async function switchVideo(next: ShowtimeProject) {
+    if (busy || rollRecording || liveRecording || countdown !== undefined) return;
+    setBusy('Saving your video…');
+    try { await flushVideo(); editRevision.current += 1; currentProject.current = next; setProject(next); setSelectedAssetId(undefined); }
+    catch (error) { setNotice({ text: error instanceof Error ? error.message : 'Save failed. Your current video stays open.', error: true }); }
+    finally { setBusy(''); }
+  }
+  async function openOtherApp() {
+    if (!project || busy || rollRecording || liveRecording || countdown !== undefined) return;
+    try { await flushVideo(); navigate(`/${editor ? 'showtime' : 'stinger'}${project.storyId ? `/${encodeURIComponent(project.storyId)}` : ''}?project=${encodeURIComponent(project.id)}`); }
+    catch { setNotice({ text: 'Your video has not finished saving. Retry before changing rooms.', error: true }); }
+  }
 
-  const story = stories.find((item) => item.id === (project?.storyId ?? storyId)) ?? stories[0];
-  const videoAssets = useMemo(() => { const storyIds = new Set(credits.filter((item) => !story || item.storyId === story.id).map((item) => item.assetId)); const clipIds = new Set(project?.clips.map((item) => item.assetId) ?? []); return assets.filter((item) => item.kind === 'VIDEO' && item.gateStatus === 'APPROVED' && (storyIds.has(item.id) || clipIds.has(item.id))); }, [assets, credits, story, project?.clips]);
-  const cutAssets = useMemo(() => { const storyIds = new Set(credits.filter((item) => !story || item.storyId === story.id).map((item) => item.assetId)); const clipIds = new Set(project?.clips.map((item) => item.assetId) ?? []); return assets.filter((item) => (item.kind === 'VIDEO' || item.kind === 'AUDIO') && item.gateStatus === 'APPROVED' && (storyIds.has(item.id) || clipIds.has(item.id))); }, [assets, credits, story, project?.clips]);
+  const story = stories.find((item) => item.id === (project?.storyId ?? storyId)) ;
+  const videoAssets = useMemo(() => { const storyIds = new Set(credits.filter((item) => !story || item.storyId === story.id).map((item) => item.assetId)); const clipIds = new Set(project?.clips.map((item) => item.assetId) ?? []); return assets.filter((item) => item.kind === 'VIDEO' && item.gateStatus === 'APPROVED' && (!story || storyIds.has(item.id) || clipIds.has(item.id))); }, [assets, credits, story, project?.clips]);
+  const cutAssets = useMemo(() => { const storyIds = new Set(credits.filter((item) => !story || item.storyId === story.id).map((item) => item.assetId)); const clipIds = new Set(project?.clips.map((item) => item.assetId) ?? []); return assets.filter((item) => (item.kind === 'VIDEO' || item.kind === 'AUDIO') && item.gateStatus === 'APPROVED' && (!story || storyIds.has(item.id) || clipIds.has(item.id))); }, [assets, credits, story, project?.clips]);
   const selectedClip = project?.clips.find((item) => item.id === selectedClipId); const selectedTitle = project?.titles.find((item) => item.id === selectedTitleId); const duration = project ? showtimeDuration(project) : 0;
   const cutFindings = useMemo(() => project ? showtimeCutCheck(project, { ...(availableAssetIds ? { availableAssetIds } : {}), transcripts }) : [], [project, availableAssetIds, transcripts]);
   useReilyFocus(showtimeReilyFocus({ mode, selectedTitleKind: mode === 'CUT' ? cutReilyTitleKind : undefined }));
@@ -63,17 +97,17 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
   const reload = useCallback(async () => {
     const [saved, media, nextCredits, packages, nextTranscripts] = await Promise.all([store.showtimeProjects.list(), store.assets.list(), store.credits.list(), store.motionPackages.list(), store.transcripts.list()]);
     setProjects(saved.sort((a, b) => b.updatedAt - a.updatedAt)); setAssets(media); setCredits(nextCredits); setMotion(packages); setTranscripts(nextTranscripts);
-    setProject((current) => current ?? saved.find((item) => item.storyId === storyId) ?? saved[0]);
+    setProject((current) => current ?? saved.find((item) => item.id === requestedProjectId) ?? saved.find((item) => storyId && item.storyId === storyId) ?? (!storyId ? saved[0] : undefined));
     return saved;
-  }, [store, storyId]);
+  }, [store, storyId, requestedProjectId]);
 
-  useEffect(() => { const contextKey = storyId ?? 'standalone'; if (initializedFor.current === contextKey) return; initializedFor.current = contextKey; void (async () => { const saved = await reload(); const matching = storyId ? saved.find((item) => item.storyId === storyId) : saved[0]; if (!matching) { const linkedStory = stories.find((item) => item.id === storyId); const draft = createShowtimeProject({ title: linkedStory ? `${linkedStory.title} video` : 'New video', storyId: storyId ?? stories[0]?.id, authorId: me?.id }); const created = await store.showtimeProjects.create(omitBase(draft)); setProjects((rows) => [created, ...rows.filter((item) => item.id !== created.id)]); setProject(created); } else setProject(matching); })(); }, [reload, store, stories, storyId, me?.id]);
-  const workingAssetIds = useMemo(() => showtimeWorkingAssetIds(project, selectedAssetId, previewSource, programSource), [project?.clips, selectedAssetId, previewSource, programSource]);
+  useEffect(() => { const contextKey = `${storyId ?? 'standalone'}:${requestedProjectId ?? ''}`; if (initializedFor.current === contextKey) return; initializedFor.current = contextKey; void (async () => { const saved = await reload(); const matching = saved.find(item => item.id === requestedProjectId) ?? (storyId ? saved.find((item) => item.storyId === storyId) : saved[0]); if (!matching) { const linkedStory = stories.find((item) => item.id === storyId); const draft = createShowtimeProject({ title: linkedStory ? `${linkedStory.title} video` : 'New video', storyId, authorId: me?.id }); const created = await store.showtimeProjects.create(omitBase(draft)); setProjects((rows) => [created, ...rows.filter((item) => item.id !== created.id)]); setProject(created); } else setProject(matching); })().catch(error => { initializedFor.current = undefined; setNotice({ text: error instanceof Error ? error.message : 'Your videos could not open. Reload to retry.', error: true }); }); }, [reload, store, stories, storyId, requestedProjectId, me?.id]);
+  const workingAssetIds = useMemo(() => showtimeWorkingAssetIds(project, selectedAssetId, previewSource, programSource), [project?.clips, project?.titles, selectedAssetId, previewSource, programSource]);
   useEffect(() => {
     const revision = ++hydrationRevision.current;
     const cache = hydratedSources.current;
     for (const [id, source] of cache) {
-      if (workingAssetIds.has(id)) continue;
+      if (workingAssetIds.has(id) && assets.some(asset => asset.id === id && asset.gateStatus === 'APPROVED')) continue;
       URL.revokeObjectURL(source.url);
       cache.delete(id);
     }
@@ -87,16 +121,16 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
       setAvailableAssetIds(new Set(cache.keys()));
     };
 
-    publish();
+    publish(); setMediaLoading(true);
     void (async () => {
-      const wanted = assets.filter((asset) => workingAssetIds.has(asset.id) && (asset.kind === 'VIDEO' || asset.kind === 'AUDIO'));
+      const wanted = assets.filter((asset) => workingAssetIds.has(asset.id) && asset.gateStatus === 'APPROVED' && (asset.kind === 'VIDEO' || asset.kind === 'AUDIO' || asset.kind === 'IMAGE'));
       for (const asset of wanted) {
         if (cache.has(asset.id)) continue;
         const bytes = await store.blobs.get(asset.path);
         if (!bytes || revision !== hydrationRevision.current) continue;
         const blob = new Blob([bytes as unknown as BlobPart], { type: asset.mime });
         const hydrated: HydratedSource = { bytes, mime: asset.mime, url: URL.createObjectURL(blob) };
-        if (asset.kind === 'VIDEO') {
+        if (asset.kind === 'VIDEO' || asset.kind === 'AUDIO') {
           try {
             const info = await videoBlobMetadata(blob);
             hydrated.duration = info.duration;
@@ -107,24 +141,41 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
         cache.set(asset.id, hydrated);
       }
       publish();
-    })();
+    })().catch(() => { if (revision === hydrationRevision.current) setNotice({ text: 'A source could not load. Check the file in Media Bin or import it again.', error: true }); })
+      .finally(() => { if (revision === hydrationRevision.current) setMediaLoading(false); });
   }, [assets, store, workingAssetIds]);
   useEffect(() => () => {
     hydrationRevision.current += 1;
     for (const source of hydratedSources.current.values()) URL.revokeObjectURL(source.url);
     hydratedSources.current.clear();
   }, []);
-  useEffect(() => { if (!dirty || !project) return; window.clearTimeout(saveTimer.current); const revision = editRevision.current; saveTimer.current = window.setTimeout(() => { void store.showtimeProjects.update(project.id, omitBase(project)).then((saved) => { if (revision !== editRevision.current) return; setProject(saved); setDirty(false); setProjects((rows) => rows.map((item) => item.id === saved.id ? saved : item)); }).catch(() => setNotice({ text: 'The video project did not save. Your edit remains in this tab.', error: true })); }, 700); return () => window.clearTimeout(saveTimer.current); }, [dirty, project, store]);
+  useEffect(() => { if (!dirty || !project) return; window.clearTimeout(saveTimer.current); const revision = editRevision.current; saveTimer.current = window.setTimeout(() => { void writeProject(project).then((saved) => { if (revision !== editRevision.current || currentProject.current?.id !== saved.id) return; currentProject.current = saved; dirtyProject.current = false; setProject(saved); setDirty(false); setProjects((rows) => rows.map((item) => item.id === saved.id ? saved : item)); }).catch(() => setNotice({ text: 'The video project did not save. Your edit remains in this tab.', error: true })); }, 700); return () => window.clearTimeout(saveTimer.current); }, [dirty, project, writeProject]);
 
-  function commit(recipe: (draft: ShowtimeProject) => void) { editRevision.current += 1; setProject((current) => { if (!current) return current; const next = structuredClone(current); recipe(next); next.updatedAt = Date.now(); return next; }); setDirty(true); }
-  async function newProject() { const draft = createShowtimeProject({ title: story ? `${story.title} video` : 'New video', storyId: story?.id, authorId: me?.id }); const saved = await store.showtimeProjects.create(omitBase(draft)); setProjects((rows) => [saved, ...rows]); setProject(saved); setSelectedClipId(undefined); setSelectedTitleId(undefined); setRecipePickerOpen(true); setMode('CUT'); }
-  function chooseRecipe(recipeId: ShowtimeRecipeId) { commit((draft) => Object.assign(draft, applyShowtimeRecipe(draft, recipeId))); setRecipePickerOpen(false); setMode('CUT'); }
+  function commit(recipe: (draft: ShowtimeProject) => void) { const current = currentProject.current; if (!current) return; const next = structuredClone(current); recipe(next); next.updatedAt = Date.now(); editRevision.current += 1; currentProject.current = next; dirtyProject.current = true; setProject(next); setDirty(true); }
+  async function newProject() {
+    if (busy || rollRecording || liveRecording || countdown !== undefined) return;
+    setBusy('Opening a new video…');
+    try {
+      await flushVideo();
+      const draft = createShowtimeProject({ title: story ? `${story.title} video` : 'New video', storyId: story?.id, authorId: me?.id });
+      const saved = await store.showtimeProjects.create(omitBase(draft));
+      editRevision.current += 1; currentProject.current = saved;
+      setProjects(rows => [saved, ...rows]); setProject(saved); setSelectedClipId(undefined); setSelectedTitleId(undefined); setRecipePickerOpen(true);
+    } catch { setNotice({ text: 'The new video could not open. Your current video stays here; retry saving.', error: true }); }
+    finally { setBusy(''); }
+  }
+  function chooseRecipe(recipeId: ShowtimeRecipeId) { commit((draft) => Object.assign(draft, applyShowtimeRecipe(draft, recipeId))); setRecipePickerOpen(false); }
 
   useSessionCheckpoint(store, async () => {
-    if (busy || rollRecording || liveRecording || countdown !== undefined) throw new Error('Stop and save the Showtime recording or wait for its current job, then retry.');
+    if ((busy && busy !== 'Saving story and media…') || rollRecording || liveRecording || countdown !== undefined) throw new Error('Stop and save the Showtime recording or wait for its current job, then retry.');
     window.clearTimeout(saveTimer.current);
-    if (project && dirty) { const saved = await store.showtimeProjects.update(project.id, omitBase(project)); setProject(saved); setDirty(false); }
+    await flushVideo();
   });
+
+  useEffect(() => () => {
+    window.clearTimeout(saveTimer.current);
+    if (currentProject.current && dirtyProject.current) void writeProject(currentProject.current).catch(() => undefined);
+  }, [writeProject]);
 
   const cameraVideo = useRef<HTMLVideoElement>(null); const screenVideo = useRef<HTMLVideoElement>(null); const cameraStream = useRef<MediaStream>(); const screenStream = useRef<MediaStream>(); const startingCamera = useRef<Promise<void>>(); const startingMicrophone = useRef<Promise<void>>(); const cameraRequestId = useRef(0); const microphoneRequestId = useRef(0);
   const [cameraState, setCameraState] = useState<'OFF' | 'ASKING' | 'READY'>('OFF'); const [microphoneState, setMicrophoneState] = useState<'OFF' | 'ASKING' | 'READY'>('OFF'); const [devices, setDevices] = useState<MediaDeviceInfo[]>([]); const [cameraId, setCameraId] = useState(''); const [microphoneId, setMicrophoneId] = useState(''); const [mirror, setMirror] = useState(true); const [guides, setGuides] = useState(true); const [countIn, setCountIn] = useState(3); const [countdown, setCountdown] = useState<number>();
@@ -175,16 +226,36 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
 
   async function saveVideo(blob: Blob, name: string, origin: 'RECORDING' | 'UPLOAD', addToCut = true) {
     if (!project) return; setBusy('Saving video…'); setNotice(undefined); setReilyProblem(undefined);
-    try { const bytes = new Uint8Array(await blob.arrayBuffer()); const info = await videoBlobMetadata(blob); const durationSec = info.duration; const result = await gate.ingest({ source: origin === 'RECORDING' ? 'recording' : 'upload', bytes, ownDevice: origin === 'RECORDING', meta: { kind: 'VIDEO', mime: blob.type || 'video/webm', origin, storyId: project.storyId, actor: me?.id } }); if (!result.assetId) throw new Error('The video could not enter the project.');
+    try { const bytes = new Uint8Array(await blob.arrayBuffer()); const info = await videoBlobMetadata(blob); const durationSec = info.duration; const result = await gate.ingest({ source: origin === 'RECORDING' ? 'recording' : 'upload', bytes, ownDevice: origin === 'RECORDING', meta: { kind: 'VIDEO', mime: blob.type || 'video/webm', origin, storyId: project.storyId, actor: me?.id, creator: name } }); if (!result.assetId) throw new Error('The video could not enter the project.');
       if (result.status !== 'APPROVED') { await reload(); setNotice({ text: `${name} is saved but waits for an adviser’s media check before editing.`, error: false }); return; }
       const extension = blob.type.includes('mp4') ? 'mp4' : 'webm'; await saveDeliverable(store, { bytes, title: name, fileName: `${safeName(name)}.${extension}`, kind: 'VIDEO', room: 'SHOWTIME', stage: 'WORKING', mime: blob.type || 'video/webm', storyId: project.storyId, authorId: me?.id, sourceAssetId: result.assetId, durationSec, width: project.width, height: project.height });
       await new JobQueue(store).enqueue('transcribe', { assetId: result.assetId, ...(project.storyId ? { storyId: project.storyId } : {}) }).catch(() => undefined);
-      await reload(); if (addToCut) { const clip = makeShowtimeClip({ assetId: result.assetId, name, durationSec, width: info.width, height: info.height }); commit((draft) => draft.clips.push(clip)); setSelectedClipId(clip.id); }
+      await reload(); if (addToCut) { const clip = makeShowtimeClip({ assetId: result.assetId, name, durationSec, width: info.width, height: info.height }); commit((draft) => Object.assign(draft, insertShowtimePrimary(draft, clip, draft.clips.filter(item => !item.trackId || item.trackId === 'v1').reduce((end, item) => Math.max(end, showtimeClipEnd(draft, item)), 0)))); setSelectedClipId(clip.id); }
       setNotice({ text: `${name} saved to the Media Bin, added to Cut, and queued for a word-boundary check.` });
     } catch (error) {
       setReilyProblem('media');
       setNotice({ text: error instanceof Error ? error.message : 'That video could not be read or saved.', error: true });
     } finally { setBusy(''); }
+  }
+
+  async function importSources(files: File[]) {
+    if (!project || busy || importInFlight.current) return;
+    importInFlight.current = true;
+    try {
+      for (const file of files.slice(0, 30)) {
+        if (file.type.startsWith('audio/')) {
+          setBusy(`Importing ${file.name}…`);
+          try {
+            if (!file.size || file.size > 100 * 1024 * 1024) throw new Error('Choose audio under 100 MB.');
+            const result = await gate.ingest({ source: 'upload', bytes: new Uint8Array(await file.arrayBuffer()), meta: { kind: 'AUDIO', mime: file.type, origin: 'UPLOAD', storyId: project.storyId, actor: me?.id, creator: file.name, license: 'OWN' } });
+            if (!result.assetId) throw new Error('This sound could not be imported.');
+            setNotice({ text: `${file.name} saved. ${result.status === 'APPROVED' ? 'Choose it in the media bin.' : 'An adviser can review it below.'}` });
+          } catch (error) { setNotice({ text: error instanceof Error ? error.message : 'This sound could not be imported.', error: true }); }
+          finally { setBusy(''); }
+        } else await importVideo(file);
+      }
+      await reload();
+    } finally { importInFlight.current = false; if (importPicker.current) importPicker.current.value = ''; }
   }
 
   async function startRoll() {
@@ -219,7 +290,7 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
   const cutVideo = useRef<HTMLVideoElement>(null); const [sequencePlaying, setSequencePlaying] = useState(false); const [sequenceIndex, setSequenceIndex] = useState(0); const [playhead, setPlayhead] = useState(0); const currentSequenceClip = project?.clips[sequenceIndex];
   useEffect(() => { if (!sequencePlaying || !currentSequenceClip || !cutVideo.current) return; const video = cutVideo.current; video.src = urls.get(currentSequenceClip.assetId) ?? ''; video.playbackRate = currentSequenceClip.speed; video.volume = currentSequenceClip.muted ? 0 : currentSequenceClip.volume; const ready = () => { video.currentTime = currentSequenceClip.trimInSec; void video.play(); }; if (video.readyState >= 1) ready(); else video.addEventListener('loadedmetadata', ready, { once: true }); return () => video.removeEventListener('loadedmetadata', ready); }, [sequencePlaying, currentSequenceClip, urls]);
   function updateSequenceTime() { const video = cutVideo.current; const clip = currentSequenceClip; if (!video || !clip || !project) return; const before = project.clips.slice(0, sequenceIndex).reduce((sum, item, index) => sum + showtimeClipDuration(item) - (index ? item.transitionSec : 0), 0); setPlayhead(before + Math.max(0, (video.currentTime - clip.trimInSec) / clip.speed)); if (sequencePlaying && video.currentTime >= clip.trimOutSec - .02) { if (sequenceIndex < project.clips.length - 1) setSequenceIndex((value) => value + 1); else { setSequencePlaying(false); setSequenceIndex(0); } } }
-  function addAsset(asset: Asset) { const durationSec = assetDurations.get(asset.id) ?? 5; const frame = assetFrames.get(asset.id); const clip = makeShowtimeClip({ assetId: asset.id, name: asset.creator || `Shot ${project?.clips.length ? project.clips.length + 1 : 1}`, durationSec, ...(frame ? frame : {}) }); commit((draft) => draft.clips.push(clip)); setSelectedClipId(clip.id); setSelectedAssetId(asset.id); }
+  function addAsset(asset: Asset) { const durationSec = assetDurations.get(asset.id) ?? 5; const frame = assetFrames.get(asset.id); const clip = makeShowtimeClip({ assetId: asset.id, name: asset.creator || `Shot ${project?.clips.length ? project.clips.length + 1 : 1}`, durationSec, ...(frame ? frame : {}) }); commit((draft) => Object.assign(draft, insertShowtimePrimary(draft, clip, draft.clips.filter(item => !item.trackId || item.trackId === 'v1').reduce((end, item) => Math.max(end, showtimeClipEnd(draft, item)), 0)))); setSelectedClipId(clip.id); setSelectedAssetId(asset.id); }
   function updateClip(patch: Partial<ShowtimeClip>) { if (!selectedClipId) return; commit((draft) => { const clip = draft.clips.find((item) => item.id === selectedClipId); if (clip) Object.assign(clip, patch); }); }
   function updateTitle(patch: Partial<ShowtimeTitle>) { if (!selectedTitleId) return; commit((draft) => { const title = draft.titles.find((item) => item.id === selectedTitleId); if (title) Object.assign(title, patch); }); }
 
@@ -227,10 +298,16 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
     if (!project) return; const problems = validateShowtimeProject(project); if (problems.length) { setNotice({ text: problems.join(' '), error: true }); return; } const blockers = cutFindings.filter((finding) => finding.severity === 'BLOCKING'); if (blockers.length) { setNotice({ text: blockers.map((finding) => finding.message).join(' '), error: true }); return; } setReilyProblem(undefined); setRenderProgress(0); setBusy('Rendering in real time… keep this tab open.');
     try {
       const needed = new Map<string, ShowtimeSource>();
-      for (const id of new Set(project.clips.map((item) => item.assetId))) {
-        const source = sourceBytes.current.get(id); if (source) needed.set(id, source);
+      await flushVideo();
+      await validateSoundLineage(store, project.clips);
+      for (const id of videoProjectAssetIds(project)) {
+        const asset = await store.assets.get(id);
+        if (!asset || asset.gateStatus !== 'APPROVED') throw new Error('An adviser must approve every video, sound and graphic image before export.');
+        const bytes = await store.blobs.get(asset.path); if (!bytes) throw new Error('A source file is missing. Restore it before exporting.');
+        needed.set(id, { bytes, mime: asset.mime });
       }
       const blob = await renderShowtimeSequence({ project, sources: needed, onProgress: setRenderProgress });
+      setRenderProgress(undefined); setBusy('Saving the finished video…');
       const bytes = new Uint8Array(await blob.arrayBuffer());
       const gateResult = await gate.ingest({ source: 'generated', bytes, ownDevice: true, meta: { kind: 'VIDEO', mime: blob.type || 'video/webm', origin: 'GENERATED', storyId: project.storyId, actor: me?.id } });
       const extension = blob.type.includes('mp4') ? 'mp4' : 'webm';
@@ -246,34 +323,35 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
     finally { setRenderProgress(undefined); setBusy(''); }
   }
   async function exportPackage() {
-    if (!project) return;
-    setNotice(undefined); setReilyProblem(undefined);
+    if (!project || !story || busy) return;
+    setBusy('Saving story and media…'); setNotice(undefined);
     try {
-      const bytes = new TextEncoder().encode(JSON.stringify({ format: 'chatter-showtime', version: 1, project }, null, 2)); const fileName = `${safeName(project.title)}.showtime.json`;
-      await saveDeliverable(store, { bytes, title: `${project.title} · editable cut`, fileName, kind: 'PACKAGE', room: 'SHOWTIME', stage: 'WORKING', mime: 'application/json', storyId: project.storyId, authorId: me?.id, sourceProjectId: project.id });
-      download(new Blob([bytes as unknown as BlobPart], { type: 'application/json' }), fileName); setNotice({ text: 'Editable Showtime package saved to the Media Bin and downloaded.' });
-    } catch (error) {
-      setReilyProblem('export');
-      setNotice({ text: error instanceof Error ? error.message : 'The editable video package did not save.', error: true });
-    }
+      await flushVideo();
+      const saved = await exportPortableStory(store, story);
+      download(saved.blob, saved.fileName);
+      setNotice({ text: 'Story, editable video, graphics, and source media downloaded. Open this .chatter file through Story Drive on another device.' });
+    } catch (error) { setNotice({ text: error instanceof Error ? error.message : 'The story file did not save. Your video stays here.', error: true }); }
+    finally { setBusy(''); }
   }
 
   useEffect(() => () => { cameraRequestId.current += 1; microphoneRequestId.current += 1; stopShowtimeStream(cameraStream.current); stopShowtimeStream(screenStream.current); window.clearInterval(recordTimer.current); window.clearInterval(liveTimer.current); }, []);
   useEffect(() => { if (mode !== 'CUT' || !project || project.clips.every((clip) => transcripts.some((item) => item.assetId === clip.assetId))) return; const timer = window.setInterval(() => { void store.transcripts.list().then(setTranscripts); }, 4000); return () => window.clearInterval(timer); }, [mode, project, store, transcripts]);
-  if (!project) return <section className="view on showtime-room"><div className="newsroom-empty"><h1>Loading video studio…</h1></div></section>;
+  if (!project) return notice?.error ? <div role="alert"><p>{notice.text}</p><button onClick={() => window.location.reload()}>Retry opening videos</button></div> : <LoadingStatus label="Opening your video projects…" />;
   const format = SHOWTIME_FORMATS[project.format]; const overlayPackages = motion.filter((item) => !story || !item.storyId || item.storyId === story.id); const deliveryChecks = validateShowtimeProject(project).length + cutFindings.length; const cutBlocked = cutFindings.some((finding) => finding.severity === 'BLOCKING'); const legacyCut: boolean = false;
 
-  return <section className="view on showtime-room">
-    <header className="showtime-head"><div><span>SHOWTIME</span><h1>Video studio</h1><p>Record cameras, switch the programme, and edit the final cut.</p></div><div className="showtime-project-controls"><label>Project<select value={project.id} onChange={(event) => { const next = projects.find((item) => item.id === event.target.value); if (next) setProject(next); }}>{projects.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label><button onClick={() => void newProject()}>＋ New</button><button onClick={() => navigate('/files')}>▣ Media Bin</button></div></header>
-    <div className="showtime-project-strip"><input aria-label="Video project title" value={project.title} onChange={(event) => commit((draft) => { draft.title = event.target.value; })} /><label>Story<select value={project.storyId ?? ''} onChange={(event) => commit((draft) => { draft.storyId = event.target.value || undefined; })}><option value="">Standalone</option>{stories.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label><label>Frame<select value={project.format} onChange={(event) => commit((draft) => { const next = SHOWTIME_FORMATS[event.target.value as ShowtimeFormat]; draft.format = event.target.value as ShowtimeFormat; draft.width = next.width; draft.height = next.height; })}>{Object.entries(SHOWTIME_FORMATS).map(([id, item]) => <option key={id} value={id}>{item.label}</option>)}</select></label><span>{dirty ? 'Saving…' : '✓ Saved here'}</span></div>
-    {(!project.programPlan || recipePickerOpen) ? <ShowtimeRecipePicker onChoose={chooseRecipe} /> : <ShowtimeRundownRail project={project} onChangeRecipe={() => setRecipePickerOpen(true)} />}
-    <div className="modes" role="tablist" aria-label="Showtime workspace">{([['ROLL', '◉', 'Roll', 'Shoot'], ['LIVE', '⌁', 'Live', 'Switch'], ['CUT', '✂', 'Cut', 'Edit']] as const).map(([id, icon, label, sub]) => <button className="mode" role="tab" aria-selected={mode === id} aria-pressed={mode === id} key={id} onClick={() => setMode(id)}><b>{icon}</b><span>{label}<small>{sub}</small></span></button>)}</div>
+  return <section className={`view on showtime-room ${editor ? 'stinger-video-room' : 'showtime-capture-room'}`}>
+    <header className="showtime-head"><div><span>{editor ? 'STINGER' : 'SHOWTIME'}</span><h1>{editor ? 'Make your video' : 'Record the show'}</h1><p>{editor ? 'Footage, sound, titles, and graphics — one timeline, one finished video.' : 'Record cameras and live programmes. Continue the edit in Stinger.'}</p></div><div className="showtime-project-controls"><label>Project<select disabled={!!busy || rollRecording || liveRecording} value={project.id} onChange={(event) => { const next = projects.find((item) => item.id === event.target.value); if (next) void switchVideo(next); }}>{projects.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label><button disabled={!!busy || rollRecording || liveRecording} onClick={() => void newProject()}>New video</button><button disabled={!!busy || rollRecording || liveRecording || countdown !== undefined} onClick={() => void openOtherApp()}>{editor ? 'Record in Showtime' : 'Edit in Stinger'}</button><button onClick={() => navigate('/files')}>▣ Media Bin</button></div></header>
+    <fieldset disabled={!!busy || rollRecording || liveRecording} className="showtime-project-strip"><input aria-label="Video project title" value={project.title} onChange={(event) => commit((draft) => { draft.title = event.target.value; })} /><label>Story<select value={project.storyId ?? ''} onChange={(event) => commit((draft) => { draft.storyId = event.target.value || undefined; })}><option value="">Standalone</option>{stories.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label><label>Frame<select value={project.format} onChange={(event) => commit((draft) => { const next = SHOWTIME_FORMATS[event.target.value as ShowtimeFormat]; draft.format = event.target.value as ShowtimeFormat; draft.width = next.width; draft.height = next.height; })}>{Object.entries(SHOWTIME_FORMATS).map(([id, item]) => <option key={id} value={id}>{item.label}</option>)}</select></label><span>{dirty ? 'Saving…' : 'Saved here'}</span></fieldset>
+    {editor && <details className="video-plan"><summary>Plan the video · choose a format and story structure</summary>{(!project.programPlan || recipePickerOpen) ? <ShowtimeRecipePicker onChoose={chooseRecipe} /> : <ShowtimeRundownRail project={project} onChangeRecipe={() => setRecipePickerOpen(true)} />}</details>}
+    {!editor && <div className="modes" role="tablist" aria-label="Showtime workspace">{([['ROLL', '◉', 'Roll', 'Shoot'], ['LIVE', '⌁', 'Live', 'Switch']] as const).map(([id, icon, label, sub]) => <button className="mode" role="tab" aria-selected={mode === id} aria-pressed={mode === id} key={id} onClick={() => setMode(id)}><b>{icon}</b><span>{label}<small>{sub}</small></span></button>)}</div>}
     {notice && <div className={`showtime-notice ${notice.error ? 'error' : ''}`} role={notice.error ? 'alert' : 'status'}><span>{notice.text}</span><button onClick={() => setNotice(undefined)}>×</button></div>}
     {busy && <LoadingStatus label={busy} progress={renderProgress} />}
+    {editor && <><div className="video-workflow"><b>1 · Bring your media</b><span>2 · Cut the story</span><span>3 · Add graphics + sound</span><span>4 · Review + export</span></div><input ref={importPicker} hidden type="file" multiple accept="video/*,audio/*" onChange={event => void importSources(Array.from(event.target.files ?? []))} /><VideoMediaReview assets={assets.filter(asset => asset.gateStatus === 'QUARANTINED' && (asset.kind === 'VIDEO' || asset.kind === 'AUDIO') && (!project.storyId || credits.some(credit => credit.assetId === asset.id && credit.storyId === project.storyId)))} me={me} onChanged={async () => { await reload(); setNotice({ text: "Approved media is ready. Choose it in the bin and add the part you want to a track." }); }} /></>}
+
 
     {mode === 'ROLL' && <div className="showtime-roll">
       <div className="showtime-camera-stage" style={{ aspectRatio: `${format.width}/${format.height}` }}><video ref={cameraVideo} muted playsInline className={mirror ? 'mirror' : ''} />{guides && <div className="showtime-guides" />}{cameraState !== 'READY' && <button disabled={cameraState === 'ASKING'} onClick={() => void startCamera()}>{cameraState === 'ASKING' ? 'Opening camera…' : 'Start camera'}</button>}{countdown && <strong className="showtime-countdown">{countdown}</strong>}{rollRecording && <span className="showtime-rec">● REC {time(recordSeconds)}</span>}</div>
-      <aside className="showtime-camera-panel"><span className="showtime-kicker">CAMERA SETUP</span><h2>Frame it before you roll.</h2><div className="showtime-device-state"><span className={cameraState === 'READY' ? 'on' : ''}>{cameraState === 'ASKING' ? '◌' : cameraState === 'READY' ? '●' : '○'} Camera</span><span className={microphoneState === 'READY' ? 'on' : ''}>{microphoneState === 'ASKING' ? '◌' : microphoneState === 'READY' ? '●' : '○'} Microphone</span></div><label>Camera<select disabled={cameraState === 'ASKING'} value={cameraId} onChange={(event) => setCameraId(event.target.value)}><option value="">Browser default</option>{devices.filter((item) => item.kind === 'videoinput').map((item, index) => <option key={item.deviceId} value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>)}</select></label><label>Microphone<select disabled={microphoneState === 'ASKING'} value={microphoneId} onChange={(event) => setMicrophoneId(event.target.value)}><option value="">Browser default</option>{devices.filter((item) => item.kind === 'audioinput').map((item, index) => <option key={item.deviceId} value={item.deviceId}>{item.label || `Microphone ${index + 1}`}</option>)}</select></label><div className="showtime-checks"><label><input type="checkbox" checked={mirror} onChange={(event) => setMirror(event.target.checked)} /> Mirror preview</label><label><input type="checkbox" checked={guides} onChange={(event) => setGuides(event.target.checked)} /> Composition guides</label></div><label>Count-in<select value={countIn} onChange={(event) => setCountIn(Number(event.target.value))}><option value={0}>None</option><option value={3}>3 seconds</option><option value={5}>5 seconds</option></select></label><div className="showtime-device-buttons"><button disabled={cameraState === 'ASKING'} onClick={() => void startCamera()}>↻ Check camera</button><button disabled={cameraState !== 'READY' || microphoneState === 'ASKING'} onClick={() => void startMicrophone()}>{microphoneState === 'ASKING' ? 'Opening microphone…' : microphoneState === 'READY' ? '↻ Check microphone' : '＋ Start microphone'}</button></div><button className={rollRecording ? 'danger' : 'primary'} disabled={!!busy || cameraState !== 'READY'} onClick={() => rollRecording ? stopRoll() : void startRoll()}>{rollRecording ? '■ Stop + save take' : microphoneState === 'READY' ? '● Record take' : '● Record picture-only take'}</button><hr/><input ref={importPicker} hidden type="file" accept="video/*,.mp4,.mov,.webm,.m4v" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importVideo(file); }} /><button onClick={() => importPicker.current?.click()}>Import footage</button><small>Camera takes go straight to Cut. Imported footage waits for the same adviser media check used everywhere else.</small></aside>
+      <aside className="showtime-camera-panel"><span className="showtime-kicker">CAMERA SETUP</span><h2>Frame it before you roll.</h2><div className="showtime-device-state"><span className={cameraState === 'READY' ? 'on' : ''}>{cameraState === 'ASKING' ? '◌' : cameraState === 'READY' ? '●' : '○'} Camera</span><span className={microphoneState === 'READY' ? 'on' : ''}>{microphoneState === 'ASKING' ? '◌' : microphoneState === 'READY' ? '●' : '○'} Microphone</span></div><label>Camera<select disabled={cameraState === 'ASKING'} value={cameraId} onChange={(event) => setCameraId(event.target.value)}><option value="">Browser default</option>{devices.filter((item) => item.kind === 'videoinput').map((item, index) => <option key={item.deviceId} value={item.deviceId}>{item.label || `Camera ${index + 1}`}</option>)}</select></label><label>Microphone<select disabled={microphoneState === 'ASKING'} value={microphoneId} onChange={(event) => setMicrophoneId(event.target.value)}><option value="">Browser default</option>{devices.filter((item) => item.kind === 'audioinput').map((item, index) => <option key={item.deviceId} value={item.deviceId}>{item.label || `Microphone ${index + 1}`}</option>)}</select></label><div className="showtime-checks"><label><input type="checkbox" checked={mirror} onChange={(event) => setMirror(event.target.checked)} /> Mirror preview</label><label><input type="checkbox" checked={guides} onChange={(event) => setGuides(event.target.checked)} /> Composition guides</label></div><label>Count-in<select value={countIn} onChange={(event) => setCountIn(Number(event.target.value))}><option value={0}>None</option><option value={3}>3 seconds</option><option value={5}>5 seconds</option></select></label><div className="showtime-device-buttons"><button disabled={cameraState === 'ASKING'} onClick={() => void startCamera()}>↻ Check camera</button><button disabled={cameraState !== 'READY' || microphoneState === 'ASKING'} onClick={() => void startMicrophone()}>{microphoneState === 'ASKING' ? 'Opening microphone…' : microphoneState === 'READY' ? '↻ Check microphone' : '＋ Start microphone'}</button></div><button className={rollRecording ? 'danger' : 'primary'} disabled={!!busy || cameraState !== 'READY'} onClick={() => rollRecording ? stopRoll() : void startRoll()}>{rollRecording ? '■ Stop + save take' : microphoneState === 'READY' ? '● Record take' : '● Record picture-only take'}</button><hr/><input ref={importPicker} hidden type="file" accept="video/*,.mp4,.mov,.webm,.m4v" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importVideo(file); }} /><button onClick={() => importPicker.current?.click()}>Import footage</button><small>Camera takes go straight to your Stinger timeline. Imported footage waits for the same adviser media check used everywhere else.</small></aside>
     </div>}
 
     {mode === 'LIVE' && <div className="showtime-live">
@@ -284,8 +362,8 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
       </div>{videoAssets.map((asset) => <video key={asset.id} ref={(node) => { if (node) liveAssetVideos.current.set(asset.id, node); else liveAssetVideos.current.delete(asset.id); }} src={urls.get(asset.id)} muted loop playsInline hidden />)}<video ref={cameraVideo} muted playsInline hidden /><video ref={screenVideo} muted playsInline hidden />
     </div>}
 
-    {mode === 'CUT' && <><ShowtimeCutWorkspace project={project} assets={cutAssets} urls={urls} assetDurations={assetDurations} assetFrames={assetFrames} findings={cutFindings} storyTitle={story?.title} byline={me?.penName} onCommit={commit} onShoot={() => setMode('ROLL')} onNotice={setNotice} onReilyFocusChange={setCutReilyTitleKind} />
-      <footer className="showtime-deliver"><div><span>DELIVER</span><b>{deliveryChecks ? `${deliveryChecks} check${deliveryChecks === 1 ? '' : 's'} left` : 'Ready to render'}</b><small>WebM · {project.width}×{project.height} · sound included · {time(duration)}</small></div><button onClick={() => void exportPackage()}>Save editable package</button><button disabled={!!busy || cutBlocked} onClick={() => void exportProject(true, false)}>Export final WebM</button><button className="primary" disabled={!!busy || !project.storyId || cutBlocked} onClick={() => void exportProject(false, true)}>Render + send to Green Light →</button></footer></>}
+    {mode === 'CUT' && <><ShowtimeCutWorkspace mediaLoading={mediaLoading} initialGraphicId={searchParams.get("graphic") ?? undefined} key={project.id} project={project} assets={cutAssets} urls={urls} assetDurations={assetDurations} assetFrames={assetFrames} findings={cutFindings} storyTitle={story?.title} byline={me?.penName} onCommit={commit} onShoot={() => void openOtherApp()} onImport={() => importPicker.current?.click()} onSourceSelected={setSelectedAssetId} onFlush={flushVideo} onReload={reload} busy={!!busy} stories={stories} me={me} onNotice={setNotice} onReilyFocusChange={setCutReilyTitleKind} />
+      <footer className="showtime-deliver"><div><span>DELIVER</span><b>{deliveryChecks ? `${deliveryChecks} check${deliveryChecks === 1 ? '' : 's'} left` : 'Ready to render'}</b><small>WebM · {project.width}×{project.height} · sound included · {time(duration)}</small></div><button disabled={!!busy || !story} title={story ? "Download the editable story with its source media" : "Choose a story above to save a portable file with media"} onClick={() => void exportPackage()}>Save story + media</button><button disabled={!!busy || cutBlocked} onClick={() => void exportProject(true, false)}>Export final WebM</button><button className="primary" disabled={!!busy || !project.storyId || cutBlocked} onClick={() => void exportProject(false, true)}>Render + send to Green Light →</button></footer></>}
 
     {legacyCut && mode === 'CUT' && <div className="showtime-cut">
       <div className="showtime-cut-top"><aside className="showtime-bin"><header><div><span className="showtime-kicker">MEDIA</span><h2>Story bin</h2></div><button onClick={() => setMode('ROLL')}>＋ Shoot</button></header>{videoAssets.length ? <div>{videoAssets.map((asset, index) => <button key={asset.id} aria-pressed={selectedAssetId === asset.id} onClick={() => setSelectedAssetId(asset.id)}><span>▶</span><div><b>{asset.creator || `Story shot ${index + 1}`}</b><small>{Math.round(asset.bytes / 1024)} KB · {asset.origin.toLowerCase()}</small></div></button>)}</div> : <p className="showtime-empty-small">Shoot a take in Roll or import footage.</p>}</aside>
@@ -296,9 +374,9 @@ export function Showtime({ stories, me, storyId }: { stories: Story[]; me?: User
       <div className="showtime-timeline"><div className="showtime-track-labels"><b>V1</b><span>Picture + sound</span><b>G1</b><span>Titles</span></div><div className="showtime-tracks"><div className="showtime-video-track">{project.clips.map((clip, index) => <button key={clip.id} aria-pressed={selectedClipId === clip.id} style={{ flexGrow: Math.max(1, showtimeClipDuration(clip)) }} onClick={() => { setSelectedClipId(clip.id); setSelectedTitleId(undefined); setSequenceIndex(index); }}><small>{index + 1}</small><b>{clip.name}</b><span>{time(showtimeClipDuration(clip))}</span></button>)}</div><div className="showtime-title-track">{project.titles.map((title) => <button key={title.id} aria-pressed={selectedTitleId === title.id} style={{ marginLeft: `${duration ? title.startSec / duration * 100 : 0}%`, width: `${duration ? Math.max(4, (title.endSec - title.startSec) / duration * 100) : 12}%`, background: title.background, color: title.color }} onClick={() => { setSelectedTitleId(title.id); setSelectedClipId(undefined); }}>{title.text}</button>)}</div></div></div>
       <ShowtimeCutCheck findings={cutFindings} onSelect={(finding: ShowtimeCutFinding) => { if (finding.clipId) { setSelectedClipId(finding.clipId); setSelectedTitleId(undefined); const index = project.clips.findIndex((clip) => clip.id === finding.clipId); if (index >= 0) setSequenceIndex(index); } else if (finding.titleId) { setSelectedTitleId(finding.titleId); setSelectedClipId(undefined); } else if (finding.railId) { const rail = project.programPlan?.rails.find((item) => item.id === finding.railId); setPlayhead(Math.min(duration, rail?.startSec ?? duration)); setSequenceIndex(Math.max(0, project.clips.length - 1)); } }} />
       <div className="showtime-inspector">{selectedClip ? <><header><span>SHOT INSPECTOR</span><h2>{selectedClip.name}</h2></header><div className="showtime-inspector-grid"><label>Name<input value={selectedClip.name} onChange={(event) => updateClip({ name: event.target.value })} /></label><label>In point<input type="number" min={0} max={selectedClip.trimOutSec - .04} step={.04} value={Number(selectedClip.trimInSec.toFixed(2))} onChange={(event) => updateClip({ trimInSec: Number(event.target.value) })} /></label><label>Out point<input type="number" min={selectedClip.trimInSec + .04} max={selectedClip.sourceDurationSec} step={.04} value={Number(selectedClip.trimOutSec.toFixed(2))} onChange={(event) => updateClip({ trimOutSec: Number(event.target.value) })} /></label><label>Speed<select value={selectedClip.speed} onChange={(event) => updateClip({ speed: Number(event.target.value) })}><option value={.5}>50%</option><option value={.75}>75%</option><option value={1}>100%</option><option value={1.25}>125%</option><option value={1.5}>150%</option><option value={2}>200%</option></select></label><label>Volume<input type="range" min={0} max={1.5} step={.05} value={selectedClip.volume} disabled={selectedClip.muted} onChange={(event) => updateClip({ volume: Number(event.target.value) })} /></label><label>Transition<select value={selectedClip.transition} onChange={(event) => updateClip({ transition: event.target.value as ShowtimeClip['transition'], transitionSec: event.target.value === 'CUT' ? 0 : Math.max(.25, selectedClip.transitionSec) })}><option value="CUT">Cut</option><option value="DISSOLVE">Dissolve</option><option value="DIP_BLACK">Dip to black</option></select></label><label>Transition seconds<input type="number" min={0} max={2} step={.05} disabled={selectedClip.transition === 'CUT'} value={selectedClip.transitionSec} onChange={(event) => updateClip({ transitionSec: Number(event.target.value) })} /></label><label className="showtime-toggle"><input type="checkbox" checked={selectedClip.muted} onChange={(event) => updateClip({ muted: event.target.checked })} /> Mute shot</label></div><div className="showtime-order"><button disabled={project.clips[0]?.id === selectedClip.id} onClick={() => commit((draft) => { const index = draft.clips.findIndex((item) => item.id === selectedClip.id); [draft.clips[index - 1], draft.clips[index]] = [draft.clips[index]!, draft.clips[index - 1]!]; })}>← Earlier</button><button disabled={project.clips.at(-1)?.id === selectedClip.id} onClick={() => commit((draft) => { const index = draft.clips.findIndex((item) => item.id === selectedClip.id); [draft.clips[index], draft.clips[index + 1]] = [draft.clips[index + 1]!, draft.clips[index]!]; })}>Later →</button></div></> : selectedTitle ? <><header><span>GRAPHIC INSPECTOR</span><h2>{selectedTitle.kind.replace('_', ' ').toLowerCase()}</h2></header><div className="showtime-inspector-grid"><label>Type<select value={selectedTitle.kind} onChange={(event) => updateTitle({ kind: event.target.value as ShowtimeTitle['kind'] })}><option value="HEADLINE">Headline</option><option value="LOWER_THIRD">Lower third</option><option value="CAPTION">Caption card</option></select></label><label>Words<input value={selectedTitle.text} onChange={(event) => updateTitle({ text: event.target.value })} /></label><label>Second line<input value={selectedTitle.subtext} onChange={(event) => updateTitle({ subtext: event.target.value })} /></label><label>Starts<input type="number" min={0} max={duration} step={.1} value={selectedTitle.startSec} onChange={(event) => updateTitle({ startSec: Number(event.target.value) })} /></label><label>Ends<input type="number" min={0} max={duration} step={.1} value={selectedTitle.endSec} onChange={(event) => updateTitle({ endSec: Number(event.target.value) })} /></label><label>Position<select value={selectedTitle.position} onChange={(event) => updateTitle({ position: event.target.value as ShowtimeTitle['position'] })}><option value="TOP">Top</option><option value="MIDDLE">Middle</option><option value="BOTTOM">Bottom</option></select></label><label>Card color<input type="color" value={selectedTitle.background} onChange={(event) => updateTitle({ background: event.target.value })} /></label><label>Type color<input type="color" value={selectedTitle.color} onChange={(event) => updateTitle({ color: event.target.value })} /></label></div></> : <div className="showtime-inspector-empty"><b>Select a shot or title.</b><span>Trim points, volume, speed, transitions, and graphics open here.</span></div>}</div>
-      <footer className="showtime-deliver"><div><span>DELIVER</span><b>{deliveryChecks ? `${deliveryChecks} check${deliveryChecks === 1 ? '' : 's'} left` : 'Ready to render'}</b><small>WebM · {project.width}×{project.height} · sound included · {time(duration)}</small></div><button onClick={() => void exportPackage()}>Save editable package</button><button disabled={!!busy || cutBlocked} onClick={() => void exportProject(true, false)}>Export final WebM</button><button className="primary" disabled={!!busy || !project.storyId || cutBlocked} onClick={() => void exportProject(false, true)}>Render + send to Green Light →</button></footer>
+      <footer className="showtime-deliver"><div><span>DELIVER</span><b>{deliveryChecks ? `${deliveryChecks} check${deliveryChecks === 1 ? '' : 's'} left` : 'Ready to render'}</b><small>WebM · {project.width}×{project.height} · sound included · {time(duration)}</small></div><button disabled={!!busy || !story} title={story ? "Download the editable story with its source media" : "Choose a story above to save a portable file with media"} onClick={() => void exportPackage()}>Save story + media</button><button disabled={!!busy || cutBlocked} onClick={() => void exportProject(true, false)}>Export final WebM</button><button className="primary" disabled={!!busy || !project.storyId || cutBlocked} onClick={() => void exportProject(false, true)}>Render + send to Green Light →</button></footer>
     </div>}
 
-    <LookInside room="Showtime" intro="The same habits work in a school studio, a live switcher, and a full editing suite." rows={[{ nm: 'Roll for clean source', sb: <>Set the frame, check the microphone, record a complete take, and keep rolling for two quiet seconds at the end. Clean handles make edits easier.</> }, { nm: 'Preview is private', sb: <>In Live, choose the next source in Preview. Program is the recorded picture. Call the source, then press TAKE on purpose.</> }, { nm: 'Cut with two monitors', sb: <>Source is the original clip; Program is the assembled story. Set In and Out points without changing the camera file.</> }, { nm: 'Sound is half the picture', sb: <>Balance dialogue before adding polish. Mute unusable camera sound, then bring music and effects in only when they help the story.</> }, { nm: 'Deliver the real file', sb: <>Render the final sequence, watch it all the way through, then send that exact version to Green Light.</> }]} />
+    <LookInside room={editor ? "Stinger" : "Showtime"} intro="The same habits work in a school studio, a live switcher, and a full editing suite." rows={[{ nm: 'Roll for clean source', sb: <>Set the frame, check the microphone, record a complete take, and keep rolling for two quiet seconds at the end. Clean handles make edits easier.</> }, { nm: 'Preview is private', sb: <>In Live, choose the next source in Preview. Program is the recorded picture. Call the source, then press TAKE on purpose.</> }, { nm: 'Cut with two monitors', sb: <>Source is the original clip; Program is the assembled story. Set In and Out points without changing the camera file.</> }, { nm: 'Sound is half the picture', sb: <>Balance dialogue before adding polish. Mute unusable camera sound, then bring music and effects in only when they help the story.</> }, { nm: 'Deliver the real file', sb: <>Render the final sequence, watch it all the way through, then send that exact version to Green Light.</> }]} />
   </section>;
 }

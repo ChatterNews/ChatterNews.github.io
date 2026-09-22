@@ -3,6 +3,7 @@
  * able to slot underneath this without room code changing.
  */
 import type { Story, Asset, Take, Transcript, Credit, Release, RoleAssign, Badge, Episode, User, LogEvent, Appearance, BlastProject, CrewTask, StoryReview, MotionPackage, Deliverable, ShowtimeProject, PodcastShow, PodcastProject } from './types.js';
+import type { SoundProject, SoundLibraryItem, SoundRevision, SoundCollection, SoundOperation } from './sound.js';
 import type { GarageSamplerPreset, StudioProject } from './garage.js';
 
 export interface Collection<T> {
@@ -51,7 +52,16 @@ export interface SettingsStore {
   save(patch: Partial<import('./adviser.js').NewsroomSettings>): Promise<Partial<import('./adviser.js').NewsroomSettings>>;
 }
 
+export interface SoundProjectCollection extends Collection<SoundProject> {
+  create(input: Omit<SoundProject, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<SoundProject>;
+  save(project: SoundProject, expectedRevision: number): Promise<SoundProject>;
+}
 export interface Store {
+  soundProjects: SoundProjectCollection;
+  soundItems: Collection<SoundLibraryItem> & { create(input: Omit<SoundLibraryItem, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<SoundLibraryItem> };
+  soundRevisions: Collection<SoundRevision> & { create(input: Omit<SoundRevision, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<SoundRevision> };
+  soundCollections: Collection<SoundCollection> & { create(input: Omit<SoundCollection, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<SoundCollection> };
+  soundOperations: Collection<SoundOperation> & { create(input: Omit<SoundOperation, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<SoundOperation> };
   readonly deviceId: string;
   open(): Promise<void>;
   settings: SettingsStore;

@@ -8,6 +8,9 @@ import type { Base, Story, Asset, LogEvent } from './types.js';
 import { newId, slugify, sha256 } from './ids.js';
 import { countWords, readTimeSec } from './readtime.js';
 
+import type { SoundProject } from './sound.js';
+import { validateSoundProject, validateSoundItem, validateSoundCollection, validateSoundRevision } from './sound.js';
+
 const EMPTY_DOC = { type: 'doc', content: [] };
 
 class MemoryCollection<T extends Base> implements Collection<T> {
@@ -44,6 +47,37 @@ class SimpleCollection<T extends Base> extends MemoryCollection<T> {
   async create(input: Omit<T, keyof Base> & Partial<Base>): Promise<T> {
     const now = Date.now();
     return this.insert({ id: newId(), createdAt: now, updatedAt: now, ...input } as T);
+  }
+}
+
+class MemorySoundCollection<T extends Base> extends SimpleCollection<T> {
+  constructor(onWrite: (action: string, target: string, payload?: unknown) => Promise<void>, name: string, private validate: (row: T) => void, private immutable = false) { super(onWrite, name); }
+  override async get(id: string) { const row = await super.get(id); return row ? structuredClone(row) : undefined; }
+  override async list() { return structuredClone(await super.list()); }
+  override async create(input: Omit<T, keyof Base> & Partial<Base>): Promise<T> {
+    const row = { id: newId(), createdAt: Date.now(), updatedAt: Date.now(), ...input } as T;
+    this.validate(row); if (this.rows.has(row.id)) throw new Error('This sound record already exists.');
+    return structuredClone(await super.create(structuredClone(row)));
+  }
+  override async update(id: string, patch: Partial<T>): Promise<T> {
+    if (this.immutable) throw new Error('Saved sound revisions are immutable. Save a new version.');
+    const current = await this.get(id); if (!current) throw new Error('Sound record not found.'); this.validate({ ...current, ...patch, id });
+    return structuredClone(await super.update(id, structuredClone(patch)));
+  }
+}
+
+class MemorySoundProjects extends SimpleCollection<SoundProject> {
+  override async create(input: Omit<SoundProject, keyof Base> & Partial<Base>) { const row = { id: newId(), createdAt: Date.now(), updatedAt: Date.now(), ...input }; validateSoundProject(row); return structuredClone(await super.create(structuredClone(row))); }
+  override async update(_id: string, _patch: Partial<SoundProject>): Promise<SoundProject> { throw new Error('Use revision-checked sound saving.'); }
+  override async get(id: string) { const row = await super.get(id); return row ? structuredClone(row) : undefined; }
+  override async list() { return structuredClone(await super.list()); }
+  async save(project: SoundProject, expectedRevision: number): Promise<SoundProject> {
+    validateSoundProject(project);
+    const current = this.rows.get(project.id);
+    if ((current?.revision ?? 0) !== expectedRevision || (!current && expectedRevision !== 0)) throw new Error('This sound changed in another tab. Reopen it before saving.');
+    const saved = structuredClone({ ...project, revision: expectedRevision + 1, updatedAt: Date.now() });
+    this.rows.set(saved.id, saved);
+    return structuredClone(saved);
   }
 }
 
@@ -158,6 +192,7 @@ export class MemoryStore implements Store {
   users: any; takes: any; transcripts: any; credits: any; deliverables: any;
   releases: any; roleAssigns: any; badges: any; episodes: any; jobs: any; appearances: any; blasts: any; motionPackages: any; showtimeProjects: any; podcastShows: any; podcastProjects: any; samplerPresets: any; studioProjects: any; crewTasks: any; reviews: any;
   settings: any;
+  soundProjects; soundItems; soundRevisions; soundCollections; soundOperations;
 
   constructor(deviceId = 'device-local') {
     this.deviceId = deviceId;
@@ -188,6 +223,11 @@ export class MemoryStore implements Store {
     this.studioProjects = new SimpleCollection(log, 'studioProject');
     this.crewTasks = new SimpleCollection(log, 'crewTask');
     this.reviews = new SimpleCollection(log, 'review');
+    this.soundProjects = new MemorySoundProjects(log, 'soundProject');
+    this.soundItems = new MemorySoundCollection(log, 'soundItem', validateSoundItem);
+    this.soundRevisions = new MemorySoundCollection(log, 'soundRevision', validateSoundRevision, true);
+    this.soundCollections = new MemorySoundCollection(log, 'soundCollection', validateSoundCollection);
+    this.soundOperations = new SimpleCollection<import('./sound.js').SoundOperation>(log, 'soundOperation');
   }
 
   async open(): Promise<void> { /* memory needs no opening */ }

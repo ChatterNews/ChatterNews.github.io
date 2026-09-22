@@ -1,4 +1,4 @@
-const PATH_STORY_ROOMS = new Set(['slate', 'desk', 'booth', 'greenlight', 'stinger', 'showtime', 'reruns']);
+const PATH_STORY_ROOMS = new Set(['slate', 'desk', 'booth', 'greenlight', 'stinger', 'foley', 'showtime', 'reruns']);
 const QUERY_STORY_ROOMS = new Set(['crew', 'studio', 'blast', 'files']);
 
 export function routeStoryId(pathname: string, search: string): string | undefined {

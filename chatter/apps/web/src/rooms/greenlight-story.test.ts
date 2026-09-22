@@ -19,8 +19,8 @@ describe('Green Light medium presentation', () => {
   test.each([
     ['poster', ['social'], 'Blast', '/blast?story=story-poster', true, false],
     ['podcast', ['pod'], 'Chatterbox', '/chatterbox?story=story-podcast', false, false],
-    ['video', ['video'], 'Showtime', '/showtime/story-video', true, true],
-    ['show', ['segment'], 'Showtime', '/showtime/story-show', true, true],
+    ['video', ['video'], 'Stinger', '/stinger/story-video', true, true],
+    ['show', ['segment'], 'Stinger', '/stinger/story-show', true, true],
   ] as const)('reviews the actual %s medium instead of substituting a reader preview', (creationRecipeId, channels, productionRoom, productionRoute, genericPublishingReceipt, needsDeskDraft) => {
     const presentation = greenLightStoryPresentation(story(creationRecipeId, [...channels]));
     expect(presentation).toMatchObject({ needsDeskDraft, productionRoom, productionRoute, genericPublishingReceipt });

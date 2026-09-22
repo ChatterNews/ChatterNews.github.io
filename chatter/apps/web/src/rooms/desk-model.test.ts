@@ -18,8 +18,8 @@ describe('Desk workflow', () => {
   test('each recipe leaves Desk for the room that actually follows it', () => {
     expect(deskDelivery(story(['pod'], undefined, 'podcast')).next).toBe('BOOTH');
     expect(deskDelivery(story(['web'], undefined, 'article')).next).toBe('REVIEW');
-    expect(deskDelivery(story(['video'], undefined, 'video')).next).toBe('SHOWTIME');
-    expect(deskDelivery(story(['segment'], undefined, 'show')).next).toBe('SHOWTIME');
+    expect(deskDelivery(story(['video'], undefined, 'video')).next).toBe('STINGER');
+    expect(deskDelivery(story(['segment'], undefined, 'show')).next).toBe('STINGER');
   });
   test('five story routes create empty publishing-safe writing beats', () => {
     expect(DESK_SHAPES.map((item) => item.id)).toEqual(['UPDATE', 'PROFILE', 'EVENT', 'EXPLAINER', 'INVESTIGATION']);

@@ -175,9 +175,14 @@ function NewsroomTable() {
   </>;
 }
 
+function SoundConsole() {
+  return <><path d="m17 39 12-18h70l13 18v65H17Z" fill={shade} /><rect x="17" y="32" width="95" height="67" rx="8" fill={accent} /><rect x="26" y="41" width="77" height="20" rx="3" fill={ink} /><path d="M32 51h8l4-6 5 12 6-12 5 12 5-8 4 3h28" fill="none" stroke="#9becb8" strokeWidth="2" />{[34, 53, 72, 91].map((x, i) => <g key={x}><path d={`M${x} 69v21`} stroke={ink} /><rect x={x - 5} y={71 + i % 3 * 5} width="10" height="6" rx="2" fill={paper} strokeWidth="1.5" /></g>)}<path d="M24 105h17m45 0h18" strokeWidth="5" /><Screw x={23} y={37} /><Screw x={105} y={94} /></>;
+}
+
 const OBJECTS = {
   table: NewsroomTable, notebook: Notebook, 'assignment-dial': AssignmentDial,
   typewriter: Typewriter, microphone: Microphone, 'podcast-reels': TapeDeck,
+  'sound-console': SoundConsole,
   'print-carousel': PrintCarousel, 'broadcast-lens': BroadcastLens,
   'edit-monitor': EditMonitor, 'signal-stack': SignalStack,
   'media-wheel': MediaWheel, 'archive-carousel': ArchiveCarousel,

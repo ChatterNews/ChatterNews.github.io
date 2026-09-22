@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type ControlKind = 'files' | 'media' | 'screen' | 'rooms' | 'adviser' | 'leave' | 'back' | 'close' | 'record' | 'cut' | 'mix' | 'list' | 'package';
+export type ControlKind = 'files' | 'media' | 'screen' | 'rooms' | 'adviser' | 'leave' | 'back' | 'close' | 'record' | 'cut' | 'mix' | 'list' | 'package' | 'undo' | 'redo' | 'play' | 'pause';
 
 // Small controls use a simpler, 32-unit companion to the room illustrations.
 // Current color keeps the drawings legible on both light and dark key faces.
@@ -17,6 +17,10 @@ const drawings: Record<ControlKind, ReactNode> = {
   mix: <><path d="M7 4v24M16 4v24M25 4v24" /><path d="M4 11h6M13 21h6M22 13h6" strokeWidth="5" /><path d="M4 11h6M13 21h6M22 13h6" stroke="var(--control-face, #fff4d6)" strokeWidth="2" /></>,
   list: <><rect x="5" y="3" width="22" height="26" rx="3" fill="currentColor" opacity=".12" stroke="none" /><rect x="5" y="3" width="22" height="26" rx="3" /><path d="M14 10h7M14 16h7M14 22h7M10 10h.01M10 16h.01M10 22h.01" /></>,
   package: <><path d="m4 10 12-6 12 6v15l-12 5-12-5Z" fill="currentColor" opacity=".12" stroke="none" /><path d="m4 10 12-6 12 6v15l-12 5-12-5Z" /><path d="m4 10 12 5 12-5M16 15v15M10 7l12 5v5" /></>,
+  undo: <><path d="m11 7-7 7 7 7M5 14h13a9 9 0 0 1 9 9" /></>,
+  redo: <><path d="m21 7 7 7-7 7M27 14H14a9 9 0 0 0-9 9" /></>,
+  play: <path d="m10 5 18 11-18 11Z" />,
+  pause: <><path d="M10 5v22M22 5v22" strokeWidth="5" /></>,
   close: <path d="m9 9 14 14M23 9 9 23" />,
 };
 

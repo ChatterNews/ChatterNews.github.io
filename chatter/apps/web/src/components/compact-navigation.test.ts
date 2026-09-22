@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, expect, it, vi } from 'vitest';
 import type { Story } from '@chatter/shared';
+import { SPIRAL_ROOMS } from './spiral-navigation.js';
 import { SpiralStage } from './SpiralStage.js';
 import { StorySatellite } from './StorySatellite.js';
 
@@ -60,7 +61,7 @@ it('keeps the current room when a resize restores the desktop orbit', () => {
   act(() => window.dispatchEvent(new Event('resize')));
   act(() => scroller.dispatchEvent(new Event('scrollend')));
   expect(navigate).not.toHaveBeenCalled();
-  expect(scroller.scrollTop).toBe(600);
+  expect(scroller.scrollTop).toBe(SPIRAL_ROOMS.findIndex(room => room.slug === 'blast') * 100);
   expect(container.textContent).toContain('Existing design');
   act(() => root.unmount());
 });

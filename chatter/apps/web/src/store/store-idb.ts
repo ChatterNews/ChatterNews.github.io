@@ -10,7 +10,7 @@ import type {
   Store, Collection, StoryCollection, AssetCollection, EventLog, BlobStore,
 } from '@chatter/shared';
 import type { Base, Story, Asset, LogEvent } from '@chatter/shared';
-import { newId, slugify, sha256, countWords, readTimeSec, verifyAdviserPin } from '@chatter/shared';
+import { newId, slugify, sha256, countWords, readTimeSec, verifyAdviserPin, validateSoundProject, validateSoundItem, validateSoundCollection, validateSoundRevision } from '@chatter/shared';
 import { writeOpfsFile } from './opfs-write.js';
 
 /**
@@ -21,10 +21,11 @@ import { writeOpfsFile } from './opfs-write.js';
  */
 // The alternative already opened version 11 on this origin. Never downgrade
 // or clear that database when restoring the original app.
-const DB_VERSION = 11;
+const DB_VERSION = 12;
 const EMPTY_DOC = { type: 'doc', content: [] };
 
 export const STORES = [
+  'soundProjects', 'soundItems', 'soundRevisions', 'soundCollections', 'soundOperations',
   'stories', 'assets', 'users', 'takes', 'transcripts', 'credits',
   'releases', 'roleAssigns', 'badges', 'episodes', 'jobs', 'appearances',
   'blasts', 'motionPackages', 'showtimeProjects', 'podcastShows', 'podcastProjects', 'samplerPresets', 'studioProjects', 'crewTasks', 'reviews', 'deliverables', 'events', 'meta',
@@ -100,6 +101,40 @@ class IdbSimple<T extends Base> extends IdbCollection<T> {
   async create(input: Omit<T, keyof Base> & Partial<Base>): Promise<T> {
     const now = Date.now();
     return this.insert({ id: newId(), createdAt: now, updatedAt: now, ...input } as T);
+  }
+}
+
+class IdbSoundCollection<T extends Base> extends IdbSimple<T> {
+  constructor(db: () => IDBDatabase, name: string, onWrite: (action: string, target: string, payload?: unknown) => Promise<void>, private validate: (row: T) => void, private immutable = false) { super(db, name, onWrite); }
+  override async create(input: Omit<T, keyof Base> & Partial<Base>) { const row = { id: newId(), createdAt: Date.now(), updatedAt: Date.now(), ...input } as T; this.validate(row); return super.create(row); }
+  override async update(id: string, patch: Partial<T>): Promise<T> {
+    if (this.immutable) throw new Error('Saved sound revisions are immutable. Save a new version.');
+    const current = await this.get(id); if (!current) throw new Error('Sound record not found.'); this.validate({ ...current, ...patch, id }); return super.update(id, patch);
+  }
+}
+
+class IdbSoundProjects extends IdbSimple<import('@chatter/shared').SoundProject> {
+  override async create(input: Omit<import('@chatter/shared').SoundProject, keyof Base> & Partial<Base>) { const row = { id: newId(), createdAt: Date.now(), updatedAt: Date.now(), ...input }; validateSoundProject(row); return super.create(row); }
+  override async update(_id: string, _patch: Partial<import('@chatter/shared').SoundProject>): Promise<import('@chatter/shared').SoundProject> { throw new Error('Use revision-checked sound saving.'); }
+  async save(project: import('@chatter/shared').SoundProject, expectedRevision: number): Promise<import('@chatter/shared').SoundProject> {
+    validateSoundProject(project);
+    return new Promise((resolve, reject) => {
+      const tx = this.db().transaction(this.name, 'readwrite');
+      const records = tx.objectStore(this.name);
+      const request = records.get(project.id);
+      let saved: import('@chatter/shared').SoundProject;
+      let failure: Error | undefined;
+      request.onsuccess = () => {
+        if ((request.result?.revision ?? 0) !== expectedRevision) {
+          failure = new Error('This sound changed in another tab. Reopen it before saving.'); tx.abort(); return;
+        }
+        saved = { ...project, revision: expectedRevision + 1, updatedAt: Date.now() };
+        records.put(saved);
+      };
+      tx.oncomplete = () => resolve(saved);
+      tx.onerror = () => reject(failure ?? tx.error);
+      tx.onabort = () => reject(failure ?? tx.error ?? new Error('Sound save interrupted.'));
+    });
   }
 }
 
@@ -314,6 +349,7 @@ export class IdbStore implements Store {
   releases: any; roleAssigns: any; badges: any; episodes: any; jobs: any;
   appearances: any; blasts: any; motionPackages: any; showtimeProjects: any; podcastShows: any; podcastProjects: any; samplerPresets: any; studioProjects: any; crewTasks: any; reviews: any;
   settings: IdbSettings;
+  soundProjects; soundItems; soundRevisions; soundCollections; soundOperations;
 
   constructor(private dbName = 'chatter') {
     this.blobs = new OpfsBlobs(dbName === 'chatter' ? 'blobs' : `${dbName}-blobs`);
@@ -348,6 +384,11 @@ export class IdbStore implements Store {
     this.studioProjects = new IdbSimple(db, 'studioProjects', log);
     this.crewTasks = new IdbSimple(db, 'crewTasks', log);
     this.reviews = new IdbSimple(db, 'reviews', log);
+    this.soundProjects = new IdbSoundProjects(db, 'soundProjects', log);
+    this.soundItems = new IdbSoundCollection(db, 'soundItems', log, validateSoundItem);
+    this.soundRevisions = new IdbSoundCollection(db, 'soundRevisions', log, validateSoundRevision, true);
+    this.soundCollections = new IdbSoundCollection(db, 'soundCollections', log, validateSoundCollection);
+    this.soundOperations = new IdbSimple<import('@chatter/shared').SoundOperation>(db, 'soundOperations', log);
   }
 
   async open(): Promise<void> {

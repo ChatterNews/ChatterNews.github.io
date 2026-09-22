@@ -1,5 +1,7 @@
+import { paintMotionFrame } from './renderMotion.js';
+import { waitForEditorFonts } from '../styles/fonts.js';
 import {
-  normalizeShowtimeProject, showtimeActiveClips, showtimeClipEnd,
+  normalizeShowtimeProject, showtimeActiveClips, showtimeClipEnd, videoGraphicAssetIds,
   showtimeClipStart, showtimeDuration, type ShowtimeClip, type ShowtimeProject, type ShowtimeTitle,
 } from '@chatter/shared';
 
@@ -23,7 +25,13 @@ export function drawVideoCover(context: CanvasRenderingContext2D, source: Canvas
   context.save(); context.globalAlpha = opacity; context.drawImage(source, (width - drawnWidth) / 2, (height - drawnHeight) / 2, drawnWidth, drawnHeight); context.restore();
 }
 
-export function paintShowtimeTitle(context: CanvasRenderingContext2D, title: ShowtimeTitle, width: number, height: number): void {
+export function paintShowtimeTitle(context: CanvasRenderingContext2D, title: ShowtimeTitle, width: number, height: number, atSec = title.startSec, images: Map<string, CanvasImageSource> = new Map()): void {
+  if (title.motion?.scenes[0]) {
+    const graphic = title.motion;
+    context.save(); context.scale(width / graphic.width, height / graphic.height);
+    paintMotionFrame(context, graphic, graphic.scenes[0]!, Math.max(0, atSec - title.startSec) * 1000, {}, images, false);
+    context.restore(); return;
+  }
   const middle = title.position === 'TOP' ? height * .14 : title.position === 'MIDDLE' ? height * .5 : height * .82;
   const boxWidth = Math.min(width * .88, Math.max(width * .38, title.text.length * width * .024)); const boxHeight = title.subtext ? height * .15 : height * .1; const left = (width - boxWidth) / 2; const top = middle - boxHeight / 2;
   context.save(); context.fillStyle = title.background; context.beginPath(); context.roundRect(left, top, boxWidth, boxHeight, Math.max(8, height * .018)); context.fill();
@@ -54,7 +62,7 @@ export function showtimeGainAt(project: ShowtimeProject, clip: ShowtimeClip, atS
   return Math.max(0, Math.min(1.5, clip.volume * (track?.volume ?? 1) * fadeIn * fadeOut));
 }
 
-function drawShowtimeClip(context: CanvasRenderingContext2D, video: HTMLVideoElement, clip: ShowtimeClip, width: number, height: number, opacity = 1): void {
+export function drawShowtimeClip(context: CanvasRenderingContext2D, video: HTMLVideoElement, clip: ShowtimeClip, width: number, height: number, opacity = 1): void {
   const sourceWidth = video.videoWidth || width; const sourceHeight = video.videoHeight || height;
   const base = clip.fit === 'CONTAIN' ? Math.min(width / sourceWidth, height / sourceHeight) : Math.max(width / sourceWidth, height / sourceHeight);
   const scale = base * (clip.scale ?? 1); const drawnWidth = sourceWidth * scale; const drawnHeight = sourceHeight * scale;
@@ -74,6 +82,13 @@ export async function renderShowtimeSequence(options: { project: ShowtimeProject
   recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
   const stopped = new Promise<void>((resolve, reject) => { recorder.onstop = () => resolve(); recorder.onerror = () => reject(new Error('The browser stopped the video render.')); });
   try {
+    await waitForEditorFonts();
+    const graphicImages = new Map<string, CanvasImageSource>();
+    for (const id of videoGraphicAssetIds(project.titles)) {
+      const source = options.sources.get(id); if (!source) throw new Error('A graphic image is missing or needs adviser approval.');
+      const url = URL.createObjectURL(new Blob([source.bytes as unknown as BlobPart], { type: source.mime })); urls.set(id, url);
+      const image = new Image(); const loaded = once(image, 'load'); image.src = url; await loaded; graphicImages.set(id, image);
+    }
     for (const clip of project.clips) {
       const source = options.sources.get(clip.assetId); if (!source) throw new Error(`${clip.name} is missing from this computer.`);
       let url = urls.get(clip.assetId); if (!url) { url = URL.createObjectURL(new Blob([source.bytes as unknown as BlobPart], { type: source.mime })); urls.set(clip.assetId, url); }
@@ -101,7 +116,7 @@ export async function renderShowtimeSequence(options: { project: ShowtimeProject
           }
           drawShowtimeClip(context, video, clip, project.width, project.height, opacity);
         }
-        project.titles.filter((title) => at >= title.startSec && at <= title.endSec).forEach((title) => paintShowtimeTitle(context, title, project.width, project.height)); options.onProgress?.(Math.min(1, at / totalDuration));
+        if (!project.tracks?.find(track => track.id === 't1')?.hidden) project.titles.filter((title) => at >= title.startSec && at < title.endSec).forEach((title) => paintShowtimeTitle(context, title, project.width, project.height, at, graphicImages)); options.onProgress?.(Math.min(1, at / totalDuration));
         if (at >= totalDuration) { for (const item of media.values()) item.element.pause(); resolve(); } else requestAnimationFrame(paint);
       };
       requestAnimationFrame(paint);

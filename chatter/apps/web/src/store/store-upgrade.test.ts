@@ -244,3 +244,25 @@ describe('restoring original Chatter after the alternative', () => {
     reopened.close();
   });
 });
+
+describe('Foley database version 12', () => {
+  test('upgrades version 11 and performs a revision check inside one transaction across tabs', async () => {
+    const { makeSoundProject } = await import('@chatter/shared');
+    const name = 'foley-upgrade-v11';
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open(name, 11);
+      request.onupgradeneeded = () => {
+        for (const collection of STORES.filter(s => !s.startsWith('sound'))) request.result.createObjectStore(collection, { keyPath: collection === 'meta' ? 'key' : 'id' });
+        request.transaction!.objectStore('stories').put({ id: 'preserved', title: 'Existing story' });
+      };
+      request.onsuccess = () => { request.result.close(); resolve(); }; request.onerror = () => reject(request.error);
+    });
+    const a = new IdbStore(name); const b = new IdbStore(name); await a.open(); await b.open();
+    expect((await a.stories.get('preserved'))?.title).toBe('Existing story');
+    const p = await a.soundProjects.save(makeSoundProject('Signal'), 0);
+    const outcomes = await Promise.allSettled([a.soundProjects.save({ ...p, name: 'Tab A' }, 1), b.soundProjects.save({ ...p, name: 'Tab B' }, 1)]);
+    expect(outcomes.filter(o => o.status === 'fulfilled')).toHaveLength(1);
+    expect((await b.soundProjects.get(p.id))?.revision).toBe(2);
+    a.close(); b.close();
+  });
+});

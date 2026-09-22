@@ -109,3 +109,13 @@ describe('Finish session handoff', () => {
     expect(aborted).toBe(true);
   });
 });
+
+test('Finish session preserves standalone Foley work even when there is no story', async () => {
+  const { makeSoundProject } = await import('@chatter/shared');
+  const store = new MemoryStore(); await store.soundProjects.create(makeSoundProject('Club signal'));
+  const disk = new Disk(); const result = await finishSession(store, disk); const folder = disk.folders.get(result.folderName)!;
+  expect(result.files.map(file => file.file)).toEqual(['club-sounds.soundpack']);
+  expect(folder.files.has('SESSION-COMPLETE.json')).toBe(true);
+  const zip = await JSZip.loadAsync(await folder.files.get('club-sounds.soundpack')!.arrayBuffer());
+  expect(JSON.parse(await zip.file('soundpack.json')!.async('string')).projects[0].name).toBe('Club signal');
+});

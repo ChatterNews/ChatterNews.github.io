@@ -487,6 +487,11 @@ export interface ShowtimeProgramPlan {
 
 /** One non-destructive edit of a source video in a Showtime sequence. */
 export interface ShowtimeClip {
+  /** Immutable Foley version and idempotent placement request. Ordinary imports omit these. */
+  soundProjectId?: string;
+  soundRevisionId?: string;
+  soundItemId?: string;
+  soundRequestId?: string;
   id: string;
   assetId: string;
   name: string;
@@ -526,11 +531,17 @@ export interface ShowtimeTitle {
   position: 'TOP' | 'MIDDLE' | 'BOTTOM';
   background: string;
   color: string;
+  /** One editable, self-contained Stinger scene placed on the title track. */
+  motion?: MotionPackage;
+  /** Source text for an explicitly generated project-credits card. */
+  projectCredits?: string;
 }
 
 /** A persistent video project: raw sources stay untouched while this stores the decisions. */
 export interface ShowtimeProject extends Base {
   title: string;
+  /** Member names and contributions, as entered for this video. */
+  credits?: string;
   authorId?: string;
   storyId?: string;
   format: ShowtimeFormat;
@@ -594,6 +605,11 @@ export interface PodcastTrack {
 
 /** A non-destructive source recording; pending imports require approval before playback in a mix. */
 export interface PodcastClip {
+  /** Immutable Foley version and idempotent placement request. Ordinary imports omit these. */
+  soundProjectId?: string;
+  soundRevisionId?: string;
+  soundItemId?: string;
+  soundRequestId?: string;
   /** Optional soft reduction when another selected conversation microphone is louder. */
   reduceWhenQuiet?: boolean;
   /** Source-audio seconds of a manually verified shared clap/word. */
@@ -623,6 +639,8 @@ export interface PodcastChapter {
 
 /** A complete Chatterbox edit, from rundown through mastering decisions. */
 export interface PodcastProject extends Base {
+  /** Authored episode member and source credits. */
+  credits?: string;
   /** A/B switch retains each clip’s quieter-mic selection. */
   voiceReductionBypassed?: boolean;
 
