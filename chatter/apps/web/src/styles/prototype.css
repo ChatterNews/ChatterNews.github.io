@@ -887,11 +887,11 @@ tbody tr:nth-child(even){background:var(--cream-2)}
   grid-column:2;grid-row:1;z-index:2;align-self:end;
   width:138px;height:160px;padding:0;border:0;background:transparent;box-shadow:none;
   position:relative;overflow:visible;cursor:pointer;pointer-events:auto;transform-origin:center bottom;
-  animation:reilly-arrive .48s cubic-bezier(.17,.9,.25,1.25) both;
+  animation:none;
 }
 .reilly-recovery-dot{
   position:absolute;right:6px;top:15px;z-index:5;width:18px;height:18px;border:3px solid #fff;border-radius:50%;
-  background:var(--tang);box-shadow:0 0 0 2px var(--ink),0 4px 9px rgba(28,19,60,.28);animation:reilly-recovery-pulse 1.6s ease-in-out infinite;
+  background:var(--tang);box-shadow:0 0 0 2px var(--ink),0 4px 9px rgba(28,19,60,.28);
 }
 .reilly-park{
   grid-column:2;grid-row:1;z-index:4;align-self:end;justify-self:end;
@@ -906,7 +906,7 @@ tbody tr:nth-child(even){background:var(--cream-2)}
 .reilly-art{
   display:block;width:138px;height:150px;
   background-image:url('/mascots/reilly-idle-sprite.png');background-repeat:no-repeat;background-size:600% 100%;background-position:0 0;
-  animation:reilly-idle 1.8s steps(5,end) infinite;
+  animation:none;
   filter:drop-shadow(0 12px 9px rgba(21,14,46,.25));pointer-events:none;
 }
 .reilly-nameplate{
@@ -918,16 +918,15 @@ tbody tr:nth-child(even){background:var(--cream-2)}
 .reilly-nameplate b,.reilly-nameplate small{display:block}
 .reilly-nameplate b{font:900 14px/1 var(--f-pop);color:var(--pink)}
 .reilly-nameplate small{margin-top:3px;font:900 7px/1 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;color:#6a6078}
-.reilly-guide[data-mood=big] .reilly-character,.reilly-guide[data-mood=grin] .reilly-character{animation:reilly-hop .55s cubic-bezier(.25,.85,.35,1.2) both}
-.reilly-guide[data-mood=flat] .reilly-character{animation:reilly-listen .52s ease both}
-.reilly-guide[data-mood=oh] .reilly-character{animation:reilly-tilt .5s ease both}
-@keyframes reilly-idle{to{background-position:100% 0}}
+.reilly-character[data-motion=blink] .reilly-art{animation:reilly-blink .28s steps(1,end)}
+.reilly-character[data-motion=wink] .reilly-art{animation:reilly-wink .65s steps(1,end)}
+.reilly-character[data-motion=glance] .reilly-art{animation:reilly-glance 1.4s steps(1,end)}
+.reilly-character[data-motion=perk] .reilly-art{animation:reilly-perk .9s ease-in-out}
+@keyframes reilly-blink{0%,100%{background-position:0 0}25%,65%{background-position:20% 0}}
+@keyframes reilly-wink{0%,100%{background-position:0 0}20%,70%{background-position:40% 0}}
+@keyframes reilly-glance{0%,100%{background-position:0 0}25%,70%{background-position:80% 0}}
+@keyframes reilly-perk{0%,100%{transform:none}35%,65%{transform:translateY(-2px) rotate(-1deg)}}
 @keyframes reilly-card-in{from{opacity:0;transform:translate(10px,8px) scale(.96)}to{opacity:1;transform:none}}
-@keyframes reilly-arrive{from{opacity:0;transform:translateY(24px) scale(.9)}to{opacity:1;transform:none}}
-@keyframes reilly-hop{0%{transform:translateY(16px) scale(.94)}55%{transform:translateY(-9px) rotate(-3deg)}100%{transform:none}}
-@keyframes reilly-listen{0%{transform:translateY(12px)}55%{transform:rotate(4deg)}100%{transform:none}}
-@keyframes reilly-tilt{0%{transform:translateY(10px)}55%{transform:rotate(-5deg) scale(1.03)}100%{transform:none}}
-@keyframes reilly-recovery-pulse{50%{transform:scale(1.15)}}
 .pipbody.reilly-character:hover{filter:brightness(1.04)}
 .pipbody.reilly-character:focus-visible{outline:3px solid var(--sun);outline-offset:3px;border-radius:38%}
 .pipbody.reilly-character:active{transform:scale(.96)}

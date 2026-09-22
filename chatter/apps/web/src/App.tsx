@@ -255,6 +255,7 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
         </SpiralStage>
 
         <Reily
+          lowSpec={lowSpec}
           context={{ room: reilyRoom, story: tracked, role: adviser ? 'ADVISER' : 'STUDENT', previousRoom }}
           userId={identity.session.userId}
           recommendedRoom={recommendedRoom}

@@ -21,8 +21,10 @@ import {
   writeReilyPocket,
 } from './reily-session.js';
 import { SPIRAL_ROOMS } from './spiral-navigation.js';
+import { useReilyMotion } from './useReilyMotion.js';
 
 export interface ReilyProps {
+  lowSpec?: boolean;
   context: ReilyContext;
   userId: string;
   recommendedRoom?: ReilyRoom;
@@ -40,7 +42,7 @@ function adviceForId(context: ReilyContext, id: string | undefined, fallback: Re
   return eligibleReilyAdvice(context).find((card) => card.id === id) ?? fallback;
 }
 
-export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRoom }: ReilyProps) {
+export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRoom, lowSpec = false }: ReilyProps) {
   const signals = useReilySignals();
   const mergedContext = useMemo<ReilyContext>(() => ({
     ...context,
@@ -60,6 +62,7 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
   });
   const [parked, setParked] = useState(readReilyPocket);
   const characterRef = useRef<HTMLButtonElement>(null);
+  const motion = useReilyMotion(characterRef, parked, lowSpec);
   const card = adviceForId(mergedContext, cardId, initialSelection.card);
   const contextKey = `${mergedContext.room}:${mergedContext.focus ?? ''}:${mergedContext.recovery?.kind ?? ''}`;
 
@@ -179,9 +182,9 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
 
       <button
         ref={characterRef}
-        key={contextKey}
         type="button"
         className="pipbody reilly-character"
+        data-motion={motion}
         aria-label={hasRecovery ? `Ask Reily about a problem in ${roomName(mergedContext.room)}` : 'Ask Reily for help'}
         onClick={() => setHintOpen((open) => reduceReilyHint(open, 'ASK'))}
       >
