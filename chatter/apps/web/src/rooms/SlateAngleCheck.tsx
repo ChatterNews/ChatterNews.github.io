@@ -34,6 +34,8 @@ export function SlateAngleCheck({ templateId, angle, affected, verification, onC
     <div className="slate-angle-fields">
       {checks.map((check, index) => {
         const field: SlateAngleField = check.id === 'changed' ? 'angle' : check.id === 'affected' ? 'affected' : 'verification';
+        // Readiness checks trim answers; editing must preserve each typed space.
+        const value = { angle, affected, verification }[field];
         const placeholder = check.id === 'changed'
           ? 'The idea, moment, question, feeling, or result at the center…'
           : check.id === 'affected'
@@ -43,8 +45,8 @@ export function SlateAngleCheck({ templateId, angle, affected, verification, onC
           <span className="slate-angle-number">{check.complete ? '✓' : index + 1}</span>
           <span className="slate-angle-label"><b>{check.label}</b><small>{check.prompt}</small></span>
           {check.id === 'changed'
-            ? <textarea rows={2} value={check.value} placeholder={placeholder} onChange={(event) => onChange(field, event.target.value)} />
-            : <input value={check.value} placeholder={placeholder} onChange={(event) => onChange(field, event.target.value)} />}
+            ? <textarea rows={2} value={value} placeholder={placeholder} onChange={(event) => onChange(field, event.target.value)} />
+            : <input value={value} placeholder={placeholder} onChange={(event) => onChange(field, event.target.value)} />}
         </label>;
       })}
     </div>

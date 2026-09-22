@@ -6,6 +6,25 @@ import { SlateAngleCheck } from './SlateAngleCheck.js';
 const change = () => undefined;
 
 describe('Slate project direction', () => {
+  it.each([
+    ['angle', '>The lunch line </textarea>'],
+    ['affected', 'value="The lunch line "'],
+    ['verification', 'value="The lunch line "'],
+  ])('preserves a just-typed space in the %s field', (field, expected) => {
+    const html = renderToStaticMarkup(createElement(SlateAngleCheck, {
+      angle: '', affected: '', verification: '', [field]: 'The lunch line ', onChange: change,
+    }));
+    expect(html).toContain(expected);
+  });
+
+  it('keeps whitespace editable without marking an empty answer ready', () => {
+    const html = renderToStaticMarkup(createElement(SlateAngleCheck, {
+      angle: '  ', affected: ' ', verification: ' ', onChange: change,
+    }));
+    expect(html).toContain('>  </textarea>');
+    expect(html).toContain('aria-label="0 of 3 ready"');
+  });
+
   it('turns a selected project type into a visible example and three production prompts', () => {
     const html = renderToStaticMarkup(createElement(SlateAngleCheck, {
       templateId: 'experiment', angle: '', affected: '', verification: '', onChange: change,
