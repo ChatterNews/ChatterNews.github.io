@@ -918,10 +918,12 @@ tbody tr:nth-child(even){background:var(--cream-2)}
 .reilly-nameplate b,.reilly-nameplate small{display:block}
 .reilly-nameplate b{font:900 14px/1 var(--f-pop);color:var(--pink)}
 .reilly-nameplate small{margin-top:3px;font:900 7px/1 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;color:#6a6078}
+.reilly-character[data-motion=expressive] .reilly-art{animation:reilly-expression 1.8s steps(5,end)}
 .reilly-character[data-motion=blink] .reilly-art{animation:reilly-blink .28s steps(1,end)}
 .reilly-character[data-motion=wink] .reilly-art{animation:reilly-wink .65s steps(1,end)}
 .reilly-character[data-motion=glance] .reilly-art{animation:reilly-glance 1.4s steps(1,end)}
-.reilly-character[data-motion=perk] .reilly-art{animation:reilly-perk .9s ease-in-out}
+.reilly-character[data-motion=perk] .reilly-art{animation:reilly-expression 1.8s steps(5,end),reilly-perk 1.8s ease-in-out}
+@keyframes reilly-expression{to{background-position:100% 0}}
 @keyframes reilly-blink{0%,100%{background-position:0 0}25%,65%{background-position:20% 0}}
 @keyframes reilly-wink{0%,100%{background-position:0 0}20%,70%{background-position:40% 0}}
 @keyframes reilly-glance{0%,100%{background-position:0 0}25%,70%{background-position:80% 0}}

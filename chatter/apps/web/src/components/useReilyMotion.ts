@@ -1,7 +1,7 @@
 import { useEffect, useState, type RefObject } from 'react';
 
-export type ReilyMotion = 'rest' | 'blink' | 'wink' | 'glance' | 'perk';
-const duration = { blink: 280, wink: 650, glance: 1400, perk: 900 };
+export type ReilyMotion = 'rest' | 'expressive' | 'blink' | 'wink' | 'glance' | 'perk';
+const duration = { expressive: 1800, blink: 280, wink: 650, glance: 1400, perk: 1800 };
 
 /** Brief, interruptible gestures with plenty of stillness between them. */
 export function useReilyMotion(character: RefObject<HTMLButtonElement | null>, parked: boolean, lowSpec: boolean) {
@@ -28,10 +28,10 @@ export function useReilyMotion(character: RefObject<HTMLButtonElement | null>, p
         const writing = active?.matches('input,textarea,[contenteditable="true"]');
         if (!visible() || writing || near || character.current?.contains(active)) { schedule(); return; }
         const chance = Math.random();
-        let next: Exclude<ReilyMotion, 'rest' | 'perk'> = chance < .6 ? 'blink' : chance < .8 ? 'wink' : 'glance';
-        if (next === lastGesture && next !== 'blink') next = 'blink';
+        let next: Exclude<ReilyMotion, 'rest' | 'perk'> = chance < .6 ? 'expressive' : chance < .8 ? 'wink' : chance < .9 ? 'blink' : 'glance';
+        if (next === lastGesture && next !== 'blink') next = next === 'expressive' ? 'wink' : 'expressive';
         play(next);
-      }, first ? 12000 + Math.random() * 10000 : 18000 + Math.random() * 24000);
+      }, first ? 3000 + Math.random() * 3000 : 6000 + Math.random() * 8000);
     }
     function play(next: Exclude<ReilyMotion, 'rest'>) {
       if (!enabled() || !visible()) return;

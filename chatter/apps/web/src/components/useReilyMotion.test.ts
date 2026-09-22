@@ -27,20 +27,21 @@ beforeEach(() => {
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
-it('rests for long pauses and returns to rest after a single blink', async () => {
-  await mount(); await advance(16999); expect(state()).toBe('rest');
-  await advance(1); expect(state()).toBe('blink'); await advance(280); expect(state()).toBe('rest');
-  await advance(29999); expect(state()).toBe('rest'); await advance(1); expect(state()).toBe('blink');
+it('plays the original expression cycle once, rests, then varies the next gesture', async () => {
+  await mount(); await advance(4499); expect(state()).toBe('rest');
+  await advance(1); expect(state()).toBe('expressive'); await advance(1800); expect(state()).toBe('rest');
+  await advance(9999); expect(state()).toBe('rest'); await advance(1); expect(state()).toBe('wink');
+  await advance(650); expect(state()).toBe('rest');
 });
 it('acknowledges proximity once and does not repeat while the pointer lingers', async () => {
-  await mount(); await move(50); expect(state()).toBe('perk'); await advance(900); expect(state()).toBe('rest');
+  await mount(); await move(50); expect(state()).toBe('perk'); await advance(1800); expect(state()).toBe('rest');
   await move(55); await advance(40000); expect(state()).toBe('rest');
   await move(400); await move(50); expect(state()).toBe('perk');
 });
 it('does not retrigger rapidly or treat touch as hover, but supports keyboard focus', async () => {
   await mount(); await move(150, 'touch'); expect(state()).toBe('rest');
   await act(async () => host.querySelector('button')!.focus()); expect(state()).toBe('perk');
-  await advance(900); await move(400); await move(50); expect(state()).toBe('rest');
+  await advance(1800); await move(400); await move(50); expect(state()).toBe('rest');
 });
 it('stops immediately for reduced motion and cancels timers when parked or low-spec', async () => {
   await mount(); await move(150); expect(state()).toBe('perk');
@@ -56,5 +57,5 @@ it('pauses while hidden and resumes with a fresh quiet interval', async () => {
   expect(state()).toBe('rest'); expect(vi.getTimerCount()).toBe(0);
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
   await act(async () => document.dispatchEvent(new Event('visibilitychange')));
-  await advance(16999); expect(state()).toBe('rest'); await advance(1); expect(state()).toBe('blink');
+  await advance(4499); expect(state()).toBe('rest'); await advance(1); expect(state()).toBe('expressive');
 });
