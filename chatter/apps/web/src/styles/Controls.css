@@ -1,13 +1,13 @@
 /* Orbit's control family: molded keys, clear symbols and a short physical press.
    Scope appearance to controls, not artwork, timeline clips or room previews. */
 :root {
-  --control-ink: #292139;
-  --control-face: #fff4d6;
-  --control-rim: #c5b7a1;
-  --control-accent: #ffe35a;
+  --control-ink: #2a1f55;
+  --control-face: #fffbf0;
+  --control-rim: #d4bfaa;
+  --control-accent: #ffdf55;
   --control-radius: 11px;
-  --control-rest: inset 0 1px 0 #fff9, inset 0 -3px 0 #29213918, 0 3px 0 #292139;
-  --control-down: inset 0 2px 3px #29213926, 0 1px 0 #292139;
+  --control-rest: inset 0 1px 0 #fff9, inset 0 -3px 0 #2a1f5518, 0 3px 0 #2a1f55;
+  --control-down: inset 0 2px 3px #2a1f5526, 0 1px 0 #2a1f55;
 }
 .control-icon { display: block; width: 26px; height: 26px; flex: none; pointer-events: none; }
 
@@ -55,9 +55,9 @@ body[data-interface='spiral-stage'] :is(
 body[data-interface='spiral-stage'] :is(.newsroom-button.primary,.b.go,.project-drive-actions .primary,.display-fullscreen) {
   background: var(--control-accent); color: var(--control-ink);
 }
-body[data-interface='spiral-stage'] :is(.project-drive-finish .primary) { background: #bce78c; color: var(--control-ink); }
-body[data-interface='spiral-stage'] :is(.newsroom-button.dark,.b.dark) { background: #3f3456; color: #fff4d6; }
-body[data-interface='spiral-stage'] :is(button.danger,.b.hot) { color: #702634; background: #ffe0dc; }
+body[data-interface='spiral-stage'] :is(.project-drive-finish .primary) { background: #aadfaa; color: var(--control-ink); }
+body[data-interface='spiral-stage'] :is(.newsroom-button.dark,.b.dark) { background: #2a3f55; color: #fffbf0; }
+body[data-interface='spiral-stage'] :is(button.danger,.b.hot) { color: #7f1f00; background: #ffdfff; }
 
 /* Main controls share one key silhouette. Files is a folder, not a text badge. */
 body[data-interface='spiral-stage'] :is(
@@ -81,38 +81,38 @@ body[data-interface='spiral-stage'] :is(.stage-utility,.project-drive-trigger,.d
 body[data-interface='spiral-stage'] :is(.stage-utility,.project-drive-trigger,.display-controls-trigger) b {
   display: block; max-width: none; font: 800 10px/1.1 var(--f-ui); white-space: nowrap;
 }
-body[data-interface='spiral-stage'] .project-drive-trigger .control-icon { color: #684b90; }
+body[data-interface='spiral-stage'] .project-drive-trigger .control-icon { color: #555faa; }
 body[data-interface='spiral-stage'] .chatterbox-stations .control-icon { width: 22px; height: 22px; }
-body[data-interface='spiral-stage'] .project-drive-trigger[aria-expanded='true'] { background: #e4d5fb; }
-body[data-interface='spiral-stage'] .stage-utility[aria-current='page'] { background: #ccebf0; }
-body[data-interface='spiral-stage'] .who-am-i-trigger[aria-expanded='true'] { background: #ffe35a; }
-body[data-interface='spiral-stage'] .display-controls-trigger[data-low-spec='true'] { background: #bce78c; }
-body[data-interface='spiral-stage'] .spiral-stage-brand button { background: #ffe35a; }
+body[data-interface='spiral-stage'] .project-drive-trigger[aria-expanded='true'] { background: #d4dfff; }
+body[data-interface='spiral-stage'] .stage-utility[aria-current='page'] { background: #d4dfff; }
+body[data-interface='spiral-stage'] .who-am-i-trigger[aria-expanded='true'] { background: #ffdf55; }
+body[data-interface='spiral-stage'] .display-controls-trigger[data-low-spec='true'] { background: #aadfaa; }
+body[data-interface='spiral-stage'] .spiral-stage-brand button { background: #ffdf55; }
 body[data-interface='spiral-stage'] .spiral-room-map > summary {
   display: flex; align-items: center; justify-content: center; gap: 9px; padding: 6px 14px;
-  color: #fff4d6; background: #3f3456;
+  color: #fffbf0; background: #2a3f55;
 }
-body[data-interface='spiral-stage'] .spiral-room-map[open] > summary { background: #5c487a; box-shadow: var(--control-down); }
+body[data-interface='spiral-stage'] .spiral-room-map[open] > summary { background: #553f55; box-shadow: var(--control-down); }
 body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy { display: grid; gap: 2px; }
 body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy b { font: 900 14px/1.1 var(--f-ui); }
-body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy small { font: 700 10px/1.1 var(--f-ui); color: #e0d5ed; letter-spacing: 0; }
+body[data-interface='spiral-stage'] .spiral-room-map .room-map-button-copy small { font: 700 10px/1.1 var(--f-ui); color: #d4dfff; letter-spacing: 0; }
 body[data-interface='spiral-stage'] .spiral-room-map > summary .control-icon { width: 30px; height: 30px; }
 body[data-interface='spiral-stage'] .solar-atlas-close { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
 body[data-interface='spiral-stage'] .solar-atlas-close .control-icon { width: 20px; height: 20px; }
-body[data-interface='spiral-stage'] .project-drive-dialog { border-radius: 20px; border-width: 2px; box-shadow: 0 8px 0 #211a3599; }
+body[data-interface='spiral-stage'] .project-drive-dialog { border-radius: 20px; border-width: 2px; box-shadow: 0 8px 0 #2a1f5599; }
 body[data-interface='spiral-stage'] .project-drive-dialog > header { border-radius: 17px 17px 0 0; }
-body[data-interface='spiral-stage'] .project-drive-dialog .project-drive-icon { background: #e4d5fb; border-radius: 12px; }
+body[data-interface='spiral-stage'] .project-drive-dialog .project-drive-icon { background: #d4dfff; border-radius: 12px; }
 body[data-interface='spiral-stage'] :is(.project-drive-dialog > header > button,.project-drive-message button[aria-label],.display-controls-dialog header button) {
   display: grid; place-items: center; flex: none; width: 40px; min-height: 40px; padding: 6px;
-  border: 1.5px solid currentColor; border-radius: 10px; background: #fff4d6; color: #292139;
+  border: 1.5px solid currentColor; border-radius: 10px; background: #fffbf0; color: #2a1f55;
   box-shadow: var(--control-rest);
 }
 
 /* Feedback changes the key face; positions stay stable and text remains readable.
    Shared states also cover room-specific controls that keep their own geometry. */
 body[data-interface='spiral-stage'] :is(button,summary,[role='button']):focus-visible {
-  outline: 3px solid #5b2f91; outline-offset: 3px;
-  box-shadow: 0 0 0 3px #fff4d6, 0 0 0 6px #5b2f91;
+  outline: 3px solid #551faa; outline-offset: 3px;
+  box-shadow: 0 0 0 3px #fffbf0, 0 0 0 6px #551faa;
 }
 body[data-interface='spiral-stage'] :is(button,summary,[role='button']):disabled {
   cursor: not-allowed; opacity: .55; filter: none; translate: none; transform: none;
@@ -139,11 +139,11 @@ body[data-interface='spiral-stage'] :is(
   .clubhouse-welcome button,.clubhouse-section-title > button
 ):not(:disabled):active { translate: 0 2px; transform: none; box-shadow: var(--control-down); }
 body[data-interface='spiral-stage'] :is(.tbtn,.desk-toolbar button,.blast-segmented button)[aria-pressed='true'] {
-  background: #dcd0ef; color: #292139; box-shadow: var(--control-down);
+  background: #ccccff; color: #2a1f55; box-shadow: var(--control-down);
 }
 @media (hover: hover) {
   body[data-interface='spiral-stage'] :is(.newsroom-button,.b,.tbtn,.stage-utility,.project-drive-trigger,.display-controls-trigger,.who-am-i-trigger,.desk-toolbar button):not(:disabled):hover {
-    transform: none; box-shadow: inset 0 1px 0 #fff, inset 0 -3px 0 #29213918, 0 3px 0 #292139, 0 0 0 2px #fff4d680;
+    transform: none; box-shadow: inset 0 1px 0 #fff, inset 0 -3px 0 #2a1f5518, 0 3px 0 #2a1f55, 0 0 0 2px #fffbf080;
   }
 }
 @media (max-width: 1100px) {

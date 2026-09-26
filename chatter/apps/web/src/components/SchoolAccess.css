@@ -1,19 +1,19 @@
-.school-access { position: fixed; inset: 0; z-index: 600; display: grid; place-items: center; padding: 24px; overflow: auto; background: #182b43; color: #21364a; }
-.school-access > section { width: min(100%, 620px); box-sizing: border-box; background: #e5e9ef; border: 3px solid #47dbe9; border-radius: 24px; padding: clamp(24px, 5vw, 48px); box-shadow: 10px 10px 0 #080f21; }
+.school-access { position: fixed; inset: 0; z-index: 600; display: grid; place-items: center; padding: 24px; overflow: auto; background: #2a1f55; color: #2a3f55; }
+.school-access > section { width: min(100%, 620px); box-sizing: border-box; background: #d4dfff; border: 3px solid #2adfff; border-radius: 24px; padding: clamp(24px, 5vw, 48px); box-shadow: 10px 10px 0 #2a0000; }
 .school-access h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.1; }
 .school-access p { line-height: 1.6; }
 .school-access .project-drive { position: static; margin: 24px 0; }
 .school-access .checkin-primary { margin-top: 16px; }
-.school-finishing { position: fixed; z-index: 900; top: 0; left: 0; right: 0; padding: 12px 20px; background: #ffdd55; color: #182b43; border-bottom: 3px solid #182b43; }
-.school-access-settings { padding: 24px; margin: 20px 0; border: 2px solid var(--room-edge, #8296a9); border-radius: 16px; background: var(--room-card, #f7f9fc); }
+.school-finishing { position: fixed; z-index: 900; top: 0; left: 0; right: 0; padding: 12px 20px; background: #ffdf55; color: #2a1f55; border-bottom: 3px solid #2a1f55; }
+.school-access-settings { padding: 24px; margin: 20px 0; border: 2px solid var(--room-edge, #7f9faa); border-radius: 16px; background: var(--room-card, #ffffff); }
 .school-access-settings form { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; margin: 16px 0; }
 .school-access-settings label { display: grid; gap: 6px; max-width: 100%; }
 .school-access-settings input, .school-access-settings select { padding: 10px; min-width: 0; max-width: 100%; box-sizing: border-box; }
 .school-access-settings li { margin: 12px 0; }
 .school-access-settings li button { margin-left: 12px; }
 
-.school-access-settings { color: var(--room-ink, #21364a); }
-.school-access-settings input, .school-access-settings select { background: #f7f9fc; color: #21364a; }
+.school-access-settings { color: var(--room-ink, #2a3f55); }
+.school-access-settings input, .school-access-settings select { background: #ffffff; color: #2a3f55; }
 
 /* Room dialogs live outside the editor wrapper. Preserve their state while locked. */
 body[data-school-closed='true'] :is(.slate-modal-shade, .sample-shelf-backdrop) { display: none !important; }

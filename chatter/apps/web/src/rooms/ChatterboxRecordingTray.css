@@ -1,18 +1,18 @@
-.recording-tray { margin: 18px 0; padding: clamp(16px, 3vw, 28px); border: 2px solid var(--room-edge, #8296a9); border-radius: 18px; background: var(--room-card, #f7f9fc); color: var(--room-ink, #21364a); }
+.recording-tray { margin: 18px 0; padding: clamp(16px, 3vw, 28px); border: 2px solid var(--room-edge, #7f9faa); border-radius: 18px; background: var(--room-card, #ffffff); color: var(--room-ink, #2a3f55); }
 .recording-tray header, .recording-tray-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 .recording-tray p { line-height: 1.5; max-width: 85ch; }
 .recording-tray fieldset { display: flex; flex-wrap: wrap; gap: 18px; border: 0; padding: 10px 0; }
-.recording-tray input, .recording-tray select { max-width: 100%; box-sizing: border-box; padding: 8px; color: #21364a; background: #f7f9fc; }
+.recording-tray input, .recording-tray select { max-width: 100%; box-sizing: border-box; padding: 8px; color: #2a3f55; background: #ffffff; }
 .recording-tray input[type=checkbox], .recording-tray input[type=radio] { width: 20px; height: 20px; vertical-align: middle; }
 .recording-tray-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: 14px; }
-.recording-tray-list > li { min-width: 0; border: 1px solid var(--room-edge, #8296a9); border-radius: 12px; padding: 14px; }
+.recording-tray-list > li { min-width: 0; border: 1px solid var(--room-edge, #7f9faa); border-radius: 12px; padding: 14px; }
 .recording-tray-name { display: flex; align-items: center; gap: 8px; }
 .recording-tray-name input:last-child { width: 100%; min-width: 0; font-weight: bold; }
 .recording-tray audio { width: 100%; margin: 12px 0; }
 .recording-tray button { min-height: 40px; }
 .recording-tray-notices { max-height: 220px; overflow: auto; line-height: 1.6; }
 
-.conversation-assist { margin: 20px 0; padding: 18px; border: 2px solid var(--room-edge, #8296a9); border-radius: 12px; background: var(--room-panel, #e4eaf2); }
+.conversation-assist { margin: 20px 0; padding: 18px; border: 2px solid var(--room-edge, #7f9faa); border-radius: 12px; background: var(--room-panel, #d4dfff); }
 .conversation-assist select { width: 100%; margin: 8px 0 12px; }
 .conversation-check { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .conversation-results ul { padding-left: 20px; }

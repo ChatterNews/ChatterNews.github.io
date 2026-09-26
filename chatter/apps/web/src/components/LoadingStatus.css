@@ -1,18 +1,18 @@
 .orbit-loading-screen { min-height: 80vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; }
-.orbit-loading { box-sizing: border-box; width: 100%; min-width: 0; margin: 12px 0; padding: 16px 20px; border: 2px solid #282144; border-radius: 12px; background: #fff9e9; color: #282144; font: 14px/1.5 system-ui, sans-serif; text-align: left; }
+.orbit-loading { box-sizing: border-box; width: 100%; min-width: 0; margin: 12px 0; padding: 16px 20px; border: 2px solid #2a1f55; border-radius: 12px; background: #fffbf0; color: #2a1f55; font: 14px/1.5 system-ui, sans-serif; text-align: left; }
 .orbit-loading-screen > .orbit-loading { max-width: 440px; }
 .orbit-loading-heading { display: flex; justify-content: space-between; gap: 16px; }
 .orbit-loading-heading b { font-size: 16px; }
 .orbit-loading p { margin: 8px 0 0; font-size: 13px; }
-.orbit-loading progress { appearance: none; display: block; width: 100%; height: 12px; margin-top: 12px; border: 1px solid #282144; border-radius: 20px; overflow: hidden; background: #ded8cf; accent-color: #6151ae; }
-.orbit-loading progress::-webkit-progress-bar { background: #ded8cf; }
-.orbit-loading progress::-webkit-progress-value { background: #6151ae; border-radius: 20px; }
-.orbit-loading progress::-moz-progress-bar { background: #6151ae; }
-.orbit-loading progress:indeterminate { background: repeating-linear-gradient(110deg, #6151ae 0 18px, #c3b9e9 18px 36px); background-size: 200% 100%; animation: orbit-loading-move 2s linear infinite; }
+.orbit-loading progress { appearance: none; display: block; width: 100%; height: 12px; margin-top: 12px; border: 1px solid #2a1f55; border-radius: 20px; overflow: hidden; background: #c0dcc0; accent-color: #555faa; }
+.orbit-loading progress::-webkit-progress-bar { background: #c0dcc0; }
+.orbit-loading progress::-webkit-progress-value { background: #555faa; border-radius: 20px; }
+.orbit-loading progress::-moz-progress-bar { background: #555faa; }
+.orbit-loading progress:indeterminate { background: repeating-linear-gradient(110deg, #555faa 0 18px, #d4bfff 18px 36px); background-size: 200% 100%; animation: orbit-loading-move 2s linear infinite; }
 .orbit-loading progress:indeterminate::-webkit-progress-bar { background: transparent; }
 .orbit-loading progress:indeterminate::-moz-progress-bar { background: transparent; }
 .orbit-background-work { position: fixed; bottom: 12px; right: 12px; width: min(340px, calc(100vw - 24px)); z-index: 90; }
-body[data-after-hours="true"] .orbit-loading { background: #29243c; color: #fff9e9; border-color: #a899da; }
+body[data-after-hours="true"] .orbit-loading { background: #2a1f55; color: #fffbf0; border-color: #aa9fff; }
 @keyframes orbit-loading-move { to { background-position: 144px 0; } }
 @media (prefers-reduced-motion: reduce) { .orbit-loading progress:indeterminate { animation: none; } }
 body[data-low-spec="true"] .orbit-loading progress:indeterminate { animation: none; }

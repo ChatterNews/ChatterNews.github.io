@@ -24,7 +24,7 @@
   background: var(--cream);
   border: var(--bw) solid var(--ink);
   border-radius: 18px;
-  box-shadow: 10px 10px 0 rgba(0, 0, 0, .35);
+  box-shadow: 10px 10px 0 rgba(0,0,0,.35);
   padding: 28px 26px 24px;
 }
 .badge-sheet.wide { width: min(880px, 100%); }
@@ -168,7 +168,7 @@
 .badge-grade.on { background: var(--sun); }
 
 .badge-error {
-  background: #ffe0ec;
+  background: #ffdfff;
   border: 3px solid var(--pink-d);
   border-radius: 10px;
   padding: 9px 11px;
@@ -248,14 +248,14 @@
   gap: 10px;
   margin: 0 0 14px;
   padding: 10px 12px;
-  border: 2px solid #47731f;
+  border: 2px solid #557f00;
   border-radius: 9px;
-  background: #eff9e3;
-  color: #35571a;
+  background: #fffbf0;
+  color: #2a5f00;
   font-size: 12px;
   font-weight: 800;
 }
-.badge-drive-message.error { border-color: var(--pink-d); background: #ffe0ec; color: #7d1739; }
+.badge-drive-message.error { border-color: var(--pink-d); background: #ffdfff; color: #7f1f55; }
 .badge-drive-message button { border: 0; background: transparent; color: inherit; font-size: 20px; }
 
 @media (prefers-reduced-motion: reduce) {

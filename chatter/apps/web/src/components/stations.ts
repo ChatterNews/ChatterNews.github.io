@@ -6,16 +6,16 @@ export interface Station {
 }
 
 export const STATIONS: Station[] = [
-  { v: 'slate', n: 'Slate', cls: 's-cyan', ic: 'ic-slate', d: 'Shape the story and reporting plan', group: 'PLAN', accent: '#36c9dc', cue: 'Start or open a plan', countLabel: ['active story', 'active stories'], c: '' },
-  { v: 'crew', n: 'Crew', cls: 's-grape', ic: 'ic-crew', d: 'Choose jobs and pass work forward', group: 'PLAN', accent: '#9275e8', cue: 'Find your assignment', countLabel: ['open assignment', 'open assignments'], c: '' },
-  { v: 'desk', n: 'Desk', cls: 's-lime', ic: 'ic-pen', d: 'Write and edit the story', group: 'PLAN', accent: '#9bdd42', cue: 'Open the writing desk', countLabel: ['draft in progress', 'drafts in progress'], c: '' },
-  { v: 'booth', n: 'Booth', cls: 's-tang', ic: 'ic-mic', d: 'Record clean voices and interviews', group: 'MAKE', accent: '#ff845e', cue: 'Set up the microphone', countLabel: ['story ready to record', 'stories ready to record'], c: '' },
-  { v: 'chatterbox', n: 'Chatterbox', cls: 's-cyan', ic: 'ic-mic', d: 'Build and finish podcast episodes', group: 'MAKE', accent: '#54d6d2', cue: 'Open the podcast board', c: '' },
-  { v: 'foley', n: 'Foley', cls: 's-cyan', ic: 'ic-mic', d: 'Find, create and arrange sounds and cues', group: 'MAKE', accent: '#79dfcb', cue: 'Open the sound workshop', c: '' },
-  { v: 'blast', n: 'Blast', cls: 's-grape', ic: 'ic-mail', d: 'Design pages, flyers, and social posts', group: 'MAKE', accent: '#a47ce9', cue: 'Open the layout table', c: '' },
-  { v: 'stinger', n: 'Stinger', cls: 's-sun', ic: 'ic-star', d: 'Edit videos, sound, titles, and graphics', group: 'MAKE', accent: '#ffd84d', cue: 'Open the video workspace', c: '' },
-  { v: 'showtime', n: 'Showtime', cls: 's-tang', ic: 'ic-tv', d: 'Record cameras and live programmes', group: 'MAKE', accent: '#ff7655', cue: 'Open the recording studio', c: '' },
-  { v: 'greenlight', n: 'Green Light', cls: 's-lime', ic: 'ic-light', d: 'Check facts, rights, and final work', group: 'FINISH', accent: '#a7e44a', cue: 'Open the check desk', countLabel: ['item waiting', 'items waiting'], c: '' },
-  { v: 'files', n: 'Media Bin', cls: 's-cyan', ic: 'ic-mail', d: 'Find working files and final exports', group: 'FINISH', accent: '#5bd1e5', cue: 'Open the file drawers', c: '' },
-  { v: 'reruns', n: 'Reruns', cls: 's-grape', ic: 'ic-rerun', d: 'See published work and replay notes', group: 'FINISH', accent: '#8870d7', cue: 'Open the archive', countLabel: ['published edition', 'published editions'], c: '' },
+  { v: 'slate', n: 'Slate', cls: 's-cyan', ic: 'ic-slate', d: 'Shape the story and reporting plan', group: 'PLAN', accent: '#2abfff', cue: 'Start or open a plan', countLabel: ['active story', 'active stories'], c: '' },
+  { v: 'crew', n: 'Crew', cls: 's-grape', ic: 'ic-crew', d: 'Choose jobs and pass work forward', group: 'PLAN', accent: '#7f7fff', cue: 'Find your assignment', countLabel: ['open assignment', 'open assignments'], c: '' },
+  { v: 'desk', n: 'Desk', cls: 's-lime', ic: 'ic-pen', d: 'Write and edit the story', group: 'PLAN', accent: '#aadf55', cue: 'Open the writing desk', countLabel: ['draft in progress', 'drafts in progress'], c: '' },
+  { v: 'booth', n: 'Booth', cls: 's-tang', ic: 'ic-mic', d: 'Record clean voices and interviews', group: 'MAKE', accent: '#ff7f55', cue: 'Set up the microphone', countLabel: ['story ready to record', 'stories ready to record'], c: '' },
+  { v: 'chatterbox', n: 'Chatterbox', cls: 's-cyan', ic: 'ic-mic', d: 'Build and finish podcast episodes', group: 'MAKE', accent: '#2adfff', cue: 'Open the podcast board', c: '' },
+  { v: 'foley', n: 'Foley', cls: 's-cyan', ic: 'ic-mic', d: 'Find, create and arrange sounds and cues', group: 'MAKE', accent: '#7fdfaa', cue: 'Open the sound workshop', c: '' },
+  { v: 'blast', n: 'Blast', cls: 's-grape', ic: 'ic-mail', d: 'Design pages, flyers, and social posts', group: 'MAKE', accent: '#aa7fff', cue: 'Open the layout table', c: '' },
+  { v: 'stinger', n: 'Stinger', cls: 's-sun', ic: 'ic-star', d: 'Edit videos, sound, titles, and graphics', group: 'MAKE', accent: '#ffdf55', cue: 'Open the video workspace', c: '' },
+  { v: 'showtime', n: 'Showtime', cls: 's-tang', ic: 'ic-tv', d: 'Record cameras and live programmes', group: 'MAKE', accent: '#ff7f55', cue: 'Open the recording studio', c: '' },
+  { v: 'greenlight', n: 'Green Light', cls: 's-lime', ic: 'ic-light', d: 'Check facts, rights, and final work', group: 'FINISH', accent: '#aadf55', cue: 'Open the check desk', countLabel: ['item waiting', 'items waiting'], c: '' },
+  { v: 'files', n: 'Media Bin', cls: 's-cyan', ic: 'ic-mail', d: 'Find working files and final exports', group: 'FINISH', accent: '#55dfff', cue: 'Open the file drawers', c: '' },
+  { v: 'reruns', n: 'Reruns', cls: 's-grape', ic: 'ic-rerun', d: 'See published work and replay notes', group: 'FINISH', accent: '#7f7fff', cue: 'Open the archive', countLabel: ['published edition', 'published editions'], c: '' },
 ];

@@ -16,7 +16,7 @@
   body[data-interface='spiral-stage'] .spiral-window-toolbar[data-has-story-control='false'],
   body[data-interface='spiral-stage'] .spiral-frame-hardware { display: none; }
   body[data-interface='spiral-stage'] .spiral-window-shell:has(.spiral-window-toolbar[data-has-story-control='false']) { grid-template-rows: minmax(0,1fr); }
-  body[data-interface='spiral-stage'] .compact-room-name { display: block; position: fixed; top: calc(env(safe-area-inset-top,0px) + 19px); left: 68px; right: 142px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; z-index: 901; color: #fff9ea; font: 900 18px/1.2 var(--f-disp); }
+  body[data-interface='spiral-stage'] .compact-room-name { display: block; position: fixed; top: calc(env(safe-area-inset-top,0px) + 19px); left: 68px; right: 142px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; z-index: 901; color: #fffbf0; font: 900 18px/1.2 var(--f-disp); }
   body[data-interface='spiral-stage'] .spiral-stage-brand,
   body[data-interface='spiral-stage'] .spiral-satellites,
   body[data-interface='spiral-stage'] .spiral-room-map { opacity: 1; z-index: 900; }
@@ -61,7 +61,7 @@
 @media (max-width: 700px) {
   /* A small, stable dock replaces independently floating controls. */
   body[data-interface='spiral-stage'] .spiral-stage-shell::before { display: none; }
-  body[data-interface='spiral-stage'] .spiral-stage-shell::after { content: ''; animation: none; transform: none; border-radius: 0; width: 100%; opacity: 1; box-shadow: none; position: fixed; inset: auto 0 0; height: calc(env(safe-area-inset-bottom,0px) + 63px); background: #e8e2f2; border: 0; border-top: 2px solid var(--ink); z-index: 850; pointer-events: none; }
+  body[data-interface='spiral-stage'] .spiral-stage-shell::after { content: ''; animation: none; transform: none; border-radius: 0; width: 100%; opacity: 1; box-shadow: none; position: fixed; inset: auto 0 0; height: calc(env(safe-area-inset-bottom,0px) + 63px); background: #d4dfff; border: 0; border-top: 2px solid var(--ink); z-index: 850; pointer-events: none; }
   body[data-interface='spiral-stage'] .compact-room-name { font-size: 16px; }
   body[data-interface='spiral-stage'] .spiral-satellite-media { left: 4px; width: calc(20% - 8px); }
   body[data-interface='spiral-stage'] .spiral-satellite-adviser { left: calc(20% + 4px); width: calc(20% - 8px); }
@@ -86,7 +86,7 @@
 
   /* One route, with its full step list available on demand. */
   body[data-interface='spiral-stage'] .story-guide { display: grid; grid-template-columns: 40px minmax(0,1fr) minmax(84px,.65fr); gap: 6px; }
-  body[data-interface='spiral-stage'] .compact-route-toggle { display: grid; align-content: center; text-align: left; min-width: 0; min-height: 44px; padding: 4px 8px; border: 1px solid #8e83a3; border-radius: 8px; background: #fff9ea; color: var(--ink); }
+  body[data-interface='spiral-stage'] .compact-route-toggle { display: grid; align-content: center; text-align: left; min-width: 0; min-height: 44px; padding: 4px 8px; border: 1px solid #7f7faa; border-radius: 8px; background: #fffbf0; color: var(--ink); }
   .compact-route-toggle span { font-size: 9px; }
   .compact-route-toggle b { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   body[data-interface='spiral-stage'] .story-guide-steps { display: none; }

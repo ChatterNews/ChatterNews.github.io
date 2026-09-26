@@ -13,7 +13,7 @@
   padding: 5px 6px 7px;
   border: 2px solid rgba(255,255,255,.22);
   border-radius: 15px;
-  background: rgba(26,22,38,.38);
+  background: rgba(42,31,0,.38);
 }
 
 .newsroom-nav-label {
@@ -35,9 +35,9 @@
 .newsroom-nav .tab { padding: 8px 10px; transform: rotate(calc((var(--nav-index) - 5) * .08deg)); }
 .newsroom-nav .tab:hover { transform: translateY(-3px); }
 .newsroom-nav .tab[aria-current="true"] { transform: translateY(-3px); }
-.newsroom-nav .group-start { border-color: rgba(34,199,232,.55); }
-.newsroom-nav .group-make { border-color: rgba(255,210,30,.55); }
-.newsroom-nav .group-finish { border-color: rgba(155,224,21,.55); }
+.newsroom-nav .group-start { border-color: rgba(42,191,255,.55); }
+.newsroom-nav .group-make { border-color: rgba(255,223,0,.55); }
+.newsroom-nav .group-finish { border-color: rgba(170,223,0,.55); }
 
 .top .cyc { min-width: 0; max-width: 230px; }
 .top .cyc b {

@@ -1,0 +1,31 @@
+/* Approved Windows 95 palette, September 26, 2026.
+ * Interface roles only: do not apply to project artwork, media or export renderers.
+ * Palette reconstruction by Mathew Eis, shared by Chris Moes on Lospec:
+ * https://lospec.com/palette-list/windows-95-256-colours
+ * Related room families retain their distinct equipment colors.
+ */
+body[data-interface='spiral-stage']{--stage-night:#000080;--stage-paper:#fffbf0;--stage-white:#ffffff;--stage-signal:#ffff55;--stage-phosphor:#55ffaa;--stage-monitor:#2a3faa;--stage-tape:#ff5faa;background:radial-gradient(circle at 50% 48%,#a6caf022 0 1px,transparent 2px) 0 0/19px 19px,conic-gradient(from 15deg at 50% 50%,#000080,#2a0055 22%,#2a3f55 43%,#000080 65%,#2a1f55 85%,#000080)!important;}
+    body[data-interface='spiral-stage'] .spiral-center-frame{background:#c0c0c0!important;border-color:#ffffff!important;box-shadow:0 0 0 3px #000080,0 0 0 8px #808080,0 0 0 11px #000080!important;}
+    body[data-interface='spiral-stage'] .spiral-window-toolbar{background:#a6caf0!important;color:#000080!important;}
+    body[data-interface='spiral-stage'] .spiral-frame-hardware{background:#2a1f55!important;color:#ffffff!important;border-color:#a6caf0!important;box-shadow:inset 0 1px #ffffff55,0 3px #000080!important;}
+    body[data-interface='spiral-stage'] .spiral-frame-hardware:hover{background:#553faa!important;}
+    body[data-interface='spiral-stage'] .spiral-frame-hardware:active{box-shadow:inset 0 2px #000080!important;}
+    body[data-interface='spiral-stage'] :is(.stage-brand,.display-controls-trigger,.stage-utility){background:#ffff55!important;color:#000080!important;border-color:#000080!important;}
+    body[data-interface='spiral-stage'] .story-guide-steps button{background:#2a3f55!important;color:#ffffff!important;}
+    body[data-interface='spiral-stage'] .story-guide-steps button[aria-current='step']{background:#ffffaa!important;color:#000080!important;}
+    body[data-interface='spiral-stage'] .story-guide-next{background:#55ffaa!important;color:#000000!important;}
+    body[data-interface='spiral-stage'] .spiral-hardware-mode{background:#55ffaa!important;color:#000000!important;}
+    body[data-interface='spiral-stage'] .spiral-center-room[data-interior]{--odd-ink:#2a1f00!important;--odd-muted:#553f55!important;--odd-paper:#fffbf0!important;}
+    body[data-interface='spiral-stage'] .spiral-center-room[data-interior='clubhouse']{--odd-house:#2a3faa!important;--odd-head:#ffff55!important;--odd-head-end:#ffdf55!important;--odd-head-ink:#000080!important;--odd-key:#ffff55!important;--odd-shelf:#a6caf0!important;}
+    body[data-interface='spiral-stage'] .spiral-center-room[data-interior='desk']{--odd-house:#800080!important;--odd-head:#ffbfff!important;--odd-head-end:#ff9faa!important;--odd-head-ink:#550055!important;--odd-key:#ffff55!important;--odd-shelf:#c0dcc0!important;}
+    body[data-interface='spiral-stage'] .spiral-center-room[data-interior='blast']{--odd-house:#d43f00!important;--odd-head:#ffbf55!important;--odd-head-end:#ff9f55!important;--odd-head-ink:#550000!important;--odd-key:#ffff55!important;--odd-shelf:#a6caf0!important;--odd-options:#c0dcc0!important;}
+    body[data-interface='spiral-stage'] .spiral-center-room[data-interior='foley']{--odd-house:#008080!important;--odd-head:#ffffaa!important;--odd-head-end:#d4df55!important;--odd-head-ink:#2a3f00!important;--odd-key:#aaff55!important;--odd-shelf:#ffdfaa!important;--odd-options:#ccccff!important;}
+    body[data-interface='spiral-stage'] .spiral-center-room:is([data-interior='stinger'],[data-interior='showtime']){--odd-house:#2a3faa!important;--odd-head:#a6caf0!important;--odd-head-end:#7f9fff!important;--odd-head-ink:#000080!important;--odd-key:#ff9f55!important;--odd-shelf:#c0dcc0!important;--odd-options:#ccccff!important;}
+    body[data-interface='spiral-stage'] .spiral-center-room:is([data-interior='chatterbox'],[data-interior='booth']){--odd-house:#800080!important;--odd-head:#c0dcc0!important;--odd-head-end:#7fdfaa!important;--odd-head-ink:#550055!important;--odd-key:#ff9faa!important;}
+
+body[data-interface='spiral-stage'] .clubhouse-room{background:repeating-linear-gradient(0deg,#ffffff04 0 2px,transparent 2px 12px),#008080!important;}
+    body[data-interface='spiral-stage'] .clubhouse-welcome{background:linear-gradient(115deg,#ffff55,#ffbf55)!important;color:#000080!important;border-color:#000080!important;}
+    body[data-interface='spiral-stage'] .clubhouse-welcome :is(h1,p){color:#000080!important;}
+    body[data-interface='spiral-stage'] .clubhouse-welcome button{background:#c0dcc0!important;color:#2a3f00!important;}
+    body[data-interface='spiral-stage'] .clubhouse-room .card .b{background:#ffff55!important;color:#000080!important;}
+    body[data-interface='spiral-stage'] .spiral-frame-hardware .spiral-hardware-room{color:#ffffff!important;}
