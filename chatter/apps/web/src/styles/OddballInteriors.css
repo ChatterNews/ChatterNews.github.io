@@ -330,3 +330,6 @@ body[data-interface='spiral-stage'] .spiral-center-room[data-interior]:is([data-
 }
 
 body[data-interface='spiral-stage'] .spiral-center-room[data-interior][data-interior='clubhouse'] .clubhouse-room>.sect>h2 { color:#fff2d9; font-family:'Fredoka',sans-serif; }
+/* Starting cards are paper even though the surrounding Blast housing is red. */
+body[data-interface='spiral-stage'] .spiral-center-room[data-interior][data-interior='blast'] .blast-start-body { color:#49303c; }
+body[data-interface='spiral-stage'] .spiral-center-room[data-interior][data-interior='blast'] .blast-start-head h1 { color:#49303c; text-shadow:none; }
