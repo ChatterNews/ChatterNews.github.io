@@ -4,15 +4,16 @@ export const REILY_POCKET_KEY = 'chatter.reily.pocket';
 const REILY_SEEN_PREFIX = 'chatter.reily.seen.';
 const REILY_SEEN_LIMIT = 500;
 
-export type ReilyHintAction = 'ASK' | 'DISMISS' | 'ROOM_CHANGED';
+export type ReilyHintAction = 'ASK' | 'TOGGLE' | 'DISMISS' | 'ROOM_CHANGED';
 export type ReilyPocketAction = 'PARK' | 'RETURN' | 'ROOM_CHANGED';
 
-export function initialReilyHintOpen(sessionValue: string | null, compact = false): boolean {
-  return !compact && sessionValue !== 'seen';
+export function initialReilyHintOpen(_sessionValue?: string | null, _compact = false): boolean {
+  return false;
 }
 
 export function reduceReilyHint(open: boolean, action: ReilyHintAction): boolean {
   if (action === 'ASK') return true;
+  if (action === 'TOGGLE') return !open;
   if (action === 'DISMISS') return false;
   return open;
 }
@@ -81,4 +82,14 @@ export function createReilySeenMemory(
     mark: (id) => persist([...fallback, id]),
     replace: (ids) => persist(ids),
   };
+}
+
+/** Each badge gets one invitation; merely seeing Reily does not dismiss it. */
+export function readReilyIntroduced(userId: string): boolean {
+  try { return typeof window !== 'undefined' && workspaceStorage(window.localStorage).getItem(`chatter.reily.introduced.${userId}`) === 'yes'; }
+  catch { return false; }
+}
+export function markReilyIntroduced(userId: string): void {
+  try { workspaceStorage(window.localStorage).setItem(`chatter.reily.introduced.${userId}`, 'yes'); }
+  catch { /* The current visit still remembers the click when storage is blocked. */ }
 }

@@ -1,4 +1,4 @@
-import { workspaceStorage } from '../portable/workspace-context.js';
+import './ReilyIntro.css';
 /** Reily, the newsroom guide. The filename remains as a compatibility shim. */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Icon } from './Sprite.js';
@@ -17,7 +17,8 @@ import {
   readReilyPocket,
   reduceReilyHint,
   reduceReilyPocket,
-  REILY_SESSION_KEY,
+  readReilyIntroduced,
+  markReilyIntroduced,
   writeReilyPocket,
 } from './reily-session.js';
 import { SPIRAL_ROOMS } from './spiral-navigation.js';
@@ -55,11 +56,8 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
   const [mode, setMode] = useState<'HELP' | 'FIND'>('HELP');
   const [showOrientation, setShowOrientation] = useState(false);
   const [requestedAnother, setRequestedAnother] = useState(false);
-  const [hintOpen, setHintOpen] = useState(() => {
-    const compact = typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 700px)').matches;
-    try { return initialReilyHintOpen(workspaceStorage(window.sessionStorage).getItem(REILY_SESSION_KEY), compact); }
-    catch { return !compact; }
-  });
+  const [hintOpen, setHintOpen] = useState(initialReilyHintOpen);
+  const [introduced, setIntroduced] = useState(() => readReilyIntroduced(userId));
   const [parked, setParked] = useState(readReilyPocket);
   const characterRef = useRef<HTMLButtonElement>(null);
   const motion = useReilyMotion(characterRef, parked, lowSpec);
@@ -67,9 +65,15 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
   const contextKey = `${mergedContext.room}:${mergedContext.focus ?? ''}:${mergedContext.recovery?.kind ?? ''}`;
 
   useEffect(() => {
-    try { workspaceStorage(window.sessionStorage).setItem(REILY_SESSION_KEY, 'seen'); }
-    catch { /* Storage can be unavailable in a locked-down browser. */ }
-  }, []);
+    setHintOpen(false);
+    setIntroduced(readReilyIntroduced(userId));
+  }, [userId]);
+
+  function introduce() {
+    setIntroduced(true);
+    markReilyIntroduced(userId);
+  }
+
 
   useEffect(() => {
     const next = nextReilyAdvice(mergedContext, seenMemory.read());
@@ -108,11 +112,13 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
   }
 
   function park() {
+    introduce();
     setHintOpen((open) => reduceReilyHint(open, 'DISMISS'));
     setParked((current) => reduceReilyPocket(current, 'PARK'));
   }
 
   function returnFromPocket() {
+    introduce();
     setParked((current) => reduceReilyPocket(current, 'RETURN'));
     setHintOpen((open) => reduceReilyHint(open, 'ASK'));
   }
@@ -139,7 +145,7 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
       onKeyDown={handleKeys}
     >
       {hintOpen && (
-        <div className="bubble reilly-bubble reilly-coach-panel">
+        <div id="reily-coach-panel" className="bubble reilly-bubble reilly-coach-panel">
           <div className="reilly-bubble-head">
             <span>REILY · {roomName(mergedContext.room)}</span>
             <button className="x" aria-label="Close Reily's help" onClick={closePanel}><Icon name="ic-x" /></button>
@@ -186,8 +192,11 @@ export function Reily({ context, userId, recommendedRoom, onNavigate, onRevealRo
         className="pipbody reilly-character"
         data-motion={motion}
         aria-label={hasRecovery ? `Ask Reily about a problem in ${roomName(mergedContext.room)}` : 'Ask Reily for help'}
-        onClick={() => setHintOpen((open) => reduceReilyHint(open, 'ASK'))}
+        aria-expanded={hintOpen}
+        aria-controls="reily-coach-panel"
+        onClick={() => { introduce(); setHintOpen((open) => reduceReilyHint(open, 'TOGGLE')); }}
       >
+        {!introduced && <span className="reily-click-hint" aria-hidden="true">Click me</span>}
         {hasRecovery && <span className="reilly-recovery-dot" aria-hidden="true" />}
         <span className="reilly-art" aria-hidden="true" />
         <span className="compact-help-label" aria-hidden="true">Help</span>

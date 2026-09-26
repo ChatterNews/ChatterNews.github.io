@@ -18,7 +18,7 @@ import type { Decider } from './quarantine.js';
 /** Long enough for "Deshawn T.", short enough to fit on a badge. */
 export const MAX_PEN_NAME = 24;
 
-export const GRADE_BANDS = ['5th grade', '6th grade', '7th grade', '8th grade'] as const;
+export const GRADE_BANDS = ['3rd grade', '4th grade', '5th grade', '6th grade', '7th grade', '8th grade'] as const;
 
 export interface PressBadge {
   userId: string;

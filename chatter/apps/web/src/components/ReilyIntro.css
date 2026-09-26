@@ -1,0 +1,7 @@
+.reily-click-hint {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  padding: 7px 13px; border: 2px solid #30253e; border-radius: 12px;
+  background: #ffe57a; color: #30253e; box-shadow: 2px 3px 0 #30253e;
+  font: 800 13px var(--f-ui); white-space: nowrap; pointer-events: none;
+}
+.reily-click-hint::after { content: ''; position: absolute; bottom: -7px; left: calc(50% - 5px); width: 9px; height: 9px; background: #ffe57a; border-right: 2px solid #30253e; border-bottom: 2px solid #30253e; transform: rotate(45deg); }

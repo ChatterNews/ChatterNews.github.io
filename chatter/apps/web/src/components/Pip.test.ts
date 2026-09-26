@@ -1,7 +1,8 @@
-import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+// @vitest-environment jsdom
+import { act, createElement } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Reily } from './Pip.js';
 import { ReilyContextProvider } from './ReilyContextProvider.js';
 import type { ReilyContext } from './reily-advice.js';
@@ -12,8 +13,17 @@ const context: ReilyContext = {
   previousRoom: 'desk',
 };
 
-function markup(nextContext: ReilyContext = context) {
-  return renderToStaticMarkup(createElement(
+let root: Root;
+let host: HTMLDivElement;
+beforeEach(() => {
+  const values = new Map<string, string>();
+  vi.stubGlobal('localStorage', { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } });
+  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+  host = document.createElement('div'); document.body.append(host); root = createRoot(host);
+});
+afterEach(() => { act(() => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
+function markup(nextContext: ReilyContext = context, open = true, userId = 'student-7') {
+  act(() => root.render(createElement(
     MemoryRouter,
     {},
     createElement(
@@ -21,16 +31,37 @@ function markup(nextContext: ReilyContext = context) {
       {},
       createElement(Reily, {
         context: nextContext,
-        userId: 'student-7',
+        userId,
+        lowSpec: true,
         recommendedRoom: 'greenlight',
         onNavigate: () => undefined,
         onRevealRoom: () => undefined,
       }),
     ),
-  ));
+  )));
+  if (open) act(() => host.querySelector<HTMLButtonElement>('.reilly-character')!.click());
+  return host.innerHTML;
 }
 
 describe('Reily coach panel', () => {
+  it('starts closed, toggles on click, and remembers the introduction per badge', () => {
+    markup(context, false);
+    expect(host.querySelector('.reilly-coach-panel')).toBeNull();
+    expect(host.textContent).toContain('Click me');
+    const click = () => act(() => host.querySelector<HTMLButtonElement>('.reilly-character')!.click());
+    click();
+    expect(host.querySelector('.reilly-coach-panel')).not.toBeNull();
+    expect(host.textContent).not.toContain('Click me');
+    click();
+    expect(host.querySelector('.reilly-coach-panel')).toBeNull();
+    act(() => root.unmount()); root = createRoot(host);
+    markup(context, false);
+    expect(host.textContent).not.toContain('Click me');
+    expect(host.querySelector('.reilly-coach-panel')).toBeNull();
+    markup(context, false, 'student-8');
+    expect(host.textContent).toContain('Click me');
+  });
+
   it('offers local help and room-finding modes', () => {
     const html = markup();
 

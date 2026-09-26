@@ -11,8 +11,8 @@ import {
 } from './reily-session.js';
 
 describe('Reily hint session', () => {
-  it('opens the hint once at the beginning of a browser session', () => {
-    expect(initialReilyHintOpen(null)).toBe(true);
+  it('starts closed even on the first visit', () => {
+    expect(initialReilyHintOpen(null)).toBe(false);
     expect(initialReilyHintOpen('seen')).toBe(false);
   });
 
@@ -29,6 +29,12 @@ describe('Reily hint session', () => {
   it('opens the hint again only when Reily is asked', () => {
     expect(reduceReilyHint(false, 'ASK')).toBe(true);
   });
+});
+
+it('toggles help with repeated character clicks', () => {
+  const opened = reduceReilyHint(false, 'TOGGLE');
+  expect(opened).toBe(true);
+  expect(reduceReilyHint(opened, 'TOGGLE')).toBe(false);
 });
 
 describe('Reily pocket', () => {

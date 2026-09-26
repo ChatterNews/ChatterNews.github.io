@@ -1,3 +1,4 @@
+import { BlastStart } from './BlastStart.js';
 import { LoadingStatus } from '../components/LoadingStatus.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
@@ -386,78 +387,6 @@ async function renderPageImage(project: BlastProject, page: BlastPage, imageSour
   return blob;
 }
 
-function TemplateLibrary({ onChoose, onClose, projects, onOpen }: {
-  onChoose: (familyId: string, directionId: string, slotValues?: Record<string, string>) => void;
-  onClose?: () => void;
-  projects: BlastProject[];
-  onOpen: (project: BlastProject) => void;
-}) {
-  const [familyId, setFamilyId] = useState(BLAST_RECIPE_FAMILIES[0]!.id);
-  const [headline, setHeadline] = useState('');
-  const [date, setDate] = useState('');
-  const family = BLAST_RECIPE_FAMILIES.find((item) => item.id === familyId) ?? BLAST_RECIPE_FAMILIES[0]!;
-  return (
-    <div className="blast-library">
-      <div className="blast-library-head">
-        <div>
-          <div className="blast-kicker">BLAST DESIGN STUDIO</div>
-          <h1>What are you making?</h1>
-          <p>Start with the job. Blast will set up the hierarchy, rhythm, and page shape; every word and image still belongs to you.</p>
-        </div>
-        {onClose && <button className="blast-square-button" onClick={onClose} aria-label="Close templates">×</button>}
-      </div>
-      <div className="blast-job-strip">{BLAST_RECIPE_FAMILIES.map((item) => <button key={item.id} aria-pressed={item.id === family.id} onClick={() => setFamilyId(item.id)}><i>{item.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</i><span><b>{item.name}</b><small>{item.job}</small></span></button>)}</div>
-      <section className="blast-direction-shelf">
-        <header><div><span>MAKE: {family.name.toUpperCase()}</span><h2>Pick the first visual direction</h2><p><b>Best for:</b> {family.bestFor}. <b>Audience:</b> {family.audience}.</p></div><em>{family.tone}</em></header>
-        <div className="blast-starter-words"><label><span>Your working headline <small>optional</small></span><input value={headline} onChange={(event) => setHeadline(event.target.value)} placeholder="The one thing readers should notice" /></label><label><span>Date or credit line <small>optional</small></span><input value={date} onChange={(event) => setDate(event.target.value)} placeholder="Thursday · 6 PM · Maker Lab" /></label><p>Leave these blank to audition the sample. You can replace every word inside Blast.</p></div>
-        <div className="blast-direction-grid">{family.directions.map((item) => <button key={item.id} onClick={() => onChoose(family.id, item.id, { ...(headline.trim() ? { headline: headline.trim() } : {}), ...(date.trim() ? { date: date.trim() } : {}) })} style={{ '--recipe-ink': item.palette[0], '--recipe-primary': item.palette[1], '--recipe-accent': item.palette[2], '--recipe-paper': item.palette[3] } as CSSProperties}>
-          <BlastTemplatePreview familyId={family.id} directionId={item.id} />
-          <strong>{item.name}</strong><small>{item.note}</small><em>Start here →</em>
-        </button>)}</div>
-      </section>
-      {projects.length > 0 && <>
-        <h2 className="blast-saved-title">Your saved designs</h2>
-        <div className="blast-saved-grid">
-          {[...projects].sort((a, b) => b.updatedAt - a.updatedAt).map((item) => (
-            <button key={item.id} onClick={() => onOpen(item)}><span>{item.pages.length} page{item.pages.length === 1 ? '' : 's'}</span><b>{item.title}</b><small>Edited {new Date(item.updatedAt).toLocaleDateString()}</small></button>
-          ))}
-        </div>
-      </>}
-    </div>
-  );
-}
-
-function BlastTemplatePreview({ familyId, directionId }: { familyId: string; directionId: string }) {
-  const recipe = buildBlastRecipe(familyId, directionId);
-  const page = recipe.pages[0]!;
-  const preview = page.elements.filter((item) => !item.hidden && item.opacity > 0);
-  return <div className="blast-recipe-preview blast-template-stage" style={{ background: page.background, aspectRatio: `${recipe.width} / ${recipe.height}` }} aria-hidden="true">
-    {preview.map((item) => {
-      const stageStyle = {
-        left: `${item.x / recipe.width * 100}%`,
-        top: `${item.y / recipe.height * 100}%`,
-        width: `${item.width / recipe.width * 100}%`,
-        height: `${item.height / recipe.height * 100}%`,
-        color: item.fill,
-        background: item.kind === 'TEXT' ? 'transparent' : item.fill,
-        borderColor: item.stroke,
-        borderWidth: item.strokeWidth ? `${Math.max(1, item.strokeWidth / 2)}px` : 0,
-        borderStyle: 'solid',
-        borderRadius: item.shape === 'ELLIPSE' ? '50%' : `${Math.min(12, item.radius / 3)}px`,
-        transform: `rotate(${item.rotation}deg)`,
-        fontFamily: item.fontFamily,
-        fontSize: item.kind === 'TEXT' ? `${item.fontSize / recipe.width * 100}cqw` : undefined,
-        fontWeight: item.fontWeight,
-        lineHeight: item.lineHeight,
-        textAlign: item.align,
-      } as CSSProperties;
-      return <span key={item.id} className={`blast-template-piece kind-${item.kind.toLowerCase()} role-${item.role?.toLowerCase() ?? 'piece'}`} style={stageStyle}>
-        {item.kind === 'TEXT' ? item.text : item.kind === 'IMAGE' ? <i /> : null}
-      </span>;
-    })}
-  </div>;
-}
-
 function NumberField({ label, value, min, max, step = 1, onChange }: { label: string; value: number; min?: number; max?: number; step?: number; onChange: (value: number) => void }) {
   return <label className="blast-field"><span>{label}</span><input type="number" value={Number(value.toFixed(2))} min={min} max={max} step={step} onChange={(event) => onChange(Number(event.target.value))} /></label>;
 }
@@ -467,6 +396,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
   const store = useStore();
   const { gate, classifierReady } = useGate();
   const location = useLocation(); const navigate = useNavigate(); const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]); const requestedProjectId = searchParams.get('project'); const podcastCoverId = searchParams.get('podcastCover');
+  const [libraryLoaded, setLibraryLoaded] = useState(false);
   const [projects, setProjects] = useState<BlastProject[]>([]);
   const [project, setProject] = useState<BlastProject | null>(null);
   const [pageId, setPageId] = useState<string>();
@@ -499,11 +429,12 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
 
   useEffect(() => {
     let live = true;
+    setLibraryLoaded(false);
     store.blasts.list().then((rows) => {
       if (!live) return;
       const ordered = rows.map(editableBlastProject).sort((a, b) => b.updatedAt - a.updatedAt);
       setProjects(ordered);
-      const requested = selectStoryWorkspace(ordered, { storyId, projectId: requestedProjectId });
+      const requested = storyId || requestedProjectId ? selectStoryWorkspace(ordered, { storyId, projectId: requestedProjectId }) : undefined;
       if (requested) {
         setProject(requested);
         setPageId(requested.pages[0]?.id);
@@ -511,7 +442,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
         setProject(null);
         setPageId(undefined);
       }
-    }).catch(() => setError('Blast could not open your saved designs. Press Templates to try again.'));
+    }).catch(() => { if (live) setError('Blast could not open your saved designs. Reload this page to try again.'); }).finally(() => { if (live) setLibraryLoaded(true); });
     return () => { live = false; };
   }, [store, requestedProjectId, storyId]);
 
@@ -606,6 +537,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
     if (!template) return;
     const built = template.build();
     try {
+      await saveBeforeSwitch();
       const created = await store.blasts.create({ ...built, ...(me ? { authorId: me.id } : {}), ...((storyId ?? stories.find((item) => item.status !== 'DONE')?.id) ? { storyId: storyId ?? stories.find((item) => item.status !== 'DONE')?.id } : {}) });
       setProjects((rows) => [created, ...rows]);
       setProject(created);
@@ -619,13 +551,37 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
     }
   }
 
-  async function chooseRecipe(familyId: string, directionId: string, slotValues?: Record<string, string>) {
-    setError(undefined);
-    const built = buildBlastRecipe(familyId, directionId, { slotValues });
+  async function saveBeforeSwitch() {
+    window.clearTimeout(saveTimer.current);
+    if (project) {
+      const saved = await store.blasts.update(project.id, project);
+      setProjects((rows) => [saved, ...rows.filter((row) => row.id !== saved.id)]);
+    }
+  }
+
+  async function openSavedDesign(item: BlastProject) {
+    if (pendingJobs.current) return;
+    pendingJobs.current++; setWorking(pendingJobs.current);
     try {
+      await saveBeforeSwitch();
+      const next = project?.id === item.id ? project : item;
+      setProject(next); setPageId(next.pages[0]?.id); setShowLibrary(false);
+      selectOnly(); setHistory([]); setFuture([]);
+    } catch { setError('Your current design did not save. Try opening the saved design again.'); }
+    finally { pendingJobs.current--; setWorking(pendingJobs.current); }
+  }
+
+  async function chooseRecipe(familyId: string, directionId: string, slotValues?: Record<string, string>) {
+    if (pendingJobs.current) return;
+    pendingJobs.current++; setWorking(pendingJobs.current);
+    setError(undefined);
+    try {
+      const built = buildBlastRecipe(familyId, directionId, { slotValues });
+      await saveBeforeSwitch();
       const created = await store.blasts.create({ ...built, ...(me ? { authorId: me.id } : {}), ...((storyId ?? stories.find((item) => item.status !== 'DONE')?.id) ? { storyId: storyId ?? stories.find((item) => item.status !== 'DONE')?.id } : {}) });
       setProjects((rows) => [created, ...rows]); setProject(created); setPageId(created.pages[0]?.id); selectOnly(); setHistory([]); setFuture([]); setShowLibrary(false);
-    } catch { setError('Blast could not start that design. Press the direction again to retry.'); }
+    } catch { setError('Blast could not start that design. Choose the page again to retry.'); }
+    finally { pendingJobs.current--; setWorking(pendingJobs.current); }
   }
 
   function remix(directionId: string) {
@@ -1027,15 +983,18 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  if (!libraryLoaded) return <LoadingStatus label="Opening your design shelf…" />;
+
   if (!project || showLibrary) {
     return <div className="blast-room">
       {error && <div className="blast-error" role="alert">{error}</div>}
       {outputNotice && <div className="blast-output-ready" role="status"><span>✓ {outputNotice}</span><button onClick={() => navigate('/files')}>Open Media Bin →</button><button aria-label="Dismiss output message" onClick={() => setOutputNotice(undefined)}>×</button></div>}
-      <TemplateLibrary
+      <BlastStart
+        busy={working > 0}
         onChoose={(familyId, directionId, slotValues) => void chooseRecipe(familyId, directionId, slotValues)}
         onClose={project ? () => setShowLibrary(false) : undefined}
         projects={projects}
-        onOpen={(item) => { setProject(item); setPageId(item.pages[0]?.id); setShowLibrary(false); setHistory([]); setFuture([]); }}
+        onOpen={(item) => void openSavedDesign(item)}
       />
       <LookInside
         room="Blast"
@@ -1059,7 +1018,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
       {working > 0 && <LoadingStatus label="Preparing your design files…" detail="Reading images, checking media, or saving your export. Keep this tab open." />}
       <input ref={imageInput} hidden type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importImage(file); }} />
       <header className="blast-toolbar" data-tools-open={compactToolsOpen}>
-        <button className="blast-brand" onClick={() => setShowLibrary(true)}><span>BLAST</span><small>Design studio</small></button>
+        <button className="blast-brand" onClick={() => { selectOnly(); setShowLibrary(true); }}><span>BLAST</span><small>Design studio</small></button>
         <input className="blast-title-input" value={project.title} aria-label="Design title" onChange={(event) => setProject({ ...project, title: event.target.value })} />
         <button type="button" className="compact-blast-tools" aria-expanded={compactToolsOpen} onClick={() => setCompactToolsOpen(open => !open)}>Tools {compactToolsOpen ? '▴' : '▾'}</button>
         <label className="blast-story-link">Story<select aria-label="Design story" value={project.storyId ?? ''} onChange={(event) => setProject({ ...project, storyId: event.target.value || undefined })}><option value="">Standalone</option>{stories.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>
@@ -1094,7 +1053,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
         <aside className="blast-panel">
           {sideTab === 'templates' && <>
             <h2>Starting points</h2><p>Open the job shelf for ten complete publishing systems. Your current design stays saved.</p>
-            <button className="blast-wide-button primary" onClick={() => setShowLibrary(true)}>Browse publishing jobs</button>
+            <button className="blast-wide-button primary" onClick={() => { selectOnly(); setShowLibrary(true); }}>Browse publishing jobs</button>
             <h3>Freeform</h3>{BLAST_TEMPLATES.filter((template) => template.id === 'blank').map((template) => <button className="blast-mini-template" key={template.id} onClick={() => void chooseTemplate(template.id)} style={{ '--template-accent': template.accent } as CSSProperties}><i /><span><b>{template.name}</b><small>{template.kind}</small></span></button>)}
           </>}
           {sideTab === 'add' && <>

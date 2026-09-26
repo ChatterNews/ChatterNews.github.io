@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 
-const blastSource = readFileSync(new URL('./Blast.tsx', import.meta.url), 'utf8');
+const blastSource = readFileSync(new URL('./BlastStart.tsx', import.meta.url), 'utf8');
 const stingerSource = readFileSync(new URL('./Stinger.tsx', import.meta.url), 'utf8');
 const tactileCss = readFileSync(new URL('../styles/TactilePass.css', import.meta.url), 'utf8');
 
