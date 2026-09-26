@@ -289,7 +289,7 @@ export function SpiralStage({
               <span className="spiral-hardware-mode"><i aria-hidden="true">{workView ? '◎' : '↗'}</i><b>{workView ? 'Show planets' : 'Work view'}</b></span>
             </button>
           </header>
-          <div className="spiral-center-room">{children}</div>
+          <div className="spiral-center-room" data-interior={currentRoom || 'clubhouse'}>{children}</div>
         </div>
       </section>
 

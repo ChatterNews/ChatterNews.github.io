@@ -1,3 +1,4 @@
+import { CreativeToolIcon } from '../components/CreativeToolIcon.js';
 import { BlastStart } from './BlastStart.js';
 import { LoadingStatus } from '../components/LoadingStatus.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
@@ -1045,8 +1046,8 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
 
       <div className="blast-workspace">
         <aside className="blast-rail" aria-label="Design tools">
-          {([['templates', '▦', 'Templates'], ['add', '+', 'Add'], ['pages', '▤', 'Pages'], ['layers', '◫', 'Layers']] as const).map(([tab, icon, label]) => (
-            <button key={tab} aria-pressed={sideTab === tab} onClick={() => setSideTab(tab)}><b>{icon}</b><span>{label}</span></button>
+          {([['templates', 'Templates'], ['add', 'Add'], ['pages', 'Pages'], ['layers', 'Layers']] as const).map(([tab, label]) => (
+            <button key={tab} aria-pressed={sideTab === tab} onClick={() => setSideTab(tab)}><CreativeToolIcon kind={tab} /><span>{label}</span></button>
           ))}
         </aside>
 
