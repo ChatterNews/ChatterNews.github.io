@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 /**
  * The Picture Box. Every candidate goes through gate.ingest before it is ever
  * shown in the story - there is no path from here to a Story.body that skips
@@ -8,11 +9,12 @@
  * control). Until that proxy is deployed, the box says so plainly and the
  * upload path - which is fully local - still works.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { recordRole, type User } from '@chatter/shared';
 import { useStore } from '../store/StoreProvider.js';
 import { useGate } from '../gate/GateProvider.js';
 import { Icon } from './Sprite.js';
+import { listStoryPictures, pickStoryPicture, type StoryPicture } from './picture-assets.js';
 
 export function PictureBox({ storyId, me, onPicked, onClose }: {
   storyId: string;
@@ -23,7 +25,26 @@ export function PictureBox({ storyId, me, onPicked, onClose }: {
   const { gate, classifierReady } = useGate();
   const store = useStore();
   const [busy, setBusy] = useState(false);
+  const [pictures, setPictures] = useState<StoryPicture[]>([]);
   const [refused, setRefused] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void listStoryPictures(store, storyId).then(rows => { if (active) setPictures(rows); }).catch(error => { if (active) setRefused(error instanceof Error ? error.message : 'The saved pictures could not be opened.'); });
+    return () => { active = false; };
+  }, [store, storyId]);
+
+  async function useSavedPicture(id: string) {
+    setBusy(true); setRefused(null);
+    try {
+      const picked = await pickStoryPicture(store, storyId, id);
+      if (me) await recordRole(store, { userId: me.id, storyId, role: 'picture' });
+      onPicked(picked.src, picked.credit);
+    } catch (error) {
+      setRefused(error instanceof Error ? error.message : 'This saved picture could not be opened.');
+      setPictures(await listStoryPictures(store, storyId).catch(() => []));
+    } finally { setBusy(false); }
+  }
 
   async function upload(file: File) {
     setBusy(true);
@@ -53,8 +74,8 @@ export function PictureBox({ storyId, me, onPicked, onClose }: {
     }
   }
 
-  return (
-    <div className="picker" role="dialog" aria-labelledby="pk-t" style={{ display: 'block' }}>
+  return createPortal(
+    <div className="picker on" role="dialog" aria-labelledby="pk-t" style={{ display: 'block' }}>
       <div className="pkhead">
         <div style={{ display: 'flex', alignItems: 'center', gap: 13, flexWrap: 'wrap' }}>
           <h3 id="pk-t" style={{ margin: 0, fontFamily: 'var(--f-pop)', fontSize: 23 }}>The Picture Box</h3>
@@ -72,6 +93,15 @@ export function PictureBox({ storyId, me, onPicked, onClose }: {
               : 'New photos need an adviser check right now. You can add one and keep working on the rest of the page.'}
           </div>
         </div>
+
+        {pictures.length > 0 && <section aria-label="Photos in this story" style={{ marginBottom: 16 }}>
+          <h4 style={{ margin: '0 0 8px' }}>Photos in this story</h4>
+          <p className="sb">Choose a collected or saved photo. Its creator credit stays with it.</p>
+          <div className="rows">{pictures.map(picture => <div className="r" key={picture.id}>
+            <div className="grow"><div className="nm">{picture.label}</div><div className="sb">{picture.credit}</div></div>
+            <button className="b sm go" disabled={busy} onClick={() => { void useSavedPicture(picture.id); }}>Use photo</button>
+          </div>)}</div>
+        </section>}
 
         <div className="rows">
           <div className="r">
@@ -103,6 +133,6 @@ export function PictureBox({ storyId, me, onPicked, onClose }: {
 
         {refused && <p className="note" style={{ marginTop: 14 }}>{refused}</p>}
       </div>
-    </div>
+    </div>, document.body
   );
 }

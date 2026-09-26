@@ -4,7 +4,8 @@
  * IndexedDB, OPFS or a server being present.
  */
 import type { Store, Collection, StoryCollection, AssetCollection, EventLog, BlobStore } from './store.js';
-import type { Base, Story, Asset, LogEvent } from './types.js';
+import type { Base, Story, Asset, LogEvent, GroupRevision } from './types.js';
+import { validateGroupRevision, validateStoryGroupFields } from './group-story.js';
 import { newId, slugify, sha256 } from './ids.js';
 import { countWords, readTimeSec } from './readtime.js';
 
@@ -50,6 +51,25 @@ class SimpleCollection<T extends Base> extends MemoryCollection<T> {
   }
 }
 
+class MemoryGroupRevisions extends MemoryCollection<GroupRevision> {
+  override async get(id: string) { const row = this.rows.get(id); return row ? structuredClone(row) : undefined; }
+  override async list() { return structuredClone([...this.rows.values()]); }
+  async create(input: Omit<GroupRevision, keyof Base> & Partial<Base>): Promise<GroupRevision> {
+    const now = Date.now();
+    const row = { id: newId(), createdAt: now, updatedAt: now, ...input };
+    validateGroupRevision(row);
+    if (this.rows.has(row.id)) throw new Error('This group revision already exists.');
+    const saved = structuredClone(row);
+    // The stored record, the event payload and every caller own separate copies.
+    this.rows.set(saved.id, saved);
+    await this.onWrite(`${this.name}.create`, saved.id, structuredClone(saved));
+    return structuredClone(saved);
+  }
+  override async update(_id: string, _patch: Partial<GroupRevision>): Promise<GroupRevision> {
+    throw new Error('Saved group revisions are immutable. Save a new revision.');
+  }
+}
+
 class MemorySoundCollection<T extends Base> extends SimpleCollection<T> {
   constructor(onWrite: (action: string, target: string, payload?: unknown) => Promise<void>, name: string, private validate: (row: T) => void, private immutable = false) { super(onWrite, name); }
   override async get(id: string) { const row = await super.get(id); return row ? structuredClone(row) : undefined; }
@@ -83,6 +103,7 @@ class MemorySoundProjects extends SimpleCollection<SoundProject> {
 
 class MemoryStories extends MemoryCollection<Story> implements StoryCollection {
   async create(input: { title: string } & Partial<Story>): Promise<Story> {
+    validateStoryGroupFields(input);
     const now = Date.now();
     const body = input.body ?? EMPTY_DOC;
     const story: Story = {
@@ -104,12 +125,15 @@ class MemoryStories extends MemoryCollection<Story> implements StoryCollection {
       ...(input.orderIndex !== undefined ? { orderIndex: input.orderIndex } : {}),
       ...(input.portableId !== undefined ? { portableId: input.portableId } : {}),
       ...(input.followUpOfId !== undefined ? { followUpOfId: input.followUpOfId } : {}),
+      ...(input.group !== undefined ? { group: structuredClone(input.group) } : {}),
+      ...(input.attachedAssetIds !== undefined ? { attachedAssetIds: [...input.attachedAssetIds] } : {}),
     };
     return this.insert(story);
   }
 
   /** readTimeSec is derived on every write - never typed in by hand. */
   override async update(id: string, patch: Partial<Story>): Promise<Story> {
+    validateStoryGroupFields(patch);
     const derived = patch.body
       ? { ...patch, readTimeSec: readTimeSec(countWords(patch.body)) }
       : patch;
@@ -188,6 +212,7 @@ export class MemoryStore implements Store {
   events: EventLog;
   blobs = new MemoryBlobs();
   stories: StoryCollection;
+  groupRevisions: MemoryGroupRevisions;
   assets: AssetCollection;
   users: any; takes: any; transcripts: any; credits: any; deliverables: any;
   releases: any; roleAssigns: any; badges: any; episodes: any; jobs: any; appearances: any; blasts: any; motionPackages: any; showtimeProjects: any; podcastShows: any; podcastProjects: any; samplerPresets: any; studioProjects: any; crewTasks: any; reviews: any;
@@ -202,6 +227,7 @@ export class MemoryStore implements Store {
       await this.events.append({ action, target, payload });
     };
     this.stories = new MemoryStories(log, 'story');
+    this.groupRevisions = new MemoryGroupRevisions(log, 'groupRevision');
     this.assets = new MemoryAssets(log, 'asset');
     this.users = new SimpleCollection(log, 'user');
     this.takes = new SimpleCollection(log, 'take');

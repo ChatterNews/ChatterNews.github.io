@@ -1,0 +1,47 @@
+.group-compare {
+  container-type: inline-size;
+  min-width: 0;
+  color: var(--ink, #272143);
+  font-family: var(--f-ui, sans-serif);
+}
+.group-compare-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.group-compare-heading > div { flex: 1; min-width: 180px; }
+.group-compare-heading h2 { margin: 0 0 3px; font: 900 23px/1.15 var(--f-disp, sans-serif); }
+.group-compare-heading p, .group-compare-hint, .group-compare-notice { margin: 0; font-size: 14px; line-height: 1.5; }
+.group-compare-count { margin-left: 8px; font-size: 12px; font-weight: 700; }
+.group-compare-picker { min-width: 0; margin: 0; padding: 9px 10px; border: 2px solid #b6a7c5; border-radius: 8px; background: #f8f4fa; }
+.group-compare-picker summary { cursor: pointer; font-size: 14px; font-weight: 850; }
+.group-compare-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 12px 0; }
+.group-compare-tools label { display: flex; align-items: center; gap: 7px; font-size: 14px; }
+.group-compare input { width: 18px; height: 18px; flex: none; accent-color: #68329c; }
+.group-compare-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 8px; }
+.group-compare-choice { display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #b6a7c5; border-radius: 5px; background: #fff; cursor: pointer; }
+.group-compare-choice:has(input:checked) { border-color: var(--ink, #272143); background: #e0f8fc; }
+.group-compare-choice span { min-width: 0; overflow-wrap: anywhere; }
+.group-compare-choice b, .group-compare-choice small { display: block; }
+.group-compare-choice b { font-size: 14px; }
+.group-compare-choice small { margin-top: 3px; font-size: 12px; }
+.group-compare-hint { margin: 9px 0; font-size: 12px; }
+.group-compare-notice { margin: 12px 0; padding: 10px 12px; border-left: 5px solid #ffd21e; background: #fff8d9; }
+.group-compare-empty { padding: 22px; border: 2px dashed #b6a7c5; border-radius: 8px; line-height: 1.5; }
+.group-compare-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; max-height: min(60vh, 380px); overflow: auto; overscroll-behavior: contain; padding: 0 5px 5px 0; scrollbar-gutter: stable; }
+.group-compare-card { display: flex; flex-direction: column; min-width: 0; border: 2px solid var(--ink, #272143); border-radius: 4px 12px 5px 5px; background: white; box-shadow: 3px 3px 0 var(--ink, #272143); overflow: hidden; }
+.group-compare-card > header { padding: 9px 11px; border-bottom: 2px solid var(--ink, #272143); background: #e0f8fc; }
+.group-compare-card:nth-child(4n + 2) > header { background: #fff1b5; }
+.group-compare-card:nth-child(4n + 3) > header { background: #eee4fc; }
+.group-compare-card:nth-child(4n + 4) > header { background: #e7f7d1; }
+.group-compare-card h3 { margin: 0; overflow-wrap: anywhere; font: 850 17px/1.2 var(--f-disp, sans-serif); }
+.group-compare-card header p { margin: 3px 0; font-size: 13px; font-weight: 750; }
+.group-compare-card header small { display: block; font-size: 11px; line-height: 1.3; }
+.group-compare-text { box-sizing: border-box; height: 160px; min-height: 100px; max-height: 60vh; resize: vertical; overflow: auto; overscroll-behavior: contain; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; font: 18px/1.5 var(--f-read, Georgia, serif); }
+.group-compare-text::selection { background: #ffd21e; color: #272143; }
+.group-compare-card footer { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding: 8px; border-top: 1px solid #d8cfe0; background: #f8f4fa; }
+.group-compare button { min-height: 38px; padding: 8px 10px; border: 1.5px solid var(--ink, #272143); border-radius: 6px; background: white; color: inherit; font: 800 12px/1.25 var(--f-ui, sans-serif); cursor: pointer; }
+.group-compare-card footer button:first-child { background: #ffd21e; }
+.group-compare button:hover:not(:disabled) { box-shadow: 2px 2px 0 var(--ink, #272143); }
+.group-compare button:disabled { border-color: #bbb2c3; background: #eee9f2; color: #6c6276; cursor: not-allowed; }
+.group-compare :is(button, input, summary, .group-compare-text):focus-visible { outline: 3px solid #68329c; outline-offset: 3px; }
+.group-compare-text:focus-visible { outline-offset: -4px; }
+@container (max-width: 420px) {
+  .group-compare-grid { grid-template-columns: minmax(0, 1fr); }
+}

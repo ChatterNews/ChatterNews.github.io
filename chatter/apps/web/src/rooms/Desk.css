@@ -15,3 +15,19 @@
 .desk-story-check{padding:16px 14px}.desk-story-check>header{display:flex;align-items:center;gap:10px;margin-bottom:12px}.desk-story-check>header>div{flex:1}.desk-story-check h2{margin:3px 0 0;font:900 19px/1.1 var(--f-disp)}.desk-story-check>header>b{display:grid;place-items:center;width:58px;height:58px;flex:none;border:2px solid #786b82;border-radius:50%;background:#fff4c3;font:900 17px/1 var(--f-disp);transform:rotate(3deg)}.desk-story-check>header>b small{display:block;font:900 6px/1 var(--f-ui);text-transform:uppercase;letter-spacing:.08em}.desk-story-check>header>b.ready{border-color:#4e7826;background:#dff2ca;color:#35571a}.desk-check-route-note{margin:0 0 10px;padding:9px;border:1px dashed #9c8da9;background:#fff4ca;font-size:9px;line-height:1.4}.desk-check-route-note b{display:block}.desk-story-check>div{display:flex;flex-direction:column;gap:6px}.desk-story-check article{display:grid;grid-template-columns:23px 1fr;gap:7px;align-items:start;padding:9px;border:1px solid #d6ccdc;border-radius:5px;background:#fff}.desk-story-check article>span{font-size:17px;line-height:1;color:#a297aa}.desk-story-check article>div{display:flex;flex-direction:column;gap:2px}.desk-story-check article b{font-size:10px}.desk-story-check article small{color:#766d7d;font-size:8px;line-height:1.35}.desk-story-check article.complete{border-color:#a6c482;background:#eff9e3}.desk-story-check article.complete>span,.desk-story-check article.complete b{color:#47731f}.desk-story-check>footer{margin-top:12px;padding-top:10px;border-top:1px dashed #b9aebf;color:#6e6575;font-size:8px;line-height:1.45}
 
 @media(max-width:900px){.desk-editor .ProseMirror [data-desk-beat]{min-height:72px}.desk-route-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.desk-route-example{transform:none}}@media(max-width:540px){.desk-route-list{grid-template-columns:1fr}.desk-editor,.desk-page-heading{padding-left:18px;padding-right:18px}.desk-page-footer{flex-wrap:wrap}.desk-length{order:2;flex-basis:100%}}
+
+/* Keep the group's sources beside the editable draft during assembly. */
+.desk-toolbar{min-width:0;margin:0;border-top:0;border-right:0;border-left:0}
+.desk-comparing .desk-shell{grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#f8f4fa;overflow:visible}
+.desk-group-sources{min-width:0;padding:12px;border-right:2px solid var(--ink);background:#f8f4fa;border-radius:12px 0 0 12px}
+.desk-compare-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.desk-comparing .desk-paper{position:sticky;top:12px;align-self:start;min-height:0;border-radius:0 12px 12px 0;overflow:hidden}
+.desk-comparing .desk-editor{box-sizing:border-box;max-height:35vh;min-height:220px;padding-top:14px;padding-bottom:24px;overflow:auto;overscroll-behavior:contain}
+.desk-comparing .desk-editor .ProseMirror{min-height:180px}
+.desk-comparing .desk-page-heading{padding:16px 24px 8px}
+.desk-comparing .desk-page-heading h1{font-size:28px}
+.desk-comparing .desk-editor{padding-left:24px;padding-right:24px}
+.desk-comparing .desk-page-footer{flex-wrap:wrap}
+.desk-group-waiting{text-align:left;margin-top:20px}
+.desk-group-waiting>.group-compare{margin-top:24px}
+@media(max-width:900px){.desk-comparing .desk-shell{grid-template-columns:minmax(0,1fr)}.desk-group-sources{border-right:0;border-bottom:2px solid var(--ink);border-radius:12px 12px 0 0}.desk-comparing .desk-paper{position:static;border-radius:0 0 12px 12px}}

@@ -56,7 +56,11 @@ export interface SoundProjectCollection extends Collection<SoundProject> {
   create(input: Omit<SoundProject, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<SoundProject>;
   save(project: SoundProject, expectedRevision: number): Promise<SoundProject>;
 }
+export interface GroupRevisionCollection extends Collection<import('./types.js').GroupRevision> {
+  create(input: Omit<import('./types.js').GroupRevision, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<import('./types.js').GroupRevision>;
+}
 export interface Store {
+  groupRevisions: GroupRevisionCollection;
   soundProjects: SoundProjectCollection;
   soundItems: Collection<SoundLibraryItem> & { create(input: Omit<SoundLibraryItem, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<SoundLibraryItem> };
   soundRevisions: Collection<SoundRevision> & { create(input: Omit<SoundRevision, keyof import('./types.js').Base> & Partial<import('./types.js').Base>): Promise<SoundRevision> };

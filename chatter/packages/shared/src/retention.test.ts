@@ -25,6 +25,15 @@ async function anAsset(opts: { expiresAt?: number } = {}) {
 }
 
 describe('runRetention - raw material expires, published work does not', () => {
+  test('keeps explicitly attached source bytes until the story releases them', async () => {
+    const asset = await anAsset({ expiresAt: NOW - DAY });
+    const story = await store.stories.create({ title: 'Unused interview', attachedAssetIds: [asset.id] });
+    expect((await runRetention(store, { now: NOW })).assetsSpared).toBe(1);
+    expect(await store.blobs.has(asset.sha256)).toBe(true);
+    await store.stories.update(story.id, { attachedAssetIds: [] });
+    expect((await runRetention(store, { now: NOW })).assetsDeleted).toBe(1);
+  });
+
   test('deletes a take that is past its expiry', async () => {
     const asset = await anAsset({ expiresAt: NOW - DAY });
     const result = await runRetention(store, { now: NOW });

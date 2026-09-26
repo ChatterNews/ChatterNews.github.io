@@ -9,7 +9,8 @@
 import type {
   Store, Collection, StoryCollection, AssetCollection, EventLog, BlobStore,
 } from '@chatter/shared';
-import type { Base, Story, Asset, LogEvent } from '@chatter/shared';
+import type { Base, Story, Asset, LogEvent, GroupRevision } from '@chatter/shared';
+import { validateGroupRevision, validateStoryGroupFields } from '@chatter/shared';
 import { newId, slugify, sha256, countWords, readTimeSec, verifyAdviserPin, validateSoundProject, validateSoundItem, validateSoundCollection, validateSoundRevision } from '@chatter/shared';
 import { writeOpfsFile } from './opfs-write.js';
 
@@ -21,10 +22,11 @@ import { writeOpfsFile } from './opfs-write.js';
  */
 // The alternative already opened version 11 on this origin. Never downgrade
 // or clear that database when restoring the original app.
-const DB_VERSION = 12;
+const DB_VERSION = 13;
 const EMPTY_DOC = { type: 'doc', content: [] };
 
 export const STORES = [
+  'groupRevisions',
   'soundProjects', 'soundItems', 'soundRevisions', 'soundCollections', 'soundOperations',
   'stories', 'assets', 'users', 'takes', 'transcripts', 'credits',
   'releases', 'roleAssigns', 'badges', 'episodes', 'jobs', 'appearances',
@@ -104,6 +106,18 @@ class IdbSimple<T extends Base> extends IdbCollection<T> {
   }
 }
 
+class IdbGroupRevisions extends IdbCollection<GroupRevision> {
+  async create(input: Omit<GroupRevision, keyof Base> & Partial<Base>): Promise<GroupRevision> {
+    const now = Date.now();
+    const row = { id: newId(), createdAt: now, updatedAt: now, ...input };
+    validateGroupRevision(row);
+    return structuredClone(await this.insert(structuredClone(row)));
+  }
+  override async update(_id: string, _patch: Partial<GroupRevision>): Promise<GroupRevision> {
+    throw new Error('Saved group revisions are immutable. Save a new revision.');
+  }
+}
+
 class IdbSoundCollection<T extends Base> extends IdbSimple<T> {
   constructor(db: () => IDBDatabase, name: string, onWrite: (action: string, target: string, payload?: unknown) => Promise<void>, private validate: (row: T) => void, private immutable = false) { super(db, name, onWrite); }
   override async create(input: Omit<T, keyof Base> & Partial<Base>) { const row = { id: newId(), createdAt: Date.now(), updatedAt: Date.now(), ...input } as T; this.validate(row); return super.create(row); }
@@ -140,6 +154,7 @@ class IdbSoundProjects extends IdbSimple<import('@chatter/shared').SoundProject>
 
 class IdbStories extends IdbCollection<Story> implements StoryCollection {
   async create(input: { title: string } & Partial<Story>): Promise<Story> {
+    validateStoryGroupFields(input);
     const now = Date.now();
     const body = input.body ?? EMPTY_DOC;
     return this.insert({
@@ -161,11 +176,14 @@ class IdbStories extends IdbCollection<Story> implements StoryCollection {
       ...(input.orderIndex !== undefined ? { orderIndex: input.orderIndex } : {}),
       ...(input.portableId !== undefined ? { portableId: input.portableId } : {}),
       ...(input.followUpOfId !== undefined ? { followUpOfId: input.followUpOfId } : {}),
+      ...(input.group !== undefined ? { group: structuredClone(input.group) } : {}),
+      ...(input.attachedAssetIds !== undefined ? { attachedAssetIds: [...input.attachedAssetIds] } : {}),
     } as Story);
   }
 
   /** readTimeSec is derived on every write - never typed in by hand. */
   override async update(id: string, patch: Partial<Story>): Promise<Story> {
+    validateStoryGroupFields(patch);
     const derived = patch.body
       ? { ...patch, readTimeSec: readTimeSec(countWords(patch.body)) }
       : patch;
@@ -344,6 +362,7 @@ export class IdbStore implements Store {
   events: IdbEventLog;
   blobs: OpfsBlobs;
   stories: StoryCollection;
+  groupRevisions: IdbGroupRevisions;
   assets: AssetCollection;
   users: any; takes: any; transcripts: any; credits: any; deliverables: any;
   releases: any; roleAssigns: any; badges: any; episodes: any; jobs: any;
@@ -363,6 +382,7 @@ export class IdbStore implements Store {
       await this.events.append({ action, target, payload });
     };
     this.stories = new IdbStories(db, 'stories', log);
+    this.groupRevisions = new IdbGroupRevisions(db, 'groupRevisions', log);
     this.assets = new IdbAssets(db, 'assets', log);
     this.users = new IdbSimple(db, 'users', log);
     this.takes = new IdbSimple(db, 'takes', log);

@@ -98,7 +98,7 @@ describe('portable USB story projects', () => {
     await first.studioProjects.create({ storyId: story.id, project: song });
 
     const exported = await exportPortableStory(first, story);
-    expect(exported.project.version).toBe(7);
+    expect(exported.project.version).toBe(8);
     expect(exported.project.studioProjects).toHaveLength(1);
 
     const second = new MemoryStore('studio-portable-two'); await second.open();

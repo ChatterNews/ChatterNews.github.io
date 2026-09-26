@@ -7,7 +7,7 @@ import { storyPath, type Story } from '@chatter/shared';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/StoreProvider.js';
 import { useGate } from '../gate/GateProvider.js';
-import { exportPortableStory } from '../portable/portable-project.js';
+import { exportPortableStory, portableFileName } from '../portable/portable-project.js';
 import { desktopDirectory, desktopStoryFileName, getDesktopDrive } from '../portable/desktop-drive.js';
 import { getReaderDrive, isMobileEdition, isWebsiteEdition, returnToReader } from '../portable/reader-drive.js';
 import { downloadMobileFile, offerMobileFile, prepareMobileSession } from '../portable/mobile-session.js';
@@ -93,7 +93,7 @@ export function ProjectDrive({ stories, story, onChanged, saveOnly = false }: { 
       }
       const picker = (window as unknown as { showSaveFilePicker?: SavePicker }).showSaveFilePicker;
       const nativeName = saveFolder ? desktopStoryFileName(selected.slug) : undefined;
-      const handle = saveFolder ? await saveFolder.getFileHandle(nativeName!, { create: true }) : picker ? await picker({ suggestedName: `${selected.slug}.chatter`, types: [{ description: 'Chatter portable story', accept: { 'application/zip': ['.chatter'] } }] }) : undefined;
+      const handle = saveFolder ? await saveFolder.getFileHandle(nativeName!, { create: true }) : picker ? await picker({ suggestedName: portableFileName(selected), types: [{ description: 'Chatter portable story', accept: { 'application/zip': ['.chatter'] } }] }) : undefined;
       const result = await exportPortableStory(store, selected);
       if (handle) await writeVerifiedFile(handle, result.blob);
       else download(result.blob, result.fileName);

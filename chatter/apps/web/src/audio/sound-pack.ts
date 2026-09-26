@@ -34,7 +34,7 @@ export async function exportSoundPack(store: Store, storyId?: string): Promise<{
   zip.file('soundpack.json', JSON.stringify(manifest));
   return { blob: await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), fileName: storyId ? 'story-sounds.soundpack' : 'club-sounds.soundpack' };
 }
-function validManifest(value: unknown): asserts value is Manifest {
+export function validateSoundPackManifest(value: unknown): asserts value is Manifest {
   const p = value as Manifest;
   if (!p || p.format !== 'orbit-soundpack' || p.version !== 1) throw new Error('Unsupported sound pack.');
   for (const list of [p.projects, p.revisions, p.items, p.collections, p.assets]) if (!Array.isArray(list) || list.length > 2000) throw new Error('Invalid or oversized sound pack.');
@@ -65,7 +65,7 @@ async function importPack(store: Store, gate: Gate, blob: Blob, storyId?: string
   }
   const entry = zip.file('soundpack.json'); if (!entry) throw new Error('This file is missing soundpack.json.');
   const manifestText = await entry.async('string'); if (manifestText.length > 8 * 1024 * 1024) throw new Error('Sound pack metadata is too large.');
-  const manifest: unknown = JSON.parse(manifestText); validManifest(manifest);
+  const manifest: unknown = JSON.parse(manifestText); validateSoundPackManifest(manifest);
   const files = new Map<string, Uint8Array>(); let total = 0;
   // Validate every byte and reference before writing any imported record.
   for (const a of manifest.assets) { const file = zip.file(a.file); if (!file) throw new Error('The pack is missing audio.'); const bytes = await file.async('uint8array'); total += bytes.length; if (total > MAX_BYTES || bytes.length !== a.record.bytes || await sha256(bytes) !== a.record.sha256) throw new Error('The pack has damaged or oversized audio.'); files.set(a.record.id, bytes); }

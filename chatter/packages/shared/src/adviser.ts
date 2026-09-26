@@ -276,6 +276,7 @@ export async function newsroomBackup(store: Store, pin: string): Promise<Newsroo
     exportedAt: Date.now(),
     deviceId: store.deviceId,
     records: {
+      groupRevisions: await store.groupRevisions.list(),
       soundProjects, soundItems, soundRevisions, soundCollections, soundOperations,
       stories, assets, users, takes, transcripts, credits, appearances, releases,
       roleAssigns, badges, episodes, deliverables, blasts, motionPackages, showtimeProjects,

@@ -2,6 +2,7 @@ import { LoadingStatus } from './LoadingStatus.js';
 import { useRef, useState } from 'react';
 import type { Gate, Store } from '@chatter/shared';
 import { importPortableStory } from '../portable/portable-project.js';
+import { dispatchStoryDriveFile } from '../group/group-intake.js';
 
 export type StoryDriveResult = Awaited<ReturnType<typeof importPortableStory>>;
 export type StoryDriveOutcome =
@@ -16,11 +17,13 @@ export async function openStoryDriveFile(
 ): Promise<StoryDriveOutcome> {
   if (!file) return { status: 'CANCELLED', message: 'No story was opened.' };
   try {
-    const result = await importPortableStory(store, gate, file);
+    const { result, collection } = await dispatchStoryDriveFile(store, gate, file);
     return {
       status: 'OPENED',
       result,
-      message: `${result.updated ? 'Updated' : 'Opened'} “${result.story.title}” with ${result.mediaCount} media file${result.mediaCount === 1 ? '' : 's'}.`,
+      message: collection
+        ? `Collected ${collection.added} saved piece${collection.added === 1 ? '' : 's'} for “${result.story.title}”.${collection.already ? ` ${collection.already} already collected.` : ''}`
+        : `${result.updated ? 'Updated' : 'Opened'} “${result.story.title}” with ${result.mediaCount} media file${result.mediaCount === 1 ? '' : 's'}.`,
     };
   } catch (error) {
     const detail = error instanceof Error ? error.message : '';

@@ -51,6 +51,9 @@ async function publishedAssetIds(store: Store): Promise<Set<string>> {
     }
   }
 
+  // Explicit story attachments remain source material even before placement.
+  for (const story of await store.stories.list()) for (const id of story.attachedAssetIds ?? []) protectedAssets.add(id);
+
   // Archived library items still protect bytes: archive is reversible.
   for (const item of await store.soundItems.list()) protectedAssets.add(item.assetId);
   for (const project of await store.soundProjects.list()) for (const id of soundSourceAssetIds(project)) protectedAssets.add(id);

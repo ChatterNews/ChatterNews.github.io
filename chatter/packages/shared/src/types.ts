@@ -49,6 +49,36 @@ export interface Story extends Base {
   portableId?: string;
   /** Published work stays frozen; later coverage points back to the edition that inspired it. */
   followUpOfId?: string;
+  /** Grouping and public attribution only; never local authority. */
+  group?: {
+    code: string;
+    rootId?: string;
+    kind: 'main' | 'piece' | 'joined';
+    contributionId: string;
+    authorId: string;
+    authorName: string;
+    baseRevisionId?: string;
+    lastRevisionId?: string;
+    usedRevisionIds?: string[];
+  };
+  /** Includes unused source media explicitly added to this story. */
+  attachedAssetIds?: string[];
+}
+
+/** Immutable received or locally captured work; snapshotHash points to full portable bytes. */
+export interface GroupRevision extends Base {
+  groupCode: string;
+  rootId?: string;
+  contributionId: string;
+  parentRevisionId?: string;
+  kind: 'main' | 'piece';
+  authorId: string;
+  authorName: string;
+  title: string;
+  storyTitle: string;
+  snapshotHash: string;
+  contentHash: string;
+  body: ProseNode;
 }
 
 export interface StoryBrief {
