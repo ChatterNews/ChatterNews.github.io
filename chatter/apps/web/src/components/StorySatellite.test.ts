@@ -40,10 +40,13 @@ describe('Spiral Stage story satellite', () => {
     expect(html).not.toContain('story-guide-more');
   });
 
-  test('does not hang an empty story prompt above the room', () => {
+  test('explains how to begin without claiming progress for an unselected story', () => {
     const html = markup();
 
-    expect(html).toBe('');
+    expect(html).toContain('Start or open a story to see its progress.');
+    expect(html).toContain('Open Slate');
+    expect(html).not.toContain('data-recipe-progress=');
+    expect(html).not.toContain('aria-current="step"');
   });
 
   test('keeps Export current and recommends the Media Bin after review', () => {

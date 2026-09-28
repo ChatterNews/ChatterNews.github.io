@@ -47,11 +47,13 @@ export interface PortableStoryProject {
   samplerPresets?: GarageSamplerPreset[];
   soundPack?: string;
   groupArchive?: string;
+  /** An explicit assembled master, including its collected contribution history. */
+  groupMaster?: true;
 }
 
 export function portableFileName(story: Pick<Story, 'slug'> & Partial<Pick<Story, 'title' | 'group' | 'updatedAt'>>): string {
   if (story.group) {
-    const label = `${story.title || story.slug} — ${story.group.kind === 'piece' ? story.group.authorName : 'Group story'}`.normalize('NFKC').replace(/[^\p{L}\p{N} _-]/gu, '').replace(/\s+/g, '-').slice(0, 90);
+    const label = `${story.group.kind === 'main' ? 'MASTER' : story.group.kind === 'piece' ? 'CONTRIBUTION' : 'COLLECTION'} — ${story.title || story.slug} — ${story.group.kind === 'piece' ? story.group.authorName : 'Group story'}`.normalize('NFKC').replace(/[^\p{L}\p{N} _-]/gu, '').replace(/\s+/g, '-').slice(0, 90);
     return `${label}-${story.group.code}-${story.group.contributionId.slice(0, 6)}-${new Date(story.updatedAt ?? Date.now()).toISOString().replace(/[:.]/g, '-')}.chatter`;
   }
   return `${story.slug || 'chatter-story'}.chatter`;
@@ -60,6 +62,7 @@ export function portableFileName(story: Pick<Story, 'slug'> & Partial<Pick<Story
 export function isPortableStoryProject(value: unknown): value is PortableStoryProject {
   if (!value || typeof value !== 'object') return false;
   const item = value as Partial<PortableStoryProject>;
+  if (item.groupMaster !== undefined && (item.groupMaster !== true || item.story?.group?.kind !== 'main')) return false;
   return (item.showtimeProjects === undefined || (Array.isArray(item.showtimeProjects) && item.showtimeProjects.every(project => (project.credits === undefined || (typeof project.credits === 'string' && project.credits.length <= 10000)) && Array.isArray(project.titles) && project.titles.every(title => title.motion === undefined || isVideoGraphic(title.motion))))) && item.format === 'chatter-story' && [1, 2, 3, 4, 5, 6, 7, PORTABLE_PROJECT_VERSION].includes(item.version ?? -1) && typeof item.projectId === 'string' && !!item.story && Array.isArray(item.assets) && Array.isArray(item.takes) && (item.studioProjects === undefined || (Array.isArray(item.studioProjects) && item.studioProjects.length <= 100 && item.studioProjects.every(isPortableStudioRecord)));
 }
 
@@ -83,6 +86,11 @@ export async function exportPortableStory(store: Store, input: Story, options: {
   if (input.group && !options.omitGroupHistory && input.group.kind !== 'joined') {
     const { captureGroupRevision } = await import('../group/group-work.js');
     await captureGroupRevision(store, input.id);
+    if (input.group.kind === 'main') {
+      for (const piece of (await store.stories.list()).filter(story => story.id !== input.id && story.group?.code === input.group!.code && story.group.kind === 'piece')) {
+        await captureGroupRevision(store, piece.id);
+      }
+    }
   }
   const current = await store.stories.get(input.id);
   if (!current) throw new Error('This story no longer exists. Refresh the story list.');
@@ -134,7 +142,7 @@ export async function exportPortableStory(store: Store, input: Story, options: {
   if (story.group && !options.omitGroupHistory) {
     const { groupEntries } = await import('../group/group-work.js');
     const entries = await groupEntries(store, story.group.code, story.group.kind === 'piece' ? story.group.contributionId : undefined);
-    if (entries.length) { project.groupArchive = 'group.collection'; zip.file(project.groupArchive, await (await encodeGroupArchive(entries)).arrayBuffer()); }
+    if (entries.length) { project.groupArchive = 'group.collection'; if (story.group.kind === 'main') project.groupMaster = true; zip.file(project.groupArchive, await (await encodeGroupArchive(entries)).arrayBuffer()); }
   }
   zip.file(MANIFEST_FILE, JSON.stringify(project, null, 2));
   return { blob: await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } }), fileName: portableFileName(story), project };

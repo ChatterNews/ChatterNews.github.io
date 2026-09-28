@@ -17,11 +17,15 @@ export async function openStoryDriveFile(
 ): Promise<StoryDriveOutcome> {
   if (!file) return { status: 'CANCELLED', message: 'No story was opened.' };
   try {
-    const { result, collection } = await dispatchStoryDriveFile(store, gate, file);
+    const { result, collection, master } = await dispatchStoryDriveFile(store, gate, file);
     return {
       status: 'OPENED',
       result,
-      message: collection
+      message: master === 'opened'
+        ? `Opened master “${result.story.title}” with its assembled project and all ${collection!.added + collection!.already} saved contributions and versions.`
+        : master === 'kept-local'
+        ? `Collected ${collection!.added} new versions. Your local master is unchanged; compare the received writing before replacing it.`
+        : collection
         ? `Collected ${collection.added} saved piece${collection.added === 1 ? '' : 's'} for “${result.story.title}”.${collection.already ? ` ${collection.already} already collected.` : ''}`
         : `${result.updated ? 'Updated' : 'Opened'} “${result.story.title}” with ${result.mediaCount} media file${result.mediaCount === 1 ? '' : 's'}.`,
     };

@@ -5,8 +5,8 @@ import { decodeGroupArchive, loadBoundedZip, readBoundedZipEntry, GROUP_ARCHIVE_
 import { collectGroupEntries, inspectGroupSnapshot } from './group-work.js';
 
 type PortableResult = Awaited<ReturnType<typeof importPortableStory>>;
-export interface GroupIntakeResult { result: PortableResult; collection?: { added: number; already: number } }
-type Classified = { kind: 'collection'; zip: JSZip } | { kind: 'portable'; zip: JSZip; project: PortableStoryProject };
+export interface GroupIntakeResult { result: PortableResult; collection?: { added: number; already: number }; master?: 'opened' | 'kept-local' }
+type Classified = { kind: 'collection'; zip: JSZip } | { kind: 'portable'; zip: JSZip; project: PortableStoryProject; master: boolean };
 
 async function classify(file: File): Promise<Classified> {
   // Detect group metadata without reducing the existing 2 GB ordinary Story Drive allowance.
@@ -17,7 +17,7 @@ async function classify(file: File): Promise<Classified> {
   if (!manifest) throw new Error('That is not a Chatter story file: story.chatter.json is missing.');
   const project: unknown = JSON.parse(new TextDecoder().decode(await readBoundedZipEntry(manifest, GROUP_ARCHIVE_LIMITS.manifestBytes)));
   if (!isPortableStoryProject(project)) throw new Error('This Chatter story file uses an unsupported or damaged format.');
-  return { kind: 'portable', zip, project };
+  return { kind: 'portable', zip, project, master: project.groupMaster === true };
 }
 
 async function entriesFrom(file: File, input: Classified): Promise<GroupArchiveEntry[]> {
@@ -32,7 +32,11 @@ async function entriesFrom(file: File, input: Classified): Promise<GroupArchiveE
     if (project.groupArchive !== 'group.collection' || !zip.file(project.groupArchive)) throw new Error('This story is missing its group contributions.');
     entries = await decodeGroupArchive(new Blob([await readBoundedZipEntry(zip.file(project.groupArchive)!) as BlobPart]));
     if (entries.some(entry => entry.record.groupCode !== group.code)) throw new Error('This story contains contributions for a different group code.');
-    zip.remove(project.groupArchive); delete project.groupArchive;
+    zip.remove(project.groupArchive); delete project.groupArchive; delete project.groupMaster;
+    zip.file('story.chatter.json', JSON.stringify(project), { date: zip.file('story.chatter.json')!.date });
+    snapshot = await zip.generateAsync({ type: 'uint8array', compression: 'STORE' });
+  } else if (project.groupMaster) {
+    delete project.groupMaster;
     zip.file('story.chatter.json', JSON.stringify(project), { date: zip.file('story.chatter.json')!.date });
     snapshot = await zip.generateAsync({ type: 'uint8array', compression: 'STORE' });
   } else snapshot = new Uint8Array(await file.arrayBuffer());
@@ -71,6 +75,16 @@ export async function dispatchStoryDriveFile(store: Store, gate: Gate, file: Fil
   }
   // collectGroupEntries validates the whole batch and existing identities before its first write.
   const collection = await collectGroupEntries(store, entries);
+  if (input.kind === 'portable' && input.master) {
+    const code = input.project.story.group!.code;
+    const existing = stories.find(story => story.group?.code === code && story.group.kind === 'main');
+    if (existing) return { result: { story: existing, mediaCount: 0, updated: false }, collection, master: 'kept-local' };
+    // The master is explicit, never inferred from filename or device timestamps.
+    // Import into a new project; contributor names never become active badges.
+    const imported = await importPortableStory(store, gate, file, { isolatedUsers: true });
+    const story = await store.stories.update(imported.story.id, { ownerId: undefined });
+    return { result: { ...imported, story }, collection, master: 'opened' };
+  }
   const codes = new Map<string, GroupRevision>();
   for (const { record } of entries) if (!codes.has(record.groupCode)) codes.set(record.groupCode, record);
   let first: PortableResult | undefined;

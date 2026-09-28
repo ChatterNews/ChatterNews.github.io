@@ -1,3 +1,4 @@
+import { checkStoryFolder } from './group/linked-story-folder.js';
 import { LoadingStatus } from './components/LoadingStatus.js';
 import { workspaceStorage, workspaceStoreName } from './portable/workspace-context.js';
 /**
@@ -125,6 +126,16 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
   const routeStoryId = storyIdFromRoute(location.pathname, location.search);
   const tracked = stories.find((s) => s.id === (routeStoryId ?? trackedId));
   const contextStoryId = routeStoryId ?? tracked?.id;
+  useEffect(() => {
+    const code = tracked?.group?.code;
+    if (!code) return;
+    const check = () => { if (document.visibilityState === 'visible') void checkStoryFolder(store, code).catch(() => undefined); };
+    const focus = () => { void checkStoryFolder(store, code, true).catch(() => undefined); };
+    check(); const timer = window.setInterval(check, 5000);
+    window.addEventListener('focus', focus);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', focus); };
+  }, [store, tracked?.group?.code]);
+
   const recommendedRoom = normalizeReilyRoom(tracked ? recipeTrackStepForStory(tracked).room.replace(/^\//, '') : 'slate');
 
   const sessionUserId = identity.session.kind === 'NONE' ? undefined : identity.session.userId;
@@ -217,7 +228,7 @@ function Shell({ deskMode }: { deskMode: DeskMode }) {
           roomRevealRequest={roomRevealRequest}
           storyTitle={tracked?.title}
           onNavigate={(destination) => navigateToRoom(normalizeReilyRoom(destination))}
-          storyControl={tracked ? <StorySatellite story={tracked} onPick={pickNext} /> : null}
+          storyControl={<StorySatellite story={tracked} onPick={pickNext} />}
           driveControl={<ProjectDrive stories={stories} story={tracked} onChanged={() => setReloadKey((key) => key + 1)} />}
           identityControl={<WhoAmI me={me} choices={adviser ? identity.advisers : identity.students} students={identity.students} adviser={adviser} onChoose={identity.switchAdviser} onChanged={identity.refresh} onHandBack={handBack} />}
           mediaControl={<button className="stage-utility media-bin-trigger" onClick={() => navigate(mediaBinDestination(newsroomLocation(location), mediaBinReturn.current, contextStoryId))} aria-current={room === 'files' ? 'page' : undefined}><ControlIcon kind={room === 'files' ? 'back' : 'media'} /><b>{room === 'files' ? 'Return' : 'Media'}</b></button>}

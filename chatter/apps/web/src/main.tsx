@@ -13,6 +13,7 @@ import './styles/RoomInteriors.css';
 import './styles/Controls.css';
 import './styles/OddballInteriors.css';
 import './styles/OrbitPalette.css';
+import './styles/GadgetScreen.css';
 import { applyAfterHours, readAfterHours } from './components/display-mode.js';
 
 applyAfterHours(readAfterHours());

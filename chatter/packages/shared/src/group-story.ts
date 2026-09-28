@@ -1,4 +1,4 @@
-/** Version 1 offline grouping labels. A code never grants permission or a role. */
+/** Offline grouping labels. A code never grants permission or a role. */
 import type { GroupRevision, Story } from './types.js';
 
 const ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -11,11 +11,12 @@ function checksum(payload: string): string {
 }
 
 function present(compact: string): string {
-  return `${compact.slice(0, 4)}-${compact.slice(4, 8)}-${compact.slice(8, 12)}`;
+  return compact.length === 10 ? `${compact.slice(0, 5)}-${compact.slice(5)}`
+    : `${compact.slice(0, 4)}-${compact.slice(4, 8)}-${compact.slice(8, 12)}`;
 }
 
 export function createStoryCode(): string {
-  const random = crypto.getRandomValues(new Uint8Array(10));
+  const random = crypto.getRandomValues(new Uint8Array(8));
   const payload = Array.from(random, value => ALPHABET[value & 31]).join('');
   return present(payload + checksum(payload));
 }
@@ -23,7 +24,11 @@ export function createStoryCode(): string {
 export function normalizeStoryCode(input: string): string {
   if (typeof input !== 'string' || input.length > 128) throw new Error('Check the story code and try again.');
   const compact = input.replace(/[\s-]/g, '').toUpperCase();
-  if (!/^[0-9A-HJKMNP-TV-Z]{12}$/.test(compact) || checksum(compact.slice(0, 10)) !== compact.slice(10)) {
+  // Accept older 12-character labels without changing their identity. New codes
+  // have 40 random bits and two check symbols (about 1 in 2.2 million collision
+  // risk across 1,000 independently generated stories, by the birthday bound).
+  if (!/^(?:[0-9A-HJKMNP-TV-Z]{10}|[0-9A-HJKMNP-TV-Z]{12})$/.test(compact)
+    || checksum(compact.slice(0, -2)) !== compact.slice(-2)) {
     throw new Error('Check the story code and try again.');
   }
   return present(compact);

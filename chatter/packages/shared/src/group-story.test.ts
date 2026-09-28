@@ -8,7 +8,7 @@ describe('offline story codes', () => {
   });
   test('normalizes presentation without changing the permanent group identity', () => {
     const code = createStoryCode();
-    expect(code).toMatch(/^[0-9A-HJKMNP-TV-Z]{4}(?:-[0-9A-HJKMNP-TV-Z]{4}){2}$/);
+    expect(code).toMatch(/^[0-9A-HJKMNP-TV-Z]{5}-[0-9A-HJKMNP-TV-Z]{5}$/);
     expect(normalizeStoryCode(` \n${code.toLowerCase().replaceAll('-', ' ')}\t`)).toBe(code);
     expect(groupIdentity(code.toLowerCase().replaceAll('-', ' '))).toBe(groupIdentity(code));
     expect(groupIdentity(code)).toMatch(/^orbit-group:v1:/);

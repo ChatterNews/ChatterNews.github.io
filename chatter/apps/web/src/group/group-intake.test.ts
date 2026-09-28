@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { DEFAULT_GATE_CONFIG, Gate, MemoryStore, prosePlainText } from '@chatter/shared';
 import JSZip from 'jszip';
-import { captureGroupRevision, groupEntries, startGroup } from './group-work.js';
+import { captureGroupRevision, collectGroupEntries, groupEntries, joinGroup, makeGroupPiece, startGroup } from './group-work.js';
 import { encodeGroupArchive } from './group-archive.js';
 import { dispatchStoryDriveFile, readGroupFileEntries } from './group-intake.js';
 import { exportPortableStory } from '../portable/portable-project.js';
@@ -29,14 +29,57 @@ describe('group-aware Story Drive intake', () => {
     expect(prosePlainText(first.result.story.body)).toBe('');
     expect(await target.stories.list()).toHaveLength(1); expect(await target.users.list()).toHaveLength(0);
   });
-  test('grouped portable history collects without importing original story, users or roles', async () => {
+  test('an explicit master opens its draft, with attribution isolated from local badges', async () => {
     const from = await source(); const packed = await exportPortableStory(from.store, from.story);
     const file = new File([packed.blob], packed.fileName); const target = new MemoryStore();
     expect(await readGroupFileEntries(file)).toHaveLength(1);
     const opened = await dispatchStoryDriveFile(target, gate(target), file);
     expect(opened.collection?.added).toBe(1); expect(opened.result.story.id).not.toBe(from.story.id);
-    expect(await target.users.list()).toEqual([]); expect(await target.groupRevisions.list()).toHaveLength(1);
+    expect(opened.master).toBe('opened');
+    expect(prosePlainText(opened.result.story.body)).toBe('Collected writing');
+    expect(opened.result.story.group?.kind).toBe('main');
+    expect(opened.result.story.ownerId).toBeUndefined();
+    expect(await target.users.list()).toEqual([expect.objectContaining({ penName: 'Reporter', role: 'STUDENT', active: false })]);
+    expect(await target.groupRevisions.list()).toHaveLength(1);
     expect((await dispatchStoryDriveFile(target, gate(target), file)).collection?.already).toBe(1);
+    expect(await target.stories.list()).toHaveLength(1);
+    expect(await target.users.list()).toHaveLength(1);
+  });
+  test('one master carries four independent contributors, source bytes and the assembled draft', async () => {
+    const lead = await source('Class report');
+    for (let i = 1; i <= 4; i++) {
+      const student = new MemoryStore(); await student.open();
+      const me = await student.users.create({ name: `Writer ${i}`, penName: `Writer ${i}`, role: 'STUDENT', active: true });
+      const group = await joinGroup(student, lead.story.group!.code, me, 'Class report');
+      const piece = await makeGroupPiece(student, group, me, `Perspective ${i}`);
+      await student.stories.update(piece.id, { body: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: `My perspective ${i}` }] }] } });
+      const media = await gate(student).ingest({ source: 'upload', bytes: new Uint8Array([i, 2, 3]), ownDevice: false, meta: { kind: 'IMAGE', mime: 'image/png', origin: 'UPLOAD' } });
+      await student.stories.update(piece.id, { attachedAssetIds: [media.assetId!] });
+      await captureGroupRevision(student, piece.id);
+      await collectGroupEntries(lead.store, await groupEntries(student, lead.story.group!.code));
+    }
+    await lead.store.stories.update(lead.story.id, { body: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Our assembled article' }] }] } });
+    const packed = await exportPortableStory(lead.store, lead.story);
+    expect(packed.fileName).toMatch(/^MASTER-/);
+    expect(packed.project.groupMaster).toBe(true);
+    const destination = new MemoryStore(); await destination.open();
+    const file = new File([packed.blob], packed.fileName);
+    const opened = await dispatchStoryDriveFile(destination, gate(destination), file);
+    expect(prosePlainText(opened.result.story.body)).toBe('Our assembled article');
+    const received = (await destination.groupRevisions.list()).filter(row => row.kind === 'piece');
+    expect(received.map(row => row.title).sort()).toEqual(['Perspective 1', 'Perspective 2', 'Perspective 3', 'Perspective 4']);
+    for (const row of received) {
+      const bytes = await destination.blobs.get(row.snapshotHash);
+      const zip = await JSZip.loadAsync(bytes!);
+      const project = JSON.parse(await zip.file('story.chatter.json')!.async('string'));
+      expect(project.story.attachedAssetIds).toHaveLength(1);
+      expect((await zip.file(project.assets[0].file)!.async('uint8array')).length).toBe(3);
+    }
+    await destination.stories.update(opened.result.story.id, { title: 'Local edits stay' });
+    const again = await dispatchStoryDriveFile(destination, gate(destination), file);
+    expect(again.master).toBe('kept-local');
+    expect(again.result.story.title).toBe('Local edits stay');
+    expect(await destination.stories.list()).toHaveLength(1);
   });
   test('reopens a joined inbox portable save with its collected history', async () => {
     const from = await source(); const inboxStore = new MemoryStore();

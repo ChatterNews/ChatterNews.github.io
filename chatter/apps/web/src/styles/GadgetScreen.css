@@ -1,0 +1,153 @@
+/* The frame is the gadget. The signal effect never changes media or exports. */
+body[data-interface='spiral-stage'] .spiral-window-toolbar {
+  grid-template-columns: minmax(0, 1fr);
+}
+body[data-interface='spiral-stage'] .spiral-window-toolbar[data-has-story-control='false'] {
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: start;
+}
+.spiral-room-readout {
+  align-self: center;
+  padding-inline: 16px;
+  font: 600 19px/1.2 var(--f-disp);
+  color: #000080;
+}
+.spiral-frame-footer {
+  position: absolute; z-index: 3; bottom: 7px; left: 50%; transform: translateX(-50%);
+  display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; align-items: center; gap: 5px;
+  width: 474px; max-width: calc(100% - 100px); height: 54px; padding: 4px;
+  border: 1px solid #808080; border-radius: 14px;
+  background: linear-gradient(#808080, #c0c0c0 42%, #c0dcc0);
+  box-shadow: inset 0 2px 3px #00000055, 0 1px #ffffff;
+}
+.spiral-frame-footer button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.spiral-frame-footer button:focus-visible { outline: 3px solid #000080; outline-offset: 3px; }
+.spiral-channel-key {
+  display: grid; place-items: center; width: 48px; height: 44px; padding: 0;
+  border: 1px solid #808080; border-top-color: #ffffff; border-radius: 9px; color: #2a1f55;
+  background: linear-gradient(#ffffff, #c0c0c0 65%, #a6caf0);
+  box-shadow: 0 2px 1px #00000088, inset 1px 0 #ffffff;
+}
+.spiral-channel-key svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: square; stroke-linejoin: miter; }
+.spiral-channel-key:hover { color: #000000; background: linear-gradient(#ffffff, #c0dcc0); }
+.spiral-channel-key:active { transform: translateY(1px); box-shadow: inset 0 2px 3px #00000055; }
+.spiral-instrument-display {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 135px 22px;
+  align-items: center; gap: 10px; height: 44px; padding: 4px 12px; overflow: hidden; text-align: left;
+  border: 2px solid #000000; border-radius: 7px; color: #aaff55;
+  background: radial-gradient(circle, #55ffaa15 .6px, transparent .9px) 0 0 / 3px 3px,
+    linear-gradient(110deg, #000000, #002a00 52%, #000000);
+  box-shadow: inset 0 2px 6px #000000, 0 1px #ffffff;
+}
+.spiral-instrument-display::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(175deg, #c0dcc01a, transparent 46%);
+}
+.spiral-instrument-display:hover { border-color: #008000; color: #ffffff; }
+.spiral-instrument-display:active { box-shadow: inset 0 0 9px #008000; }
+.spiral-instrument-room { min-width: 0; display: grid; gap: 3px; }
+.spiral-instrument-room small { display: flex; align-items: center; gap: 5px; color: #c0dcc0; font: 9px/1 monospace; }
+.spiral-instrument-room small i { width: 4px; height: 4px; border-radius: 50%; background: #aaff55; box-shadow: 0 0 4px #aaff55; }
+.spiral-instrument-room b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 13px/1.15 monospace; text-shadow: 0 0 5px #55ffaa55; }
+.spiral-instrument-action { display: grid; gap: 4px; border-left: 1px solid #55ffaa44; padding-left: 10px; }
+.spiral-matrix-label { display: block; width: 123px; height: 14px; fill: currentColor; filter: drop-shadow(0 0 2px #55ffaa66); }
+.spiral-instrument-action > span { color: #c0dcc0; font: 9px/1 var(--f-ui); }
+.spiral-instrument-expand { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+/* Expanded view is the app itself: no bezel, padding, corner mask or metal
+   footer. Keep the same controls in the toolbar so focus and navigation survive. */
+body[data-interface='spiral-stage'] .spiral-stage-shell[data-work-view='true'] .spiral-center-frame {
+  position: fixed; inset: 0; width: 100vw; height: 100dvh;
+  transform: none; margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: transparent !important; box-shadow: none !important;
+}
+.spiral-stage-shell[data-work-view='true'] .spiral-center-frame::before,
+.spiral-stage-shell[data-work-view='true'] .spiral-center-frame::after { display: none; }
+body[data-interface='spiral-stage'] .spiral-stage-shell[data-work-view='true'] :is(.spiral-stage-brand, .spiral-satellites, .spiral-room-map, .compact-room-name, .spiral-stage-scroller, .spiral-keyboard-note) { display: none; }
+body[data-interface='spiral-stage']:has(.spiral-stage-shell[data-work-view='true']) :is(.pipdock, .piptab) { display: none; }
+body[data-interface='spiral-stage']:has(.spiral-stage-shell[data-work-view='true']) .display-controls-trigger[data-in-room='true'] { top: 10px; right: 8px; }
+body[data-interface='spiral-stage'] .spiral-stage-shell[data-work-view='true'] .spiral-center-room { --room-corners: 0px; border: 0; border-radius: 0; box-shadow: none; }
+body[data-interface='spiral-stage'] .spiral-stage-shell[data-work-view='true'] .spiral-window-shell {
+  --window-corners: 0px;
+  border: 0; border-radius: 0; clip-path: none; box-shadow: none;
+  grid-template-rows: 68px minmax(0, 1fr);
+}
+body[data-interface='spiral-stage'] .spiral-stage-shell[data-work-view='true'] .spiral-window-toolbar {
+  display: grid; padding-right: 340px;
+}
+.spiral-stage-shell[data-work-view='true'] .spiral-frame-footer {
+  display: grid; top: 10px; right: 70px; bottom: auto; left: auto; transform: none;
+  width: 254px; height: 44px; padding: 0; grid-template-columns: 44px minmax(0, 1fr) 44px;
+  border: 0; border-radius: 0; background: none; box-shadow: none;
+}
+.spiral-stage-shell[data-work-view='true'] .spiral-channel-key { width: 44px; background: #c0c0c0; box-shadow: none; border: 1px solid #808080; }
+.spiral-stage-shell[data-work-view='true'] .spiral-instrument-display {
+  display: block; padding: 5px 8px;
+
+}
+.spiral-stage-shell[data-work-view='true'] :is(.spiral-instrument-room, .spiral-instrument-expand) { display: none; }
+.spiral-stage-shell[data-work-view='true'] .spiral-instrument-action { display: grid; justify-items: center; gap: 3px; padding: 0; border: 0; text-align: center; }
+.spiral-stage-shell[data-work-view='true'] .spiral-instrument-action > span { font: 10px/1.2 var(--f-ui); color: #c0dcc0; }
+
+/* One monochrome CRT channel change. Texture moves, the live editor does not.
+   No tuning text, lasting tint, artificial loading delay or intercepted input. */
+.spiral-screen-tuning {
+  position: absolute; inset: 0; z-index: 8; overflow: hidden;
+  pointer-events: none; user-select: none; opacity: 0; visibility: hidden;
+  background: repeating-linear-gradient(0deg, #00000055 0 1px, transparent 1px 3px), #000000;
+  animation: crt-channel-lock 360ms linear both;
+}
+.spiral-screen-grain {
+  position: absolute; inset: -20px; opacity: .85;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath fill='%23808080' filter='url(%23n)' d='M0 0h128v128H0z'/%3E%3C/svg%3E");
+  background-size: 192px 128px;
+  animation: crt-static-step 240ms steps(1, end) both;
+}
+.spiral-screen-sweep {
+  position: absolute; left: 0; right: 0; top: -45%; height: 35%;
+  background: linear-gradient(transparent, #000000dd 20%, #000000 65%, #ffffff88 67%, #000000bb 70%, transparent);
+  animation: crt-tracking-roll 320ms linear both;
+}
+@keyframes crt-channel-lock {
+  0% { visibility: visible; opacity: .9; }
+  30% { opacity: .78; }
+  65% { opacity: .32; }
+  99% { visibility: visible; }
+  100% { visibility: hidden; opacity: 0; }
+}
+@keyframes crt-static-step {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-15px, 8px); }
+  50% { transform: translate(12px, -12px); }
+  75% { transform: translate(-8px, -4px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes crt-tracking-roll { to { transform: translateY(430%); } }
+@media (prefers-reduced-motion: reduce) {
+  .spiral-screen-tuning { display: none; animation: none; }
+  .spiral-screen-grain, .spiral-screen-sweep { animation: none; }
+}
+@media (max-width: 1100px) {
+  .spiral-frame-footer { display: none; }
+  /* A user can resize after expanding. Keep the return control available. */
+  body[data-interface='spiral-stage'] .spiral-stage-shell[data-work-view='true'] .spiral-window-shell { grid-template-rows: auto minmax(0, 1fr); }
+  body[data-interface='spiral-stage'] .spiral-stage-shell[data-work-view='true'] .spiral-window-toolbar { min-height: 116px; padding: 60px 6px 6px; }
+}
+body[data-low-spec='true'] .spiral-frame-footer,
+body[data-low-spec='true'] .spiral-screen-tuning { display: none; }
+body[data-low-spec='true'] .spiral-stage-shell[data-work-view='true'] .spiral-frame-footer { display: grid; }
+
+/* Before a story is selected, explain the route instead of leaving an empty
+   room-name strip. No completed steps or invented progress in this state. */
+.story-route-start { display: grid; grid-template-columns: minmax(175px, 1fr) minmax(220px, 1.4fr) auto; align-items: center; gap: 12px; height: 100%; min-height: 54px; color: #2a1f55; }
+.story-route-start > div { display: grid; gap: 4px; padding-left: 8px; }
+.story-route-start b { font: 800 15px/1.1 var(--f-disp); }
+.story-route-start > div > span { font: 11px/1.2 var(--f-ui); }
+.story-route-start ol { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.story-route-start li { position: relative; flex: 1; padding: 9px 3px; border: 1px solid #2a3f55; border-radius: 5px; color: #2a1f55; background: #c0dcc0; text-align: center; font: 700 11px/1 var(--f-ui); }
+.story-route-start li + li::before { content: ''; position: absolute; top: 50%; left: -9px; width: 8px; border-top: 1px solid #2a3f55; }
+.story-route-start > button { min-height: 44px; padding: 8px 14px; border: 2px solid #000000; border-radius: 6px; background: #ffff55; color: #000080; font: 800 12px/1.2 var(--f-ui); cursor: pointer; }
+.story-route-start > button:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
+@media (max-width: 1200px) {
+  .story-route-start { grid-template-columns: minmax(0, 1fr) auto; }
+  .story-route-start ol { display: none; }
+}

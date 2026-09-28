@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import type { SessionDirectory, StoryFileHandle } from '../portable/finish-session.js';
 import { readGroupFiles, saveGroupArchive } from './group-drive.js';
+import { createStoryCode } from '@chatter/shared';
 
 class Disk implements SessionDirectory {
   name = 'USB'; folders = new Map<string, Disk>(); files = new Map<string, Blob>(); fail = false; corrupt = false;
@@ -18,6 +19,35 @@ class Disk implements SessionDirectory {
   }
 }
 describe('additive group drive saves', () => {
+  test('groups independently named contributions by code and keeps every saved file', async () => {
+    const disk = new Disk(); const code = createStoryCode();
+    const first = await saveGroupArchive(disk, new Blob(['Maya']), 'Lunch line', { code, authorName: 'Maya', pieceTitle: 'My view' });
+    const second = await saveGroupArchive(disk, new Blob(['Leo']), 'Lunch report', { code, authorName: 'Leo', pieceTitle: 'My view' });
+    expect(disk.folders.size).toBe(1);
+    expect(first.split('/')[0]).toBe(`Lunch line -- ${code}`);
+    expect(second.split('/')[0]).toBe(first.split('/')[0]);
+    const folder = [...disk.folders.values()][0]!;
+    const third = await saveGroupArchive(folder, new Blob(['Maya edit']), 'Different title', { code, authorName: 'Maya', pieceTitle: 'My view' });
+    expect(third.split('/')[0]).toBe(first.split('/')[0]);
+    const files = await readGroupFiles(folder);
+    expect(await Promise.all(files.map(file => file.text()))).toEqual(['Maya', 'Leo', 'Maya edit']);
+    expect(files.every(file => file.name.startsWith('CONTRIBUTION--') && file.name.includes(code))).toBe(true);
+  });
+  test('separates same-title stories and refuses the wrong code folder', async () => {
+    const disk = new Disk(); const one = createStoryCode(); const two = createStoryCode();
+    await saveGroupArchive(disk, new Blob(['master']), 'Lunch', { code: one, authorName: 'Master', pieceTitle: 'Lunch', kind: 'master' });
+    await saveGroupArchive(disk, new Blob(['other']), 'Lunch', { code: two, authorName: 'Sam', pieceTitle: 'Lunch' });
+    expect(disk.folders.size).toBe(2);
+    const first = disk.folders.get(`Lunch -- ${one}`)!;
+    expect((await readGroupFiles(first))[0]!.name).toMatch(/^MASTER--/);
+    await expect(saveGroupArchive(first, new Blob(['wrong']), 'Lunch', { code: two, authorName: 'Sam', pieceTitle: 'Lunch' })).rejects.toThrow(/different story code/i);
+    expect(await readGroupFiles(first)).toHaveLength(1);
+  });
+  test('rejects bad codes before making folders', async () => {
+    const disk = new Disk();
+    await expect(saveGroupArchive(disk, new Blob(['work']), 'Lunch', { code: 'bad', authorName: 'Sam', pieceTitle: 'Lunch' })).rejects.toThrow(/code/i);
+    expect(disk.folders.size).toBe(0);
+  });
   test('same-title saves use independent safe paths and write completion receipt last', async () => {
     const disk = new Disk(); const blob = new Blob(['complete archive']);
     const first = await saveGroupArchive(disk, blob, '../../Lunch: line?');

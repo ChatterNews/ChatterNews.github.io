@@ -60,16 +60,16 @@ describe('Spiral Stage shell', () => {
     expect(html.match(/data-frame-control="workspace-mode"/g)).toHaveLength(1);
     expect(html).toContain('aria-label="Expand room workspace"');
     expect(html).toContain('Showtime');
-    expect(html).toContain('Work view');
+    expect(html).toContain('Expand workspace');
     expect(html).toContain('data-frame-slot="left-progress"');
-    expect(html).toContain('data-frame-slot="right-room"');
+    expect(html).toContain('data-frame-slot="bottom-workspace"');
   });
 
   test('does not reserve a workflow dock when no story is being tracked', () => {
     const html = markup('slate', null);
 
     expect(html).not.toContain('data-frame-slot="left-progress"');
-    expect(html).toContain('data-frame-slot="right-room"');
+    expect(html).toContain('data-frame-slot="bottom-workspace"');
   });
 
   test('builds the route controls and room as one continuous window', () => {
@@ -77,7 +77,7 @@ describe('Spiral Stage shell', () => {
 
     expect(html).toContain('class="spiral-window-shell"');
     expect(html).toContain('class="spiral-window-toolbar"');
-    expect(html).toMatch(/spiral-window-shell[^>]*><header[^>]*spiral-window-toolbar[\s\S]*data-frame-slot="left-progress"[\s\S]*data-frame-slot="right-room"[\s\S]*spiral-center-room/);
+    expect(html).toMatch(/spiral-window-shell[^>]*><header[^>]*spiral-window-toolbar[\s\S]*data-frame-slot="left-progress"[\s\S]*spiral-center-room[\s\S]*spiral-frame-footer[\s\S]*data-frame-slot="bottom-workspace"/);
   });
 
   test('keeps Front Desk outside the room sequence while preserving the live frame', () => {

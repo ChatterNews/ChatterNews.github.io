@@ -12,7 +12,15 @@ export function StorySatellite({ story, onPick }: { story?: Story; onPick?: () =
   const [routeOpen, setRouteOpen] = useState(false);
   const routeId = useId();
 
-  if (!story) return null;
+  if (!story) return (
+    <section className="story-route-start" aria-label="Story route overview">
+      <div><b>Your story route</b><span>Start or open a story to see its progress.</span></div>
+      <ol aria-label="From idea to finished work">
+        {['Idea', 'Gather', 'Make', 'Check', 'Share'].map(step => <li key={step}>{step}</li>)}
+      </ol>
+      <button type="button" onClick={() => navigate('/slate')}>Open Slate <span aria-hidden="true">→</span></button>
+    </section>
+  );
 
   const recipe = resolveStoryCreationRecipe(story);
   const stepIndex = recipeTrackIndex(story);

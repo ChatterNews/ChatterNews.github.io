@@ -8,6 +8,7 @@ import {
   type ReactNode,
   type UIEvent,
 } from 'react';
+import { MatrixLabel } from './MatrixLabel.js';
 import { RoomPreview } from './RoomPreview.js';
 import { SpiralRoomMap, type RoomRevealRequest } from './SpiralRoomMap.js';
 import { SPIRAL_ROOMS } from './spiral-navigation.js';
@@ -69,6 +70,10 @@ export function SpiralStage({
   const firstRouteSync = useRef(true);
   const lastAnnounced = useRef(currentRoom);
   const activeRoom = SPIRAL_ROOMS[routedIndex];
+  const previousIndex = (initialIndex - 1 + SPIRAL_ROOMS.length) % SPIRAL_ROOMS.length;
+  const nextIndex = (initialIndex + 1) % SPIRAL_ROOMS.length;
+  const previousRoom = SPIRAL_ROOMS[previousIndex]!;
+  const nextRoom = SPIRAL_ROOMS[nextIndex]!;
   const selectedIndex = Math.round(progress);
   const selectedRoom = SPIRAL_ROOMS[selectedIndex] ?? SPIRAL_ROOMS[0]!;
   const orbitPath = useMemo(() => {
@@ -275,22 +280,50 @@ export function SpiralStage({
         <div className="spiral-window-shell">
           <header className="spiral-window-toolbar" data-has-story-control={!!storyControl}>
             {storyControl && <div className="spiral-workflow-dock" data-frame-slot="left-progress">{storyControl}</div>}
-            <button
-              type="button"
-              className="spiral-frame-hardware"
-              data-frame-control="workspace-mode"
-              data-frame-slot="right-room"
-              aria-label={workView ? 'Show newsroom solar system' : 'Expand room workspace'}
-              aria-pressed={workView}
-              onClick={() => setWorkView((open) => !open)}
-            >
-              <span className="spiral-hardware-lamps" aria-hidden="true"><i /><i /><i /></span>
-              <span className="spiral-hardware-room"><small>{activeRoom?.mark ?? 'FD'}</small><b>{activeRoom?.name ?? 'Front Desk'}</b></span>
-              <span className="spiral-hardware-mode"><i aria-hidden="true">{workView ? '◎' : '↗'}</i><b>{workView ? 'Show planets' : 'Work view'}</b></span>
-            </button>
+            {!storyControl && <span className="spiral-room-readout">{activeRoom?.name ?? 'Front Desk'}</span>}
           </header>
           <div className="spiral-center-room" data-interior={currentRoom || 'clubhouse'}>{children}</div>
+          {/* Only this decorative layer restarts on a room change. Editors keep
+              their normal lifecycle, focus, loading and save behavior. */}
+          {!lowSpec && <div key={currentRoom} className="spiral-screen-tuning" aria-hidden="true">
+            <span className="spiral-screen-grain" />
+            <span className="spiral-screen-sweep" />
+
+          </div>}
         </div>
+        <footer className="spiral-frame-footer" aria-label="Workspace controls">
+          <button type="button" className="spiral-channel-key" data-room-step="previous"
+            aria-label={`Previous room: ${previousRoom.name}`} title={`Previous room: ${previousRoom.name}`}
+            onClick={() => selectStation(previousIndex)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6" /></svg>
+          </button>
+          <button
+            type="button"
+            className="spiral-instrument-display"
+            data-frame-control="workspace-mode"
+            data-frame-slot="bottom-workspace"
+            aria-label={workView ? 'Show newsroom solar system' : 'Expand room workspace'}
+            aria-pressed={workView}
+            onClick={() => setWorkView((open) => !open)}
+          >
+            <span className="spiral-instrument-room">
+              <small><i />{activeRoom ? `Room ${String(routedIndex + 1).padStart(2, '0')} / ${SPIRAL_ROOMS.length}` : 'Adviser'}</small>
+              <b>{activeRoom?.name ?? 'Front Desk'}</b>
+            </span>
+            <span className="spiral-instrument-action">
+              <MatrixLabel text={workView ? 'SHOW ROOMS' : 'EXPAND VIEW'} />
+              <span>{workView ? 'Return to orbit' : 'Expand workspace'}</span>
+            </span>
+            <svg className="spiral-instrument-expand" viewBox="0 0 24 24" aria-hidden="true">
+              <path d={workView ? 'M3 9h6V3m12 12h-6v6M3 21l6-6m6-6 6-6' : 'M3 9V3h6m6 18h6v-6M3 3l6 6m6 6 6 6'} />
+            </svg>
+          </button>
+          <button type="button" className="spiral-channel-key" data-room-step="next"
+            aria-label={`Next room: ${nextRoom.name}`} title={`Next room: ${nextRoom.name}`}
+            onClick={() => selectStation(nextIndex)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
+          </button>
+        </footer>
       </section>
 
       <aside className="spiral-satellites" aria-label="Newsroom controls">
