@@ -14,6 +14,8 @@ import {
   trimShowtimeClip, type Asset, type ShowtimeClip, type ShowtimeCutFinding, type ShowtimeProject,
   type ShowtimeTitle, type ShowtimeTrack,
 } from '@chatter/shared';
+import { useReilySituation } from '../components/ReilyContextProvider.js';
+import { ignoreMediaShortcut } from '../components/media-shortcuts.js';
 import { ShowtimeCutCheck } from './ShowtimeProgramGuide.js';
 
 const GraphicDesigner = lazy(() => import('./Stinger.js').then(module => ({ default: module.Stinger })));
@@ -22,6 +24,7 @@ type Notice = { text: string; error?: boolean };
 type DragMode = 'MOVE' | 'TRIM_IN' | 'TRIM_OUT';
 
 export interface ShowtimeCutWorkspaceProps {
+  reilyRoom?: 'stinger' | 'showtime';
   project: ShowtimeProject;
   assets: Asset[];
   urls: Map<string, string>;
@@ -81,6 +84,8 @@ export function ShowtimeCutWorkspace(props: ShowtimeCutWorkspaceProps) {
   const [undo, setUndo] = useState<ShowtimeProject[]>([]); const [redo, setRedo] = useState<ShowtimeProject[]>([]);
   const sourceVideo = useRef<HTMLVideoElement>(null); const sourceAudio = useRef<HTMLAudioElement>(null); const programCanvas = useRef<HTMLCanvasElement>(null); const mediaElements = useRef<Map<string, HTMLMediaElement>>(new Map()); const timelineScroll = useRef<HTMLDivElement>(null);
   const selectedAssetRecord = props.assets.find((asset) => asset.id === selectedAssetId); const selectedAsset = selectedAssetRecord ? { ...selectedAssetRecord, fileName: selectedAssetRecord.creator || `${selectedAssetRecord.kind === 'AUDIO' ? 'Sound' : 'Shot'} ${Math.max(1, props.assets.findIndex((asset) => asset.id === selectedAssetRecord.id) + 1)}` } : undefined; const selectedClip = project.clips.find((clip) => clip.id === selectedClipId); const selectedTitle = project.titles.find((title) => title.id === selectedTitleId);
+
+  useReilySituation(graphicSession ? undefined : { room: props.reilyRoom ?? 'showtime', projectSelected: true, selectionCount: selectedClip || selectedTitle ? 1 : 0, selectedKind: selectedClip ? (selectedClip.mediaKind === 'AUDIO' ? 'AUDIO' : 'VIDEO') : selectedTitle ? (selectedTitle.projectCredits !== undefined ? 'CREDITS' : selectedTitle.motion ? 'GRAPHIC' : 'TITLE') : undefined });
 
   useEffect(() => { props.onSourceSelected?.(selectedAssetId); }, [selectedAssetId, props.onSourceSelected]);
   useEffect(() => { if (!selectedAssetId && props.assets[0]) setSelectedAssetId(props.assets[0].id); }, [props.assets, selectedAssetId]);
@@ -228,9 +233,9 @@ export function ShowtimeCutWorkspace(props: ShowtimeCutWorkspaceProps) {
 
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
-      if (props.busy || graphicSession || openingGraphic) return;
-      const target = event.target as HTMLElement | null; if (target?.matches('input, select, textarea, [contenteditable="true"]')) return;
+      if (props.busy || graphicSession || openingGraphic || ignoreMediaShortcut(event)) return;
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) redoEdit(); else undoEdit(); return; }
+      if (event.metaKey || event.ctrlKey) return;
       if (event.key === ' ') { event.preventDefault(); setPlaying((value) => !value); }
       else if (event.key.toLowerCase() === 'i') sourceMark('IN'); else if (event.key.toLowerCase() === 'o') sourceMark('OUT');
       else if (event.key.toLowerCase() === 's') splitSelected(); else if (event.key === 'Delete' || event.key === 'Backspace') deleteSelected();

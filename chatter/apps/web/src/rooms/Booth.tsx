@@ -1,3 +1,4 @@
+import { ignoreMediaShortcut } from '../components/media-shortcuts.js';
 import { LoadingStatus } from '../components/LoadingStatus.js';
 import { RoomIcon } from '../components/RoomIcon.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
@@ -9,7 +10,7 @@ import { useGate } from '../gate/GateProvider.js';
 import { boothClock, decodeTakeAudio } from '../audio/take-audio.js';
 import { BOOTH_PERFORMANCE_MODES } from '../audio/booth-take-check.js';
 import { useBoothRecorder, type CapturedTake } from '../audio/useBoothRecorder.js';
-import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
+import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { boothReilyFocus, boothReilyRecovery } from '../components/reily-room-focus.js';
 import { BoothPrompter } from './BoothPrompter.js';
 import { BoothTakeEditor } from './BoothTakeEditor.js';
@@ -46,6 +47,7 @@ export function Booth({ stories, me, onChanged }: { stories: Story[]; me?: User;
 
   const active = ['COUNTDOWN', 'RECORDING', 'PAUSED', 'SAVING', 'ASKING'].includes(recorder.phase);
   const selected = takes.find((take) => take.id === selectedId) ?? takes.find((take) => take.id === story?.selectedTakeId) ?? takes[0];
+  useReilySituation({ room: 'booth', projectSelected: !!story, hasContent: takes.length > 0, hasMedia: takes.length > 0, selectionCount: selected ? 1 : 0, activeTool: pending ? 'RECOVER' : recorder.phase, recording: active, busy, error: !!(notice?.error || recorder.error), needsApproval: !!selected && assets.find(asset => asset.id === selected.assetId)?.gateStatus === 'QUARANTINED' });
   useReilyFocus(boothReilyFocus({ recording: active, selectedTake: Boolean(selected), hasTakes: takes.length > 0 }));
   useReilyRecovery(recorder.error
     ? { kind: boothReilyRecovery('microphone'), workChanged: false }
@@ -93,7 +95,7 @@ export function Booth({ stories, me, onChanged }: { stories: Story[]; me?: User;
     else if (!busy && !pending) { captureSetup.current = { performanceMode, slated }; setNotice(undefined); void recorder.start(countIn); }
   }
   useEffect(() => {
-    const keys = (event: KeyboardEvent) => { const target = event.target as HTMLElement; if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(target.tagName) || target.isContentEditable) return; if (event.key.toLowerCase() === 'r') { event.preventDefault(); toggleRecord(); } if (event.key.toLowerCase() === 'm') { event.preventDefault(); recorder.mark(); } };
+    const keys = (event: KeyboardEvent) => { if (ignoreMediaShortcut(event) || event.ctrlKey || event.metaKey) return; if (event.key.toLowerCase() === 'r') { event.preventDefault(); toggleRecord(); } if (event.key.toLowerCase() === 'm') { event.preventDefault(); recorder.mark(); } };
     window.addEventListener('keydown', keys); return () => window.removeEventListener('keydown', keys);
   });
   if (!story) return <section className="view on newsroom-room booth-room"><div className="newsroom-empty"><h1>No story selected</h1><p>Create or select a story in Slate before recording.</p><button className="newsroom-button primary" onClick={() => navigate('/slate')}>Open Slate ↗</button></div></section>;

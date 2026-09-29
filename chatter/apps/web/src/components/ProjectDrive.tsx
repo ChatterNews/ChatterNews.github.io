@@ -1,10 +1,11 @@
+import { ReilyHelpBoundary } from './ReilyHelpBoundary.js';
 import { linkedStoryFolder, openStoryFolder, saveLinkedMaster } from '../group/linked-story-folder.js';
 import { LoadingStatus } from './LoadingStatus.js';
 import { ControlIcon } from './ControlIcon.js';
 import { finishSession, writeVerifiedFile, type StoryFileHandle, type SessionDirectory } from '../portable/finish-session.js';
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { storyPath, type Story } from '@chatter/shared';
+import { storyPath, storyRoomPath, type Story } from '@chatter/shared';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/StoreProvider.js';
 import { useGate } from '../gate/GateProvider.js';
@@ -16,6 +17,10 @@ import { projectDrivePortalTarget, shouldDismissProjectDrive } from './project-d
 import { StoryDriveOpen } from './StoryDriveOpen.js';
 import './ProjectDrive.css';
 import './ProjectDriveOverrides.css';
+
+import { useReilySituation } from './ReilyContextProvider.js';
+
+const ReilyHelpPanel = lazy(() => import('./ReilyHelpPanel.js'));
 
 type Message = { text: string; error: boolean };
 type SavePicker = (options: { suggestedName: string; types: { description: string; accept: Record<string, string[]> }[] }) => Promise<StoryFileHandle>;
@@ -32,6 +37,7 @@ export function ProjectDrive({ stories, story, onChanged, saveOnly = false }: { 
   const mobile = isMobileEdition();
   const website = isWebsiteEdition();
   const downloadSession = website && !(window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker;
+  const [helpOpen, setHelpOpen] = useState(false);
   const [preparedFile, setPreparedFile] = useState<File>();
   const saveFolder = desktop ? desktopDirectory(desktop) : reader?.directory;
   const [finishedHere, setFinishedHere] = useState(false);
@@ -82,6 +88,7 @@ export function ProjectDrive({ stories, story, onChanged, saveOnly = false }: { 
     };
   }, [open]);
   const selected = stories.find((item) => item.id === selectedId) ?? story ?? stories[0];
+  useReilySituation(open ? { room: 'files', scope: 'overlay', activeTool: 'story-drive', projectSelected: !!selected, busy: !!busy, error: message?.error === true, groupKind: selected?.group?.kind } : undefined);
 
   async function save() {
     if (!selected || operation.current) return; operation.current = true; setBusy('SAVE'); setMessage(undefined); setFinishedHere(false); setPreparedFile(undefined);
@@ -162,10 +169,11 @@ export function ProjectDrive({ stories, story, onChanged, saveOnly = false }: { 
   }
 
   return <div className="project-drive">
-    <button className="project-drive-trigger" aria-label="Files: open or save a story" aria-haspopup="dialog" aria-expanded={open} title={story?.portableId ? 'Files · Story file linked' : 'Open or save a story'} onClick={() => { setMessage(undefined); setFinishedHere(false); setPreparedFile(undefined); setOpen(true); }}><ControlIcon kind="files" /><b>Files</b></button>
+    <button className="project-drive-trigger" aria-label="Files: open or save a story" aria-haspopup="dialog" aria-expanded={open} title={story?.portableId ? 'Files · Story file linked' : 'Open or save a story'} onClick={() => { setMessage(undefined); setFinishedHere(false); setPreparedFile(undefined); setHelpOpen(false); setOpen(true); }}><ControlIcon kind="files" /><b>Files</b></button>
     {open && createPortal(<div className="project-drive-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy && shouldDismissProjectDrive('BACKDROP')) setOpen(false); }}><section ref={dialog} tabIndex={-1} className="project-drive-dialog" role="dialog" aria-modal="true" aria-labelledby="drive-title" onMouseDown={(event) => event.stopPropagation()}>
       <header><div><span className="project-drive-icon"><ControlIcon kind="files" /></span><div><small>STORY DRIVE</small><h2 id="drive-title">Open or save a story</h2></div></div><button aria-label="Close story files" disabled={!!busy} onClick={() => { if (!busy && shouldDismissProjectDrive('CLOSE_BUTTON')) setOpen(false); }}><ControlIcon kind="close" /></button></header>
       <div className="project-drive-explain"><b>Use one .chatter file for each story.</b><p>{website ? 'Choose a local or USB folder named Chatter News. Save before leaving; browser recovery is not a handoff file.' : mobile ? 'Prepare a story or session, then use Save to Files. Choose or create a Chatter News folder in Files.' : saveFolder ? 'Your saves go in the Chatter News folder beside Start Orbit. Finish session before switching computers.' : 'Save it to the USB before switching computers or ejecting the drive.'}</p><ol><li>Open the story file.</li><li>Do your assigned work.</li><li>{website ? 'Save and check the saved copy.' : mobile ? 'Save to Files and check the saved copy.' : 'Save, close, and eject.'}</li></ol></div>
+      <div className="reily-drive-help" data-reily-local-help><button type="button" aria-expanded={helpOpen} onClick={() => setHelpOpen(value => !value)}>Ask Reily about files</button>{helpOpen && <ReilyHelpBoundary><Suspense fallback={<p role="status">Opening Reily’s file guide…</p>}><ReilyHelpPanel canNavigate={!saveOnly && !busy} context={{ room: 'files', role: 'STUDENT', story: selected, situation: { room: 'files', scope: 'overlay', activeTool: 'story-drive', projectSelected: !!selected, groupKind: selected?.group?.kind, busy: !!busy, error: message?.error === true } }} onNavigate={room => { if (busy || saveOnly) return; setOpen(false); navigate(room === 'home' ? '/' : selected ? storyRoomPath(room, selected.id) : `/${room}`); }} />{(busy || saveOnly) && <p>Room changes are unavailable here. Finish saving before returning to your work.</p>}</Suspense></ReilyHelpBoundary>}</div>
       {message && <div className={`project-drive-message ${message.error ? 'error' : ''}`} role={message.error ? 'alert' : 'status'}><span>{message.text}</span>{reader && finishedHere && !message.error && <button onClick={returnToReader}>Return to the reader</button>}<button aria-label="Dismiss message" onClick={() => setMessage(undefined)}><ControlIcon kind="close" /></button></div>}
       <div className="project-drive-actions">{!saveOnly && <article><span>1</span><div><h3>Open the story</h3><p>{website ? 'Choose a local .chatter file. Unpack a session ZIP first to find its stories.' : mobile ? 'Choose a .chatter story in Files. To open a session ZIP, first tap it in Files to unpack the stories.' : 'Choose the .chatter file on the USB.'} The reporting, source media, crew notes, Media Bin exports, layouts, reviews, and published edition travel together.</p>{typeof (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker === 'function'&&<button className="primary" disabled={!!busy} onClick={()=>void openFolder()}>Open story folder · master + contributions</button>}<StoryDriveOpen store={store} gate={gate} label="Choose .chatter file" disabled={!!busy} onBusyChange={(value) => { operation.current = value; setBusy(value ? 'OPEN' : undefined); }} onMessage={setMessage} onOpened={(result) => { onChanged(); setSelectedId(result.story.id); navigate(storyPath(result.story)); }} /></div></article>}<article><span>2</span><div><h3>Save the handoff</h3>{stories.length ? <label>Story<select disabled={!!busy} value={selected?.id ?? ''} onChange={(event) => setSelectedId(event.target.value)}>{stories.map((item) => <option key={item.id} value={item.id}>{item.title} · {item.status.toLowerCase()}</option>)}</select></label> : <p>Pitch a story in Slate before making its portable file.</p>}<button className="primary" disabled={!selected || !!busy} onClick={() => void save()}>{busy === 'SAVE' ? 'Packing the story…' : mobile ? 'Prepare story file' : saveFolder || website ? 'Save story' : 'Save to USB'}</button></div></article></div>
       <section className="project-drive-finish"><div><h3>All packed for the next mission?</h3><p>{downloadSession ? 'Finish session prepares a ZIP with every story and a receipt. Then choose Download file and check the copy in Downloads.' : mobile ? 'Finish session prepares a ZIP with every story and a receipt. You must then choose Save to Files.' : <>Finish session packs every story on this desk into a new folder {saveFolder ? 'inside Chatter News' : website ? 'in your chosen local or USB folder' : 'on your USB'}, checks the files, and adds a session receipt.</>} Projects must be linked to a story. Earlier session folders stay intact.</p></div><button className="primary" disabled={!stories.length || !!busy} onClick={() => void finish()}>{busy === 'FINISH' ? 'Packing your session…' : 'Finish session'}</button>{website && !downloadSession && <button disabled={!stories.length || !!busy} onClick={() => void finish(true)}>Download session ZIP</button>}</section>

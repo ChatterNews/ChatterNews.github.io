@@ -9,7 +9,7 @@ import {
   type ReleaseLaneId, type ReviewNote, type Story, type StoryReleaseCard, type StoryReview, type Take, type User,
 } from '@chatter/shared';
 import { useStore } from '../store/StoreProvider.js';
-import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
+import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { greenLightReilyFocus } from '../components/reily-room-focus.js';
 import { ReviewDocument, ReviewMedia } from './ReviewMedia.js';
 import { GreenLightReleaseCard } from './GreenLightReleaseCard.js';
@@ -107,6 +107,7 @@ export function GreenLight({ stories, adviser, me, onChanged }: {
   const storyAssets = assets.filter((asset) => storyAssetIds.has(asset.id)).sort((a, b) => Number(b.id === chosenAssetId) - Number(a.id === chosenAssetId));
   const reviewer = users.find((user) => user.id === review?.reviewerId);
   const presentation = story ? greenLightStoryPresentation(story) : undefined;
+  useReilySituation({ room: 'greenlight', projectSelected: !!story, busy, error: notice?.error === true, needsApproval: !!story && (!progress?.ready || !verdict?.ok || !releaseCard?.ready), hasMedia: storyAssets.length > 0 });
   useReilyFocus(greenLightReilyFocus({ selectedStory: Boolean(story), openNotes: progress?.openNotes ?? 0 }));
   useReilyRecovery(notice?.error && notice.text.includes('could not load') ? { kind: 'greenlight.load', workChanged: false } : undefined);
 

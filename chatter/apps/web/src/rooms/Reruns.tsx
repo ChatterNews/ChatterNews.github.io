@@ -1,3 +1,4 @@
+import { useReilySituation } from '../components/ReilyContextProvider.js';
 import { RoomIcon } from '../components/RoomIcon.js';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -67,6 +68,7 @@ export function Reruns({ stories, me }: { stories: Story[]; me?: User }) {
   const archiveRows = episodes.flatMap((episode) => episode.storyIds.map((id) => ({ episode, story: stories.find((item) => item.id === id), snapshot: episode.stories?.find((item) => item.storyId === id) }))).filter((row) => filter === 'ALL' || channelKind(row.episode.channel) === filter);
   const inProgress = stories.filter((story) => story.status !== 'DONE').sort((a, b) => b.updatedAt - a.updatedAt);
   const podcastEpisode = projectId ? episodes.find((item) => item.podcastProjectId === projectId) : undefined; const podcastProject = projectId ? podcastProjects.find((item) => item.id === projectId) : undefined; const podcastMaster = podcastEpisode?.audioDeliverableId ? deliverables.find((item) => item.id === podcastEpisode.audioDeliverableId) : deliverables.filter((item) => item.sourceProjectId === projectId && item.kind === 'AUDIO').sort((a, b) => b.updatedAt - a.updatedAt)[0];
+  useReilySituation({ room: 'reruns', projectSelected: !!snapshot || !!podcastEpisode, hasContent: episodes.length > 0, busy, error: notice?.error === true, activeTool: query.trim() ? 'search' : 'archive' });
   const podcastEditions = episodes.filter((item) => item.podcastProjectId && (filter === 'ALL' || filter === 'AUDIO'));
 
   useEffect(() => {

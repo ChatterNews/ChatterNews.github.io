@@ -1,3 +1,4 @@
+import { useReilySituation } from '../components/ReilyContextProvider.js';
 import { LoadingStatus } from '../components/LoadingStatus.js';
 import { RoomIcon } from '../components/RoomIcon.js';
 import { useEffect, useMemo, useState } from 'react';
@@ -56,6 +57,7 @@ export function MediaBin({ stories, adviser, me }: { stories: Story[]; adviser: 
     const term = query.trim().toLowerCase();
     return files.filter((item) => (scope === 'ALL' || item.authorId === me?.id) && (storyId === 'ALL' || item.storyId === storyId || storyId === 'STANDALONE' && !item.storyId) && (kind === 'ALL' || item.kind === kind) && (room === 'ALL' || item.room === room) && (!term || [item.title, item.fileName, item.room, item.kind, stories.find((story) => story.id === item.storyId)?.title].filter(Boolean).join(' ').toLowerCase().includes(term)));
   }, [files, scope, me?.id, storyId, kind, room, query, stories]);
+  useReilySituation({ room: 'files', activeTool: 'media-bin', projectSelected: storyId !== 'ALL' && storyId !== 'STANDALONE', hasContent: filtered.length > 0, hasExport: files.length > 0, busy: listing || preparing || downloads > 0, error: !!notice });
   const groups = useMemo(() => {
     const map = new Map<string, Deliverable[]>();
     filtered.forEach((item) => { const key = item.storyId ?? 'STANDALONE'; map.set(key, [...(map.get(key) ?? []), item]); });

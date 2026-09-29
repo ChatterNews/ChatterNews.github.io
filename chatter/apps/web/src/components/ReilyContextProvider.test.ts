@@ -7,7 +7,9 @@ import {
   useReilyFocus,
   useReilyRecovery,
   useReilySignals,
+  useReilySituation,
 } from './ReilyContextProvider.js';
+import type { ReilySituation } from './reily-help-types.js';
 import type { ReilyFocus, ReilyRecovery } from './reily-advice.js';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -32,9 +34,11 @@ function RecoveryPublisher({ value }: { value?: ReilyRecovery }) {
   return null;
 }
 
+function SituationPublisher({ value }: { value?: ReilySituation }) { useReilySituation(value); return null; }
+
 function Observer() {
   const signals = useReilySignals();
-  return createElement('output', { 'data-focus': signals.focus ?? '', 'data-recovery': signals.recovery?.kind ?? '' });
+  return createElement('output', { 'data-focus': signals.focus ?? '', 'data-recovery': signals.recovery?.kind ?? '', 'data-situations': JSON.stringify(signals.situations) });
 }
 
 function tree(children?: ReactNode) {
@@ -67,4 +71,15 @@ describe('Reily room signals', () => {
 
     expect(container?.querySelector('output')?.getAttribute('data-recovery')).toBe('');
   });
+});
+
+it('restores underlying room facts after a dialog closes and does not duplicate identical facts', () => {
+  const editor = createElement(SituationPublisher, { key: 'editor', value: { room: 'blast', selectedKind: 'TEXT' } });
+  const overlay = createElement(SituationPublisher, { key: 'overlay', value: { room: 'files', scope: 'overlay', busy: true } });
+  render([editor, overlay]);
+  expect(JSON.parse(container!.querySelector('output')!.dataset.situations!)).toHaveLength(2);
+  act(() => root?.render(tree([editor, overlay])));
+  expect(JSON.parse(container!.querySelector('output')!.dataset.situations!)).toHaveLength(2);
+  act(() => root?.render(tree(editor)));
+  expect(JSON.parse(container!.querySelector('output')!.dataset.situations!)).toEqual([{ room: 'blast', selectedKind: 'TEXT' }]);
 });

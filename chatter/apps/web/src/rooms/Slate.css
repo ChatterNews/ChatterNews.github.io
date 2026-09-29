@@ -70,4 +70,7 @@
 @media(max-width:700px){.slate-template-grid{grid-template-columns:1fr 1fr}.slate-angle-fields>label{grid-template-columns:28px 1fr}.slate-angle-fields input,.slate-angle-fields textarea{grid-column:2}.slate-angle-head{align-items:flex-start}.slate-angle-ready{width:54px;height:54px}.slate-angle-head h3{font-size:17px}.slate-angle-head p{display:none}}
 @media(max-width:600px){.slate-template-grid{grid-template-columns:1fr}.slate-pitch-modal{padding:14px}.slate-pitch-submit{align-items:stretch;flex-direction:column}.slate-angle-example summary em{display:none}}
 @media(max-width:600px){.slate-recipe-picker>div:nth-child(2){grid-template-columns:1fr 1fr;overflow:visible}.slate-recipe-picker button:last-child{grid-column:1/-1}}
-body:has(.slate-modal-shade) .pipdock,body:has(.slate-modal-shade) .piptab{display:none}
+/* The creation dialog provides its own keyboard-accessible Reily help. */
+body:has(.slate-modal-shade) :is(.pipdock,.piptab){display:none}
+.slate-reily-help{border:2px solid var(--ink);border-radius:10px;background:#fff;padding:10px}
+.slate-reily-help>.newsroom-button{width:100%;text-align:left}

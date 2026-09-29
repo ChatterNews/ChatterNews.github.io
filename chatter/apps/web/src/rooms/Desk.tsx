@@ -18,7 +18,7 @@ import { GroupWork, groupEditingPath } from '../group/GroupWork.js';
 import { captureGroupRevision, openGroupRevision } from '../group/group-work.js';
 import { Icon } from '../components/Sprite.js';
 import { PictureBox } from '../components/PictureBox.js';
-import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
+import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { deskReilyFocus } from '../components/reily-room-focus.js';
 import { deskBeatPrompt, deskDelivery, deskRecommendedShape, deskShape, deskShapeFromDocument, deskShapeTemplate, deskStoryCheck, deskTargetSeconds, type DeskShape } from './desk-model.js';
 import { DeskRoutePicker, DeskStoryCheck } from './DeskStoryGuide.js';
@@ -75,6 +75,11 @@ export function Desk({ stories, me, onChanged }: { stories: Story[]; me?: User; 
   const canInsertGroup = Boolean(story?.group?.kind === 'main' && canEditGroup);
   useReilyFocus(deskReilyFocus(focus ? undefined : sideTab));
   useReilyRecovery(saveState === 'ERROR' ? { kind: 'desk.save', workChanged: false } : undefined);
+  useReilySituation({ room: 'desk', projectSelected: Boolean(story), hasContent: stats.words > 0,
+    activeTool: comparing ? 'compare' : focus ? 'focus' : sideTab,
+    canEdit: Boolean(story && story.status !== 'DONE' && !joined && canEditGroup),
+    busy: busy || compareBusy || saveState === 'SAVING', error: saveState === 'ERROR',
+    groupKind: story?.group?.kind, contributionCount: groupRevisions.length });
 
   useEffect(() => { let live = true; void Promise.all([store.reviews.list(), store.crewTasks.list()]).then(([reviews, nextTasks]) => { if (!live) return; setReview(reviews.find((item) => item.storyId === story?.id)); setTasks(nextTasks.filter((item) => item.storyId === story?.id)); }).catch(() => { if (live) setNotice({ text: 'The story handoffs could not load. Your draft is still here; press Retry when you are ready.', error: true }); }); return () => { live = false; }; }, [store, story?.id, story?.updatedAt]);
 
@@ -111,7 +116,7 @@ export function Desk({ stories, me, onChanged }: { stories: Story[]; me?: User; 
   }, [story, editor, saveState, store, me, onChanged, canEditGroup]);
 
   useEffect(() => { if (saveState !== 'DIRTY') return; window.clearTimeout(saveTimer.current); saveTimer.current = window.setTimeout(() => void save(), 700); return () => window.clearTimeout(saveTimer.current); }, [saveState, save]);
-  useEffect(() => { const keyboard = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void save(); } }; window.addEventListener('keydown', keyboard); return () => window.removeEventListener('keydown', keyboard); }, [save]);
+  useEffect(() => { const keyboard = (event: KeyboardEvent) => { if ((event.target as Element).closest('[data-reily-local-help]')) return; if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void save(); } }; window.addEventListener('keydown', keyboard); return () => window.removeEventListener('keydown', keyboard); }, [save]);
 
   useSessionCheckpoint(store, async () => {
     if (busy) throw new Error('Wait for the Desk handoff to finish, then retry.');

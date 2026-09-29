@@ -22,8 +22,8 @@ beforeEach(() => {
   host = document.createElement('div'); document.body.append(host); root = createRoot(host);
 });
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
-function markup(nextContext: ReilyContext = context, open = true, userId = 'student-7') {
-  act(() => root.render(createElement(
+async function markup(nextContext: ReilyContext = context, open = true, userId = 'student-7') {
+  await act(async () => root.render(createElement(
     MemoryRouter,
     {},
     createElement(
@@ -39,13 +39,13 @@ function markup(nextContext: ReilyContext = context, open = true, userId = 'stud
       }),
     ),
   )));
-  if (open) act(() => host.querySelector<HTMLButtonElement>('.reilly-character')!.click());
+  if (open) await act(async () => { host.querySelector<HTMLButtonElement>('.reilly-character')!.click(); await import('./ReilyHelpPanel.js'); });
   return host.innerHTML;
 }
 
 describe('Reily coach panel', () => {
-  it('starts closed, toggles on click, and remembers the introduction per badge', () => {
-    markup(context, false);
+  it('starts closed, toggles on click, and remembers the introduction per badge', async () => {
+    await markup(context, false);
     expect(host.querySelector('.reilly-coach-panel')).toBeNull();
     expect(host.textContent).toContain('Click me');
     const click = () => act(() => host.querySelector<HTMLButtonElement>('.reilly-character')!.click());
@@ -55,24 +55,25 @@ describe('Reily coach panel', () => {
     click();
     expect(host.querySelector('.reilly-coach-panel')).toBeNull();
     act(() => root.unmount()); root = createRoot(host);
-    markup(context, false);
+    await markup(context, false);
     expect(host.textContent).not.toContain('Click me');
     expect(host.querySelector('.reilly-coach-panel')).toBeNull();
-    markup(context, false, 'student-8');
+    await markup(context, false, 'student-8');
     expect(host.textContent).toContain('Click me');
   });
 
-  it('offers local help and room-finding modes', () => {
-    const html = markup();
+  it('offers local help and room-finding modes', async () => {
+    const html = await markup();
 
     expect(html).toContain('role="tablist"');
     expect(html).toContain('>Help here<');
     expect(html).toContain('>Find a room<');
-    expect(html).toContain('Another tip');
+    expect(html).toContain('What are you trying to do?');
+    expect(html).toContain('Help me improve my work');
   });
 
-  it('names the next and previous destinations', () => {
-    const html = markup();
+  it('names the next and previous destinations', async () => {
+    const html = await markup();
 
     expect(html).toContain('Next stop · Green Light');
     expect(html).toContain('Back to Desk');
@@ -80,16 +81,16 @@ describe('Reily coach panel', () => {
     expect(html).toContain('I want to…');
   });
 
-  it('uses one right-pointing arrow without a floating Park label', () => {
-    const html = markup();
+  it('uses one right-pointing arrow without a floating Park label', async () => {
+    const html = await markup();
 
     expect(html).toContain('aria-label="Park Reily"');
     expect(html).toContain('class="reilly-park-arrow"');
     expect(html).not.toContain('>Park</b>');
   });
 
-  it('announces available recovery without opening a new toast', () => {
-    const html = markup({ ...context, recovery: { kind: 'blast.import', workChanged: false } });
+  it('announces available recovery without opening a new toast', async () => {
+    const html = await markup({ ...context, recovery: { kind: 'blast.import', workChanged: false } });
 
     expect(html).toContain('aria-label="Ask Reily about a problem in Blast"');
     expect(html).toContain('class="reilly-recovery-dot"');

@@ -25,7 +25,7 @@ import { StingerGraphicPalette } from './StingerGraphicPalette.js';
 import { buildStingerGraphic, insertStingerGraphicElements, makeStingerKeyframeAtPlayhead, moveStingerGraphicGroup, type StingerGraphicCategory, type StingerGraphicTemplate } from './stinger-graphics.js';
 import { isCurrentStingerSave } from './stinger-save.js';
 import { selectStoryWorkspace } from '../story-navigation.js';
-import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
+import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { stingerReilyFocus, stingerReilyRecovery } from '../components/reily-room-focus.js';
 import './Stinger.css';
 
@@ -172,6 +172,10 @@ export function Stinger({ stories, me, initialProjectId, forStoryId, onUseGraphi
   const activeInspector = resolveInspectorTab(inspector, selected?.kind);
   useReilyFocus(stingerReilyFocus({ inspector: activeInspector, selectedKind: selected?.kind }));
   useReilyRecovery(reilyProblem && note ? { kind: stingerReilyRecovery(reilyProblem), workChanged: false } : undefined);
+  useReilySituation({ room: 'stinger', projectSelected: Boolean(project),
+    activeTool: `graphics:${activeInspector}`, selectedKind: selected?.kind,
+    selectionCount: selected ? 1 : 0, hasContent: Boolean(scene?.elements.length),
+    busy: placing || exporting !== undefined, error: Boolean(reilyProblem && note) });
 
   useEffect(() => {
     if (!project) return;
@@ -310,7 +314,8 @@ export function Stinger({ stories, me, initialProjectId, forStoryId, onUseGraphi
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      const tag = (event.target as HTMLElement).tagName; if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+      const target = event.target as HTMLElement;
+      if (target.closest('[data-reily-local-help], input, textarea, select, [contenteditable="true"]')) return;
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redoOnce() : undoOnce(); }
       if (event.code === 'Space') { event.preventDefault(); togglePreview(); }
       if ((event.key === 'Backspace' || event.key === 'Delete') && selectedId) { event.preventDefault(); updateScene((draft) => { draft.elements = draft.elements.filter((item) => item.id !== selectedId); }); setSelectedId(undefined); }

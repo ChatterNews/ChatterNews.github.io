@@ -24,7 +24,7 @@ import { ChatterboxRecordingTray } from './ChatterboxRecordingTray.js';
 import { ChatterboxEpisodeCheck } from './ChatterboxEpisodeCheck.js';
 import { ChatterboxCoverStudio, type PodcastCoverChoice } from './ChatterboxCoverStudio.js';
 import { buildPodcastCoverProject, podcastCoverHandoff } from './podcast-cover.js';
-import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
+import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { chatterboxReilyFocus, chatterboxReilyRecovery } from '../components/reily-room-focus.js';
 import './Chatterbox.css';
 
@@ -204,6 +204,7 @@ export function Chatterbox({ stories, me }: { stories: Story[]; me?: User }) {
   });
 
   const recorder = useBoothRecorder(saveCaptured);
+  useReilySituation({ room: 'chatterbox', projectSelected: !!project, hasContent: !!project?.clips.length, hasMedia: choices.length > 0, hasExport: !!lastPackage, selectionCount: selectedClip ? 1 : 0, activeTool: station, recording: ['COUNTDOWN', 'RECORDING', 'PAUSED', 'SAVING'].includes(recorder.phase), busy: !!busy, error: !!(notice?.error || recorder.error) });
   useReilyFocus(chatterboxReilyFocus(station));
   const chatterboxProblem = reilyProblem ?? (station === 'PACKAGE' && notice?.error ? 'export' : undefined);
   const chatterboxRecovery = recorder.error

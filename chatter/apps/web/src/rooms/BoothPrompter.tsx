@@ -1,3 +1,4 @@
+import { ignoreMediaShortcut } from '../components/media-shortcuts.js';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { countWords, type BoothPerformanceMode, type ProseNode, type Story } from '@chatter/shared';
 import type { RecorderPhase } from '../audio/useBoothRecorder.js';
@@ -32,8 +33,7 @@ export function BoothPrompter({ story, phase, countdown, mode, controls, onEdit 
   }, [running, words, wpm, fontSize]);
   useEffect(() => {
     const keys = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(target.tagName) || target.isContentEditable) return;
+      if (ignoreMediaShortcut(event) || event.ctrlKey || event.metaKey) return;
       if (event.code === 'Space') { event.preventDefault(); setRunning((value) => !value); }
       if (event.key === 'Escape') setFocus(false);
     };

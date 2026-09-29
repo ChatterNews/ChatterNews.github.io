@@ -21,7 +21,7 @@ import { showtimeWorkingAssetIds } from '../video/showtime-working-set.js';
 import { LookInside } from '../components/LookInside.js';
 import { ShowtimeCutCheck, ShowtimeRecipePicker, ShowtimeRundownRail } from './ShowtimeProgramGuide.js';
 import { ShowtimeCutWorkspace } from './ShowtimeCutWorkspace.js';
-import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
+import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { showtimeReilyFocus, showtimeReilyRecovery } from '../components/reily-room-focus.js';
 import './Showtime.css';
 import './StingerVideo.css';
@@ -92,7 +92,7 @@ export function Showtime({ stories, me, storyId, editor = false }: { stories: St
   const selectedClip = project?.clips.find((item) => item.id === selectedClipId); const selectedTitle = project?.titles.find((item) => item.id === selectedTitleId); const duration = project ? showtimeDuration(project) : 0;
   const cutFindings = useMemo(() => project ? showtimeCutCheck(project, { ...(availableAssetIds ? { availableAssetIds } : {}), transcripts }) : [], [project, availableAssetIds, transcripts]);
   useReilyFocus(showtimeReilyFocus({ mode, selectedTitleKind: mode === 'CUT' ? cutReilyTitleKind : undefined }));
-  useReilyRecovery(reilyProblem && notice?.error ? { kind: showtimeReilyRecovery(reilyProblem), workChanged: false } : undefined);
+  useReilyRecovery(reilyProblem && notice?.error ? { kind: editor ? (reilyProblem === 'export' ? 'stinger.export' : 'stinger.import') : showtimeReilyRecovery(reilyProblem), workChanged: false } : undefined);
 
   const reload = useCallback(async () => {
     const [saved, media, nextCredits, packages, nextTranscripts] = await Promise.all([store.showtimeProjects.list(), store.assets.list(), store.credits.list(), store.motionPackages.list(), store.transcripts.list()]);
@@ -336,6 +336,7 @@ export function Showtime({ stories, me, storyId, editor = false }: { stories: St
 
   useEffect(() => () => { cameraRequestId.current += 1; microphoneRequestId.current += 1; stopShowtimeStream(cameraStream.current); stopShowtimeStream(screenStream.current); window.clearInterval(recordTimer.current); window.clearInterval(liveTimer.current); }, []);
   useEffect(() => { if (mode !== 'CUT' || !project || project.clips.every((clip) => transcripts.some((item) => item.assetId === clip.assetId))) return; const timer = window.setInterval(() => { void store.transcripts.list().then(setTranscripts); }, 4000); return () => window.clearInterval(timer); }, [mode, project, store, transcripts]);
+  useReilySituation({ room: editor ? 'stinger' : 'showtime', projectSelected: !!project, hasContent: !!project?.clips.length, hasMedia: cutAssets.length > 0, activeTool: mode, recording: rollRecording || liveRecording || countdown !== undefined, busy: !!busy, error: !!notice?.error });
   if (!project) return notice?.error ? <div role="alert"><p>{notice.text}</p><button onClick={() => window.location.reload()}>Retry opening videos</button></div> : <LoadingStatus label="Opening your video projects…" />;
   const format = SHOWTIME_FORMATS[project.format]; const overlayPackages = motion.filter((item) => !story || !item.storyId || item.storyId === story.id); const deliveryChecks = validateShowtimeProject(project).length + cutFindings.length; const cutBlocked = cutFindings.some((finding) => finding.severity === 'BLOCKING'); const legacyCut: boolean = false;
 
@@ -362,7 +363,7 @@ export function Showtime({ stories, me, storyId, editor = false }: { stories: St
       </div>{videoAssets.map((asset) => <video key={asset.id} ref={(node) => { if (node) liveAssetVideos.current.set(asset.id, node); else liveAssetVideos.current.delete(asset.id); }} src={urls.get(asset.id)} muted loop playsInline hidden />)}<video ref={cameraVideo} muted playsInline hidden /><video ref={screenVideo} muted playsInline hidden />
     </div>}
 
-    {mode === 'CUT' && <><ShowtimeCutWorkspace mediaLoading={mediaLoading} initialGraphicId={searchParams.get("graphic") ?? undefined} key={project.id} project={project} assets={cutAssets} urls={urls} assetDurations={assetDurations} assetFrames={assetFrames} findings={cutFindings} storyTitle={story?.title} byline={me?.penName} onCommit={commit} onShoot={() => void openOtherApp()} onImport={() => importPicker.current?.click()} onSourceSelected={setSelectedAssetId} onFlush={flushVideo} onReload={reload} busy={!!busy} stories={stories} me={me} onNotice={setNotice} onReilyFocusChange={setCutReilyTitleKind} />
+    {mode === 'CUT' && <><ShowtimeCutWorkspace reilyRoom={editor ? 'stinger' : 'showtime'} mediaLoading={mediaLoading} initialGraphicId={searchParams.get("graphic") ?? undefined} key={project.id} project={project} assets={cutAssets} urls={urls} assetDurations={assetDurations} assetFrames={assetFrames} findings={cutFindings} storyTitle={story?.title} byline={me?.penName} onCommit={commit} onShoot={() => void openOtherApp()} onImport={() => importPicker.current?.click()} onSourceSelected={setSelectedAssetId} onFlush={flushVideo} onReload={reload} busy={!!busy} stories={stories} me={me} onNotice={setNotice} onReilyFocusChange={setCutReilyTitleKind} />
       <footer className="showtime-deliver"><div><span>DELIVER</span><b>{deliveryChecks ? `${deliveryChecks} check${deliveryChecks === 1 ? '' : 's'} left` : 'Ready to render'}</b><small>WebM · {project.width}×{project.height} · sound included · {time(duration)}</small></div><button disabled={!!busy || !story} title={story ? "Download the editable story with its source media" : "Choose a story above to save a portable file with media"} onClick={() => void exportPackage()}>Save story + media</button><button disabled={!!busy || cutBlocked} onClick={() => void exportProject(true, false)}>Export final WebM</button><button className="primary" disabled={!!busy || !project.storyId || cutBlocked} onClick={() => void exportProject(false, true)}>Render + send to Green Light →</button></footer></>}
 
     {legacyCut && mode === 'CUT' && <div className="showtime-cut">

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { advanceStoryWorkflow, countWords, emptyBrief, JOB_GUIDES, newId, resolveStoryCreationRecipe, storyRoomPath, storyWorkflowStepId, type CrewRole, type CrewTask, type Story, type StoryBrief, type User } from '@chatter/shared';
 import { useStore } from '../store/StoreProvider.js';
-import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
+import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { slateReilyFocus } from '../components/reily-room-focus.js';
 import { STORY_CHANNELS } from './Slate.js';
 import { SlateAngleCheck, type SlateAngleField } from './SlateAngleCheck.js';
@@ -12,17 +12,19 @@ import { SlateEvidenceFields } from './SlateEvidenceFields.js';
 
 const dateInput = (timestamp?: number) => timestamp ? new Date(timestamp - new Date(timestamp).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '';
 
-export function SlateDossier({ story, me, users, tasks, busy, beforeLeave, onClose, onChanged, onClaim }: {
+export function SlateDossier({ story, me, users, tasks, busy, beforeLeave, onClose, onChanged, onClaim, reilyActive = true }: {
   story: Story; me?: User; users: User[]; tasks: CrewTask[]; busy: boolean; beforeLeave: MutableRefObject<(() => Promise<boolean>) | undefined>;
-  onClose: () => void; onChanged: () => void; onClaim: () => void;
+  onClose: () => void; onChanged: () => void; onClaim: () => void; reilyActive?: boolean;
 }) {
   const store = useStore(); const navigate = useNavigate(); const [tab, setTab] = useState<'PLAN' | 'REPORT' | 'PRODUCE'>('PLAN');
   const [title, setTitle] = useState(story.title); const [brief, setBrief] = useState<StoryBrief>(() => structuredClone(story.brief ?? emptyBrief()));
   const [channels, setChannels] = useState(story.channels); const [deadline, setDeadline] = useState(dateInput(story.dueAt));
   const [dirty, setDirty] = useState(false); const [saving, setSaving] = useState(false); const [message, setMessage] = useState(''); const [failed, setFailed] = useState(false);
   const [question, setQuestion] = useState(''); const [taskText, setTaskText] = useState('');
-  useReilyFocus(slateReilyFocus({ selectedStory: true, tab, reportArea: 'QUESTIONS' }));
+  useReilyFocus(reilyActive ? slateReilyFocus({ selectedStory: true, tab, reportArea: 'QUESTIONS' }) : undefined);
   useReilyRecovery(failed ? { kind: 'slate.save', workChanged: false } : undefined);
+  useReilySituation(!reilyActive ? undefined : { room: 'slate', projectSelected: true, activeTool: tab, busy: saving || busy,
+    error: failed, hasContent: Boolean(brief.angle.trim()), groupKind: story.group?.kind });
   const replayingNavigation = useRef(false);
   const recipe = resolveStoryCreationRecipe(story);
   const currentStepId = storyWorkflowStepId(story);
@@ -55,7 +57,7 @@ export function SlateDossier({ story, me, users, tasks, busy, beforeLeave, onClo
   useEffect(() => {
     const leaveRoom = (event: MouseEvent) => {
       if (!dirty || replayingNavigation.current) return;
-      const button = (event.target as Element).closest<HTMLButtonElement>('nav.tabs button, .track button');
+      const button = (event.target as Element).closest<HTMLButtonElement>('nav.tabs button, .track button, [data-reily-navigation]');
       if (!button) return;
       event.preventDefault(); event.stopPropagation();
       void save().then((ok) => { if (ok) { replayingNavigation.current = true; button.click(); replayingNavigation.current = false; } });
@@ -66,7 +68,7 @@ export function SlateDossier({ story, me, users, tasks, busy, beforeLeave, onClo
   useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
-    const keyboard = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void save(); } };
+    const keyboard = (event: KeyboardEvent) => { if ((event.target as Element).closest('[data-reily-local-help]')) return; if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void save(); } };
     window.addEventListener('beforeunload', warn); window.addEventListener('keydown', keyboard);
     return () => { window.removeEventListener('beforeunload', warn); window.removeEventListener('keydown', keyboard); };
   });

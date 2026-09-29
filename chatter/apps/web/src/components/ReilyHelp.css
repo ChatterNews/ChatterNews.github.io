@@ -1,0 +1,54 @@
+/* Reily's practical field guide: Orbit's paper, ink and signal-yellow controls. */
+body[data-interface='spiral-stage'] .reilly-coach-panel {
+  width: min(430px, calc(100vw - 36px)); max-width: 430px;
+  max-height: min(730px, calc(100dvh - 115px)); overflow: auto; overscroll-behavior: contain;
+  background: #fffff0; color: #2a1f55;
+}
+body[data-interface='spiral-stage'] .reilly-coach-panel::after { display: none; }
+body[data-interface='spiral-stage'] .reilly-bubble-head { min-height: 38px; background: #2a1f55; color: #fff; border-radius: 20px 20px 0 0; }
+body[data-interface='spiral-stage'] .reilly-bubble-head .x { color: #fff; min-width: 32px; min-height: 32px; }
+.reily-practical-help { padding: 14px; color: #2a1f55; font: 500 13px/1.5 var(--f-ui); text-align: left; }
+.reily-practical-help button, .reily-practical-help input { font: inherit; }
+.reily-practical-help button { cursor: pointer; }
+.reily-practical-help button:disabled { opacity: .55; cursor: default; }
+.reily-situation { margin: 0 0 10px; color: #3f3f55; font-size: 12px; font-weight: 750; }
+.reily-search { display: grid; gap: 6px; font-weight: 850; font-size: 15px; }
+.reily-search input { width: 100%; min-height: 42px; min-width: 0; padding: 9px 11px; border: 2px solid #7f7f9f; border-radius: 7px; background: #fff; color: #2a1f55; font-weight: 500; font-size: 13px; }
+.reily-search input::placeholder { color: #5f5f7f; opacity: 1; }
+.reily-topic-list { display: grid; gap: 0; margin-top: 12px; max-height: 195px; overflow: auto; overscroll-behavior: contain; border: 1px solid #aaaabf; border-radius: 8px; }
+.reily-topic-list:empty { display: none; }
+.reily-topic-list button { display: flex; gap: 10px; align-items: center; justify-content: space-between; width: 100%; min-height: 40px; padding: 8px 10px; text-align: left; border: 0; border-bottom: 1px solid #d4d4df; border-radius: 0; box-shadow: none; background: #fff; color: #2a1f55; font-weight: 700; }
+.reily-topic-list button:last-child { border-bottom: 0; }
+.reily-topic-list button:hover { background: #d4ffff; }
+.reily-topic-list button[aria-pressed='true'] { background: #ffff55; box-shadow: inset 4px 0 #2a1f55; }
+.reily-topic-list small { flex: none; font: 600 10px/1.3 var(--f-ui); color: #55557f; }
+.reily-search-count { margin: 8px 0; font-size: 12px; }
+.reily-help-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+.reily-help-tools button, .reily-craft button { padding: 4px 0; background: none; color: #2a1f55; border: 0; box-shadow: none; text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
+.reily-instructions { padding: 13px 0 4px; border-top: 2px solid #2a1f55; }
+.reily-instructions h3 { margin: 0 0 7px; font: 850 19px/1.25 var(--f-ui); color: #2a1f55; }
+.reily-instructions p { margin: 6px 0 10px; }
+.reily-instructions ol, .reily-escalation ol { margin: 10px 0 12px; padding-left: 24px; }
+.reily-instructions li, .reily-escalation li { padding-left: 3px; margin-bottom: 9px; }
+.reily-instructions li::marker { color: #2a1f55; font-weight: 950; }
+.reily-done { border-left: 4px solid #008080; padding: 6px 10px; background: #d4ffff; }
+.reily-go { min-height: 40px; padding: 8px 14px; border: 2px solid #2a1f55; border-radius: 7px; background: #ffff55; color: #2a1f55; font-weight: 850!important; box-shadow: 2px 2px #2a1f55; }
+.reily-still-stuck { margin-top: 12px; padding: 10px 0; background: none; border: 0; border-top: 1px solid #aaaabf; border-radius: 0; box-shadow: none; color: #2a1f55; width: 100%; text-align: left; font-weight: 800!important; }
+.reily-escalation { padding: 10px; background: #d4d4ff; border-radius: 8px; }
+.reily-escalation p { margin: 0 0 8px; }
+.reily-craft { margin-top: 8px; border-top: 1px solid #aaaabf; padding-top: 10px; }
+.reily-craft summary { cursor: pointer; font-weight: 750; }
+.reily-help-loading { padding: 16px; }
+.reily-practical-help :is(button,input,summary):focus-visible { outline: 3px solid #008080; outline-offset: 2px; }
+.reily-drive-help { margin: 12px 22px; border: 2px solid #2a1f55; border-radius: 8px; background: #fffff0; }
+@media (max-width: 650px) {
+  body[data-interface='spiral-stage'] .reilly-coach-panel { position: fixed; left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 74px); width: auto; max-width: none; margin: 0; max-height: calc(100dvh - 160px); border-radius: 16px; }
+  .reily-topic-list { max-height: 150px; }
+  .reily-practical-help { padding: 12px; }
+  .reily-search input { font-size: 16px; }
+  .reily-drive-help { margin: 10px; }
+}
+
+.reily-practical-help button { white-space: normal; }
+.reily-topic-list button span { min-width: 0; overflow-wrap: anywhere; }
+.reily-topic-list { overflow-x: hidden; }

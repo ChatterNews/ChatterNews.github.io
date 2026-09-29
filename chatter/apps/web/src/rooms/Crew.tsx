@@ -1,3 +1,4 @@
+import { useReilySituation } from '../components/ReilyContextProvider.js';
 import { RoomIcon } from '../components/RoomIcon.js';
 import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useEffect, useState } from 'react';
@@ -70,6 +71,7 @@ export function Crew({ stories, adviser, me }: { stories: Story[]; adviser: bool
 
   const handoffNote = formatCrewHandoff(handoff);
   const handoffReady = crewHandoffProgress(handoff) === 3;
+  useReilySituation({ room: 'crew', projectSelected: !!selectedTask, activeTool: selectedTask && (!handoffReady || !selectedGuide?.steps.every(step => selectedTask.completedSteps.includes(step.id))) ? 'crew-incomplete' : tab.toLowerCase(), busy, error: notice?.error === true });
 
   async function action(work: () => Promise<unknown>, success?: string) {
     setNotice(undefined); setBusy(true);

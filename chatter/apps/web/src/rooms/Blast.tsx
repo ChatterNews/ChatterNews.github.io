@@ -20,7 +20,7 @@ import { imagePagesPdf } from '../export/image-pdf.js';
 import { FontSelect } from '../components/FontSelect.js';
 import { waitForEditorFonts } from '../styles/fonts.js';
 import { selectStoryWorkspace } from '../story-navigation.js';
-import { useReilyFocus, useReilyRecovery } from '../components/ReilyContextProvider.js';
+import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { blastReilyFocus, blastReilyRecovery } from '../components/reily-room-focus.js';
 import './Blast.css';
 
@@ -503,6 +503,11 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
   useReilyFocus(blastReilyFocus(selectedItems.length === 1 ? selected?.kind : undefined));
   useReilyRecovery(reilyProblem && error ? { kind: blastReilyRecovery(reilyProblem), workChanged: false } : undefined);
 
+  useReilySituation({ room: 'blast', projectSelected: Boolean(project) && !showLibrary,
+    hasContent: Boolean(page?.elements.length), selectionCount: selectedItems.length,
+    selectedKind: selected?.kind, activeTool: !project || showLibrary ? 'start' : editingId ? 'text-edit' : selected?.locked ? 'locked' : sideTab,
+    busy: working > 0 || !libraryLoaded, error: Boolean(error), hasExport: Boolean(outputNotice) });
+
   function selectOnly(id?: string) {
     if (selected && editingId === selected.id && id !== selected.id) finishTextEdit(selected);
     setSelectedIds(id ? [id] : []);
@@ -956,7 +961,7 @@ export function Blast({ me, stories, storyId }: { me?: User; stories: Story[]; s
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
-      if (target.matches('input, textarea, select, [contenteditable="true"]')) return;
+      if (target.closest('[data-reily-local-help], input, textarea, select, [contenteditable="true"]')) return;
       const command = event.metaKey || event.ctrlKey;
       if (command && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); return; }
       if (command && event.key.toLowerCase() === 'y') { event.preventDefault(); redo(); return; }

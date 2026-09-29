@@ -1,3 +1,4 @@
+import { useReilySituation } from '../components/ReilyContextProvider.js';
 import { SchoolAccessSettings } from '../components/SchoolAccessSettings.js';
 import { RoomIcon } from '../components/RoomIcon.js';
 /**
@@ -126,6 +127,8 @@ export function FrontDesk({ stories, adviser, me, onChanged }: {
       setNotice({ text: error instanceof Error ? error.message : 'That did not finish. Press it again to retry.', error: true });
     } finally { setBusy(false); }
   }
+
+  useReilySituation({ room: 'frontdesk', busy, error: notice?.error === true, canEdit: adviser, needsApproval: waitingCount > 0 });
 
   const adviserName = users.find((user) => user.role === 'ADVISER')?.penName ?? 'the adviser';
 

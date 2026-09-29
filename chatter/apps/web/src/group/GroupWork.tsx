@@ -1,7 +1,8 @@
 import { connectStoryFolder, linkedStoryFolder, saveLinkedMaster, subscribeStoryFolders } from './linked-story-folder.js';
 import { copyLocalGroupPiece } from './group-local-piece.js';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useReilySituation } from '../components/ReilyContextProvider.js';
 import { prosePlainText, type GroupRevision, type Story, type User, type StoryCreationRecipeId } from '@chatter/shared';
 import { useStore } from '../store/StoreProvider.js';
 import { useGate } from '../gate/GateProvider.js';
@@ -20,6 +21,8 @@ const directoryPicker = () => (window as unknown as { showDirectoryPicker?: (opt
 
 export function GroupJoin({ me, onChanged }: { me?: User; onChanged:()=>void }) {
  const store=useStore(); const navigate=useNavigate(); const [open,setOpen]=useState(false);const [code,setCode]=useState('');const [title,setTitle]=useState('');const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [recipe,setRecipe]=useState<StoryCreationRecipeId>('article');
+ const location = useLocation();
+ useReilySituation(open && location.pathname.startsWith('/slate') ? { room: 'slate', activeTool: 'group-join', busy, error: !!error } : undefined);
  return <div className="group-join"><button type="button" className="newsroom-button" disabled={!me} onClick={()=>setOpen(!open)}>Join a story</button>{open&&<form onSubmit={async e=>{e.preventDefault();if(!me||busy)return;setBusy(true);setError('');try{await flushSessionCheckpoints(store);const group=await joinGroup(store,code,me,title);const piece=await makeGroupPiece(store,group,me,`${me.penName}’s piece`,recipe);onChanged();setOpen(false);navigate(groupEditingPath(piece));}catch(err){setError(err instanceof Error?err.message:'Try the story code again.');}finally{setBusy(false);}}}>
  <b>Same story. Your own piece.</b><label>Story code<input autoFocus value={code} onChange={e=>setCode(e.target.value)} placeholder="XXXXX-XXXXX" autoCapitalize="characters" spellCheck={false}/></label><label>Story name <small>(optional)</small><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="The lunch line"/></label><label>What will you make?<select value={recipe} onChange={e=>setRecipe(e.target.value as StoryCreationRecipeId)}><option value="article">Writing</option><option value="video">Video</option><option value="podcast">Audio</option><option value="poster">Picture / graphic</option></select></label><p>Enter the shared code and start your own piece. Save to the group’s USB folder when you’re ready.</p>{error&&<p role="alert">{error}</p>}<button className="newsroom-button primary" disabled={busy||!code.trim()}>{busy?'Opening your piece…':'Join and start my piece'}</button><button type="button" onClick={()=>setOpen(false)}>Cancel</button>
  </form>}</div>;
@@ -34,6 +37,9 @@ export function GroupWork({story,me,onChanged,onWritingChanged,onCompare}:{story
  useEffect(()=>{let live=true;store.groupRevisions.list().then(rows=>{if(live)setRevisions(rows.filter(r=>r.groupCode===story.group?.code));}).catch(()=>{if(live){setFailed(true);setMessage('The collected pieces could not load. Open this story again.');}});return()=>{live=false;};},[store,story.id,story.group?.code,story.updatedAt,refresh]);
  async function run(label:string,action:()=>Promise<string|void>){if(busy)return;setBusy(label);setMessage('');setFailed(false);try{const result=await action();setMessage(result??'Saved on this computer.');setRefresh(n=>n+1);onChanged();}catch(err){if(err instanceof Error&&err.name==='AbortError')setMessage('Cancelled. Your work is still here.');else{setFailed(true);setMessage(err instanceof Error?err.message:'That did not finish. Please try again.');}}finally{setBusy('');}}
  const writable=!!me&&story.status!=='DONE'&&(!story.ownerId||story.ownerId===me.id||me.role==='ADVISER');
+ const location = useLocation();
+ const helpRoom = location.pathname.startsWith('/slate') ? 'slate' : location.pathname.startsWith('/desk') ? 'desk' : undefined;
+ useReilySituation(helpRoom ? { room: helpRoom, projectSelected: true, groupKind: story.group?.kind, folderConnected: !!connection, folderError: !!connection?.error, contributionCount: new Set(revisions.filter(r => r.kind !== 'main').map(r => r.contributionId)).size, canEdit: writable, busy: !!busy, error: failed, ...(failed ? { activeTool: 'group-error' } : sources ? { activeTool: 'group-sources' } : {}) } : undefined);
  const canAssemble=!!me&&story.status!=='DONE'&&story.group?.kind!=='piece'&&(story.ownerId===me.id||me.role==='ADVISER');
  async function collect(chosen:File[]){if(!chosen.length)return;await run('Checking and collecting pieces…',async()=>{if(chosen.length>GROUP_ARCHIVE_LIMITS.revisions||chosen.reduce((sum,file)=>sum+file.size,0)>GROUP_ARCHIVE_LIMITS.archiveBytes)throw new Error('Choose fewer files at once; one collection is limited to 512 MB.');const all=[];for(const file of chosen)all.push(...await readGroupFileEntries(file));if(all.some(e=>e.record.groupCode!==story.group?.code))throw new Error('One of these files is for another story. Open it with Open a Story Drive to keep the stories separate.');const result=await collectGroupEntries(store,all);return `${result.added} new version${result.added===1?'':'s'} collected. ${result.already?`${result.already} already here. `:''}The main draft is unchanged.`;});}
  async function saveToDrive(){

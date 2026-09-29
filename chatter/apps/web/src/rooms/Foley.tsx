@@ -22,6 +22,8 @@ import { FoleyPalette, FoleyToolIcon, foleyTools } from './FoleyPalette.js';
 import { RoomIcon } from '../components/RoomIcon.js';
 import { readSoundDraft, useSoundProject } from './useSoundProject.js';
 import { useSoundNavigation } from './useSoundNavigation.js';
+import { useReilySituation } from '../components/ReilyContextProvider.js';
+import { isLocalReilyHelp } from '../components/reily-local-help.js';
 import '../styles/Foley.css';
 
 function download(blob: Blob, name: string) { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); window.setTimeout(() => URL.revokeObjectURL(url), 30000); }
@@ -53,6 +55,7 @@ export function Foley({ stories, me }: { stories: Story[]; me?: User }) {
   }
   const recorder = useBoothRecorder(capture); const recording = !['OFF', 'READY'].includes(recorder.phase);
   const locked = busy || importBusy || recording;
+  useReilySituation({ room: 'foley', projectSelected: !!project, hasContent: !!project?.clips.length, hasMedia: items.length > 0, hasExport: !!lastSaved, selectionCount: selected ? 1 : 0, activeTool: recoveryTake ? 'RECOVER' : recorder.error ? 'MICROPHONE' : importing ? 'IMPORT' : tool, recording, busy: busy || importBusy, error: !!(error || editor.error || recorder.error) });
   const lockedRef = useRef(locked); lockedRef.current = locked;
   const recoveryRef = useRef(recoveryTake); recoveryRef.current = recoveryTake;
   const allowNavigation = useSoundNavigation({ dirty: editor.dirty, blocked: () => lockedRef.current || !!recoveryRef.current, flush: editor.flush, onError: setError });
@@ -65,7 +68,7 @@ export function Foley({ stories, me }: { stories: Story[]; me?: User }) {
     let replaying = false;
     const block = (event: MouseEvent) => {
       const target = event.target instanceof Element ? event.target.closest<HTMLElement>('a,button') : null;
-      if (replaying || !target || target.closest('.foley-workspace') || (!lockedRef.current && !recoveryRef.current && !editorRef.current.dirty())) return;
+      if (replaying || !target || isLocalReilyHelp(target) || target.closest('.foley-workspace') || (!lockedRef.current && !recoveryRef.current && !editorRef.current.dirty())) return;
       event.preventDefault(); event.stopPropagation();
       if (lockedRef.current || recoveryRef.current) { setError('Finish the sound job or save the recovered recording before leaving.'); return; }
       void editorRef.current.flush().then(() => { replaying = true; target.click(); replaying = false; }).catch(() => undefined);

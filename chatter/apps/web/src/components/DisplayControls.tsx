@@ -4,9 +4,8 @@ import { WebsiteUpdate } from './WebsiteUpdate.js';
 import { fullscreenAvailable, isFullscreen, toggleFullscreen } from './display-mode.js';
 import '../styles/DisplayControls.css';
 
-export function DisplayControls({ lowSpec, onLowSpecChange, afterHours, onAfterHoursChange, inRoom }: {
+export function DisplayControls({ lowSpec, onLowSpecChange, inRoom }: {
   lowSpec: boolean; onLowSpecChange: (value: boolean) => void; inRoom: boolean;
-  afterHours: boolean; onAfterHoursChange: (value: boolean) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -46,7 +45,6 @@ export function DisplayControls({ lowSpec, onLowSpecChange, afterHours, onAfterH
         </button>}
       {!fullscreenAvailable() && !standalone && <p>This browser does not offer a fullscreen button for webpages.</p>}
       {notice && <p role="alert">{notice}</p>}
-      <label className="display-appearance"><input type="checkbox" role="switch" aria-label="After Hours" checked={afterHours} onChange={(e) => onAfterHoursChange(e.target.checked)} /><span><b>After Hours</b><small>{afterHours ? 'Night-blue panels and cool lights.' : 'Space Lab is on. Switch to a darker workspace.'}</small></span></label>
       <label className="display-low-spec"><input type="checkbox" checked={lowSpec} onChange={(e) => onLowSpecChange(e.target.checked)} /><span><b>Low-spec mode</b><small>Quieter visuals and instant room changes. All your tools stay available.</small></span></label>
       <p className="display-remember">Remembered on this browser.</p>
       <WebsiteUpdate />
