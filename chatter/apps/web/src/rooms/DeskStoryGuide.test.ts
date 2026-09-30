@@ -9,10 +9,12 @@ describe('Desk story guide', () => {
       selected: undefined,
       recommended: 'EVENT',
       onChoose: () => undefined,
+      onRegularWriting: () => undefined,
       disabled: false,
     }));
 
     expect(html).toContain('STORY ROUTES');
+    expect(html).toContain('Regular writing');
     expect(html).toContain('Quick update');
     expect(html).toContain('Profile');
     expect(html).toContain('Event recap');

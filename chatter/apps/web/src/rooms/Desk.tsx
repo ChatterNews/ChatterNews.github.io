@@ -5,7 +5,7 @@ import { useSessionCheckpoint } from '../store/useSessionCheckpoint.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { EditorContent, useEditor } from '@tiptap/react';
-import { Extension } from '@tiptap/core';
+import { DeskBeatAttributes, useRegularWriting } from './desk-editor.js';
 import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -20,45 +20,13 @@ import { Icon } from '../components/Sprite.js';
 import { PictureBox } from '../components/PictureBox.js';
 import { useReilyFocus, useReilyRecovery, useReilySituation } from '../components/ReilyContextProvider.js';
 import { deskReilyFocus } from '../components/reily-room-focus.js';
-import { deskBeatPrompt, deskDelivery, deskRecommendedShape, deskShape, deskShapeFromDocument, deskShapeTemplate, deskStoryCheck, deskTargetSeconds, type DeskShape } from './desk-model.js';
+import { deskBeatPrompt, deskDelivery, deskRecommendedShape, deskShapeFromDocument, deskShapeTemplate, deskStoryCheck, deskTargetSeconds, type DeskShape } from './desk-model.js';
 import { DeskRoutePicker, DeskStoryCheck } from './DeskStoryGuide.js';
 import { sourceQuoteContent } from './desk-proof.js';
 import './Desk.css';
 
 type SaveState = 'SAVED' | 'DIRTY' | 'SAVING' | 'ERROR';
 type SideTab = 'CHECK' | 'BRIEF' | 'REPORTING' | 'REVIEW';
-
-const DeskBeatAttributes = Extension.create({
-  name: 'deskBeatAttributes',
-  addGlobalAttributes() {
-    return [{
-      types: ['paragraph', 'blockquote'],
-      attributes: {
-        deskBeat: {
-          default: null,
-          parseHTML: (element) => element.getAttribute('data-desk-beat'),
-          renderHTML: (attributes) => {
-            const beat = attributes.deskBeat;
-            const shape = attributes.deskShape;
-            if (typeof beat !== 'string') return {};
-            const label = typeof shape === 'string' ? deskShape(shape as DeskShape).beats.find((item) => item.id === beat)?.label : undefined;
-            return { 'data-desk-beat': beat, ...(label ? { 'data-desk-label': label } : {}) };
-          },
-        },
-        deskShape: {
-          default: null,
-          parseHTML: (element) => element.getAttribute('data-desk-shape'),
-          renderHTML: (attributes) => typeof attributes.deskShape === 'string' ? { 'data-desk-shape': attributes.deskShape } : {},
-        },
-        proofSourceId: {
-          default: null,
-          parseHTML: (element) => element.getAttribute('data-proof-source'),
-          renderHTML: (attributes) => typeof attributes.proofSourceId === 'string' ? { 'data-proof-source': attributes.proofSourceId } : {},
-        },
-      },
-    }];
-  },
-});
 
 export function Desk({ stories, me, onChanged }: { stories: Story[]; me?: User; onChanged: () => void }) {
   const { storyId } = useParams(); const navigate = useNavigate(); const store = useStore(); const { gate } = useGate();
@@ -153,7 +121,11 @@ export function Desk({ stories, me, onChanged }: { stories: Story[]; me?: User; 
   }
 
   async function changeStory(id: string) { if (await save()) navigate(`/desk/${id}`); }
-  function applyShape(shape: DeskShape) { if (!editor || !story || !canEditGroup || compareBusy) return; if (stats.words && !window.confirm('Switch story routes? Your current draft will be replaced after the next save.')) return; editor.commands.setContent(deskShapeTemplate(shape)); setSideTab('CHECK'); setSaveState('DIRTY'); }
+  function applyShape(shape: DeskShape) { if (!editor?.isEditable || !story || !canEditGroup || busy || compareBusy) return; if (stats.words && !window.confirm('Switch story routes? Your current draft will be replaced after the next save.')) return; editor.commands.setContent(deskShapeTemplate(shape)); setSideTab('CHECK'); setSaveState('DIRTY'); }
+  function dropTemplate() {
+    if (!editor?.isEditable || !story || !canEditGroup || busy || compareBusy) return;
+    editor.chain().focus().command(useRegularWriting).run();
+  }
   function insertQuote(source: NonNullable<Story['brief']>['sources'][number]) { if (!editor || !source.quotes.trim() || !canEditGroup || compareBusy) return; editor.chain().focus().insertContent(sourceQuoteContent(source)).run(); }
 
   function groupChanged() { setGroupRefresh(value => value + 1); onChanged(); }
@@ -215,7 +187,7 @@ export function Desk({ stories, me, onChanged }: { stories: Story[]; me?: User; 
 
     <div className="desk-shell">
       {comparing && <aside className="desk-group-sources"><div className="desk-compare-actions"><button type="button" className="newsroom-button" onClick={() => setComparing(false)}>Back to writing tools</button><button type="button" className="newsroom-button" onClick={() => setGroupRefresh(value => value + 1)}>Refresh collected writing</button></div><GroupCompare revisions={groupRevisions} onInsert={(revision, selectedText) => void insertGroupWriting(revision, selectedText)} onOpen={revision => void openGroupWriting(revision)} busy={compareBusy || busy || !me} canInsert={canInsertGroup} /></aside>}
-      {!focus && !comparing && <aside className="desk-outline"><DeskRoutePicker selected={activeShape} recommended={recommendedShape} disabled={!canEditGroup || compareBusy} onChoose={applyShape} /></aside>}
+      {!focus && !comparing && <aside className="desk-outline"><DeskRoutePicker selected={activeShape} recommended={recommendedShape} disabled={!canEditGroup || busy || compareBusy} onChoose={applyShape} onRegularWriting={dropTemplate} /></aside>}
 
       <main className="desk-paper"><fieldset disabled={!canEditGroup || compareBusy} className="desk-toolbar" role="toolbar" aria-label="Writing tools">
         <button aria-label="Undo" disabled={!editor?.can().undo()} onClick={() => editor?.chain().focus().undo().run()}><ControlIcon kind="undo" /></button><button aria-label="Redo" disabled={!editor?.can().redo()} onClick={() => editor?.chain().focus().redo().run()}><ControlIcon kind="redo" /></button><i />

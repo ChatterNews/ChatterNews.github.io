@@ -112,6 +112,11 @@ export const REILY_CREATING_HELP: readonly ReilyHelpTopic[] = [
     steps: ['Use the route choices beside the paper to pick a structure for your kind of story.', 'If you already wrote a draft, read the replacement confirmation carefully. Cancel to keep your current words.', 'Fill the sections with your reporting, then use check to see what is still missing.'],
   },
   {
+    id: 'desk.regular-writing', room: 'desk', title: 'Drop the template and write freely', keywords: ['template', 'shape', 'stuck', 'locked', 'remove', 'regular writing', 'freehand', 'prompts'],
+    summary: 'Regular writing removes the template prompts and keeps everything you wrote.',
+    steps: ['If the side panels are hidden, choose Exit focus or Back to writing tools.', 'Under Choose the shape, click Regular writing. Your words, formatting, quotes, and pictures stay in place.', 'Keep writing anywhere in the paper. Use Undo right away if you want the prompts back. Your choice saves with the draft.'],
+  },
+  {
     id: 'desk.notes', room: 'desk', title: 'Use my notes and exact quotes', keywords: ['notes', 'source', 'reporting', 'quote', 'interview'],
     summary: 'Project notes from Slate are available beside the draft.', when: tool('REPORTING'), focus: ['desk.sources'],
     steps: ['Open reporting on the right. If the panels are hidden, choose Exit focus or Back to writing tools.', 'Read a source’s notes and use Insert linked quote for its exact quotation.', 'If the source is missing, choose Add project notes or open the full story plan in Slate. Save those notes before returning.'],
